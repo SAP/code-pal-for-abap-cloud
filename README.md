@@ -7,7 +7,9 @@ Code Pal is a project that provides ATC checks to assist ABAP programmers in adh
 
 ## Requirements and Setup
 
-**This will need to be written after we figure out how namespaces work with Steampunk systems**
+Install via [abapGit Eclipse plugin](https://github.com/abapGit/ADT_Frontend) on ABAP cloud systems and [abapGit for SAPGUI](https://docs.abapgit.org/guide-online-install.html) on systems with SAP_BASIS 7.57 or higher.
+
+Long-term compatibility is only guaranteed for the current version of ABAP for Cloud Development. 
 
 ## Features
 

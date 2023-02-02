@@ -4,6 +4,7 @@
   <asx:values>
    <DEVC>
     <CTEXT>Test objects for Code Pal</CTEXT>
+    <TPCLASS>X</TPCLASS>
    </DEVC>
   </asx:values>
  </asx:abap>

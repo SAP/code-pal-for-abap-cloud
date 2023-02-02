@@ -28,25 +28,23 @@ class /cc4a/avoid_default_key definition
                 key_word_position         type i
       returning value(modified_statement) type if_ci_atc_quickfix=>ty_code.
 
-endclass.
+ENDCLASS.
 
 
 
-class /cc4a/avoid_default_key implementation.
+CLASS /CC4A/AVOID_DEFAULT_KEY IMPLEMENTATION.
+
 
   method if_ci_atc_check~get_meta_data.
-    /cc4a/check_meta_data=>create(
-        exporting
-            meta_data = value #( checked_types = /cc4a/check_meta_data=>checked_types-abap_programs
-                                 description = 'Avoid default keys'(des)
-                                 remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
-                                 finding_codes = value #( ( code = finding_code pseudo_comment = pseudo_comment text = 'Usage of default table key'(dtk) ) )
-                                 quickfix_codes = value #( ( code = quickfix_codes-empty_key short_text = 'Replace WITH DEFAULT KEY with WITH EMPTY KEY'(qek) ) )
-*                                 attributes =
-                               )
-        receiving
-            result    = meta_data ).
+    meta_data = /cc4a/check_meta_data=>create(
+            value #( checked_types = /cc4a/check_meta_data=>checked_types-abap_programs
+               description = 'Avoid default keys'(des)
+               remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
+               finding_codes = value #( ( code = finding_code pseudo_comment = pseudo_comment text = 'Usage of default table key'(dtk) ) )
+               quickfix_codes = value #( ( code = quickfix_codes-empty_key short_text = 'Replace WITH DEFAULT KEY with WITH EMPTY KEY'(qek) ) )
+             ) ).
   endmethod.
+
 
   method if_ci_atc_check~run.
     code_provider = data_provider->get_code_provider( ).
@@ -56,13 +54,16 @@ class /cc4a/avoid_default_key implementation.
     endloop.
   endmethod.
 
+
   method if_ci_atc_check~set_assistant_factory.
     assistant_factory = factory.
   endmethod.
 
+
   method if_ci_atc_check~verify_prerequisites.
 
   endmethod.
+
 
   method analyze_procedure.
     loop at procedure-statements assigning field-symbol(<statement>)
@@ -86,6 +87,7 @@ class /cc4a/avoid_default_key implementation.
 
   endmethod.
 
+
   method replace_empty_key.
     data(new_statement) = statement.
     loop at new_statement-tokens from key_word_position assigning field-symbol(<token>).
@@ -96,5 +98,4 @@ class /cc4a/avoid_default_key implementation.
     data(flat_new_statement) = /cc4a/abap_analyzer=>create( )->flatten_tokens( new_statement-tokens ) && `.`.
     modified_statement = /cc4a/abap_analyzer=>create( )->break_into_lines( flat_new_statement ).
   endmethod.
-
-endclass.
+ENDCLASS.

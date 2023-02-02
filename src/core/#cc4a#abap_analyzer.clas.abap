@@ -9,15 +9,24 @@ class /cc4a/abap_analyzer definition
     class-methods create returning value(instance) type ref to /cc4a/if_abap_analyzer.
   protected section.
   private section.
-endclass.
+ENDCLASS.
 
 
 
-class /cc4a/abap_analyzer implementation.
+CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
 
-  method create.
-    instance = new /cc4a/abap_analyzer( ).
+
+  method /cc4a/if_abap_analyzer~break_into_lines.
+    constants allowed_line_length type i value 255.
+    data(remaining_chunk) = strlen( code ).
+    while remaining_chunk > 0.
+      data(already_chopped_chars) = lines( code_lines ) * allowed_line_length.
+      data(chars_to_chop) = cond #( when remaining_chunk > allowed_line_length then allowed_line_length else remaining_chunk ).
+      insert code+already_chopped_chars(chars_to_chop) into table code_lines.
+      remaining_chunk -= chars_to_chop.
+    endwhile.
   endmethod.
+
 
   method /cc4a/if_abap_analyzer~find_key_words.
     position = -1.
@@ -34,19 +43,13 @@ class /cc4a/abap_analyzer implementation.
     endloop.
   endmethod.
 
-  method /cc4a/if_abap_analyzer~break_into_lines.
-    constants allowed_line_length type i value 255.
-    data(remaining_chunk) = strlen( code ).
-    while remaining_chunk > 0.
-      data(already_chopped_chars) = lines( code_lines ) * allowed_line_length.
-      data(chars_to_chop) = cond #( when remaining_chunk > allowed_line_length then allowed_line_length else remaining_chunk ).
-      insert code+already_chopped_chars(chars_to_chop) into table code_lines.
-      remaining_chunk -= chars_to_chop.
-    endwhile.
-  endmethod.
 
   method /cc4a/if_abap_analyzer~flatten_tokens.
     flat_statement = reduce #( init str = `` for tok in tokens next str = |{ str }{ tok-lexeme } | ).
   endmethod.
 
-endclass.
+
+  method create.
+    instance = new /cc4a/abap_analyzer( ).
+  endmethod.
+ENDCLASS.

@@ -45,19 +45,27 @@ private section.
     importing meta_data type ty_meta_data.
 
   data meta_data type ty_meta_data.
-endclass.
+ENDCLASS.
 
 
 
-class /cc4a/check_meta_data implementation.
+CLASS /CC4A/CHECK_META_DATA IMPLEMENTATION.
+
 
   method constructor.
     me->meta_data = meta_data.
   endmethod.
 
+
+  method create.
+    result = new /cc4a/check_meta_data( meta_data ).
+  endmethod.
+
+
   method if_ci_atc_check_meta_data~get_attributes.
     attributes = meta_data-attributes.
   endmethod.
+
 
   method if_ci_atc_check_meta_data~get_checked_object_types.
     types = switch #( meta_data-checked_types
@@ -65,17 +73,21 @@ class /cc4a/check_meta_data implementation.
     ).
   endmethod.
 
+
   method if_ci_atc_check_meta_data~get_description.
     description = meta_data-description.
   endmethod.
+
 
   method if_ci_atc_check_meta_data~get_finding_code_infos.
     finding_code_infos = corresponding #( meta_data-finding_codes ).
   endmethod.
 
+
   method if_ci_atc_check_meta_data~get_quickfix_code_infos.
     quickfix_code_infos = meta_data-quickfix_codes.
   endmethod.
+
 
   method if_ci_atc_check_meta_data~is_remote_enabled.
     is_remote_enabled = switch #( meta_data-remote_enablement
@@ -84,12 +96,8 @@ class /cc4a/check_meta_data implementation.
     ).
   endmethod.
 
+
   method if_ci_atc_check_meta_data~uses_checksums.
     uses_checksums = abap_true.
   endmethod.
-
-  method create.
-    result = new /cc4a/check_meta_data( meta_data ).
-  endmethod.
-
-endclass.
+ENDCLASS.

@@ -53,7 +53,7 @@ Legend:
 | [Optional parameters](https://github.com/SAP/code-pal-for-abap/blob/master/docs/checks/optional-parameters.md) | TBM ([#2](https://github.com/SAP/code-pal-for-abap-cloud/issues/2)) | no | |
 | [READ TABLE into field symbols](https://github.com/SAP/code-pal-for-abap/blob/master/docs/checks/sub-assign-read-table.md) | TBD | no | The Extended Program Check has a similar but not identical check |
 | [RECEIVING usage](https://github.com/SAP/code-pal-for-abap/blob/master/docs/checks/receiving-usage.md) | TBM ([#1](https://github.com/SAP/code-pal-for-abap-cloud/issues/1)) | yes | |
-| [Returning name](https://github.com/SAP/code-pal-for-abap/blob/master/docs/checks/returning-name.md) | TBM ([#1](https://github.com/SAP/code-pal-for-abap-cloud/issues/1)) | yes | |
+| [Returning name](https://github.com/SAP/code-pal-for-abap/blob/master/docs/checks/returning-name.md) | TBM ([#2](https://github.com/SAP/code-pal-for-abap-cloud/issues/2)) | yes | |
 | [Scope of variable](https://github.com/SAP/code-pal-for-abap/blob/master/docs/checks/scope-of-variable.md) | TBM ([#14](https://github.com/SAP/code-pal-for-abap-cloud/issues/14))| yes ||
 | [Self-reference](https://github.com/SAP/code-pal-for-abap/blob/master/docs/checks/self-reference.md) | TBM ([#15](https://github.com/SAP/code-pal-for-abap-cloud/issues/15)) | yes | |
 | [TEST-SEAM usage](https://github.com/SAP/code-pal-for-abap/blob/master/docs/checks/test-seam-usage.md) | TBM ([#16](https://github.com/SAP/code-pal-for-abap-cloud/issues/16)) | yes | |

@@ -27,7 +27,6 @@ class /cc4a/avoid_default_key definition
       importing statement                 type if_ci_atc_source_code_provider=>ty_statement
                 key_word_position         type i
       returning value(modified_statement) type if_ci_atc_quickfix=>ty_code.
-
 ENDCLASS.
 
 
@@ -44,8 +43,7 @@ CLASS /CC4A/AVOID_DEFAULT_KEY IMPLEMENTATION.
                quickfix_codes = value #( ( code = quickfix_codes-empty_key short_text = 'Replace WITH DEFAULT KEY with WITH EMPTY KEY'(qek) ) )
              ) ).
   endmethod.
-
-
+  
   method if_ci_atc_check~run.
     code_provider = data_provider->get_code_provider( ).
     data(procedures) = code_provider->get_procedures( code_provider->object_to_comp_unit( object ) ).
@@ -54,16 +52,13 @@ CLASS /CC4A/AVOID_DEFAULT_KEY IMPLEMENTATION.
     endloop.
   endmethod.
 
-
   method if_ci_atc_check~set_assistant_factory.
     assistant_factory = factory.
   endmethod.
 
-
   method if_ci_atc_check~verify_prerequisites.
 
   endmethod.
-
 
   method analyze_procedure.
     loop at procedure-statements assigning field-symbol(<statement>)
@@ -86,7 +81,6 @@ CLASS /CC4A/AVOID_DEFAULT_KEY IMPLEMENTATION.
     endloop.
 
   endmethod.
-
 
   method replace_empty_key.
     data(new_statement) = statement.

@@ -20,7 +20,7 @@ class test implementation.
 
     data(psuedo_comment_1) = value if_ci_atc_check=>ty_location(
         object = cl_ci_atc_unit_driver=>get_class_section_object( value #( class = test_class kind = cl_ci_atc_unit_driver=>class_section_kind-private )  )
-        position = value #( line = 14 column = 4 ) ).
+        position = value #( line = 9 column = 4 ) ).
     data(psuedo_comment_2) = value if_ci_atc_check=>ty_location(
         object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-with_pseudo_comments ) )
         position = value #( line = 4 column = 4 ) ).
@@ -29,7 +29,7 @@ class test implementation.
         position = value #( line = 8 column = 4 ) ).
     data(finding_1) = value if_ci_atc_check=>ty_location(
         object = cl_ci_atc_unit_driver=>get_class_section_object( value #( class = test_class kind = cl_ci_atc_unit_driver=>class_section_kind-private )  )
-        position = value #( line = 12 column = 4 ) ).
+        position = value #( line = 7 column = 4 ) ).
     data(finding_2) = value if_ci_atc_check=>ty_location(
         object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-without_pseudo_comments ) )
         position = value #( line = 4 column = 4 ) ).
@@ -52,14 +52,14 @@ class test implementation.
                                        quickfix_code = /cc4a/avoid_default_key=>quickfix_codes-empty_key
                                        location = psuedo_comment_1
                                        code = value #(
-                                       ( `CLASS-DATA GHI TYPE TABLE OF TY_STRUCT WITH EMPTY KEY .` ) ) ) ) )
+                                       ( `CLASS-DATA GHI TYPE TABLE OF TADIR WITH EMPTY KEY .` ) ) ) ) )
                                    ( code = /cc4a/avoid_default_key=>finding_code
                                      location = psuedo_comment_2
                                      quickfixes = value #( (
                                        quickfix_code = /cc4a/avoid_default_key=>quickfix_codes-empty_key
                                        location = psuedo_comment_2
                                        code = value #(
-                                       ( `DATA STU TYPE TABLE OF TY_STRUCT WITH EMPTY KEY .` ) ) ) ) )
+                                       ( `DATA STU TYPE TABLE OF TADIR WITH EMPTY KEY .` ) ) ) ) )
                                    ( code = /cc4a/avoid_default_key=>finding_code
                                      location = psuedo_comment_3 )
                                    ( code = /cc4a/avoid_default_key=>finding_code
@@ -68,14 +68,14 @@ class test implementation.
                                        quickfix_code = /cc4a/avoid_default_key=>quickfix_codes-empty_key
                                        location = finding_1
                                        code = value #(
-                                       ( `CLASS-DATA ABC TYPE TABLE OF TY_STRUCT WITH EMPTY KEY .` ) ) ) ) )
+                                       ( `CLASS-DATA ABC TYPE TABLE OF TADIR WITH EMPTY KEY .` ) ) ) ) )
                                    ( code = /cc4a/avoid_default_key=>finding_code
                                      location = finding_2
                                      quickfixes = value #( (
                                        quickfix_code = /cc4a/avoid_default_key=>quickfix_codes-empty_key
                                        location = finding_2
                                        code = value #(
-                                       ( `DATA STU TYPE TABLE OF TY_STRUCT WITH EMPTY KEY .` ) ) ) ) )
+                                       ( `DATA STU TYPE TABLE OF TADIR WITH EMPTY KEY .` ) ) ) ) )
                                    ( code = /cc4a/avoid_default_key=>finding_code
                                      location = finding_3 )
                                    ( code = /cc4a/avoid_default_key=>finding_code

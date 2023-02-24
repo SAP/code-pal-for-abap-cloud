@@ -47,6 +47,7 @@ CLASS /CC4A/TEST_AVOID_DEFAULT_KEY IMPLEMENTATION.
     types ty_table type sorted table of ty_malicious with unique key !with default key.
   endmethod.
 
+
   method without_pseudo_comments.
     data mno type table of ty_struct with empty key.
     data pqr type table of ty_struct with empty key.
@@ -58,7 +59,8 @@ CLASS /CC4A/TEST_AVOID_DEFAULT_KEY IMPLEMENTATION.
              bcd type standard table of string with empty key,
            end of type1.
   endmethod.
-  
+
+
   method static_findings.
     statics memo type standard table of string with default key. "#EC DEFAULT_KEY
     statics mamo type standard table of string with default key.

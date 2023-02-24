@@ -5,6 +5,11 @@
 interface /cc4a/if_abap_analyzer
   public .
 
+  types: begin of enum ty_bracket_type structure bracket_type base type sychar01,
+           open   value is initial,
+           closed value 'C',
+         end of enum ty_bracket_type structure bracket_type.
+
   methods find_key_words
     importing key_words       type string_table
               statement       type if_ci_atc_source_code_provider=>ty_statement
@@ -20,7 +25,7 @@ interface /cc4a/if_abap_analyzer
 
   methods next_token_is_bracket
     importing next_token        type if_ci_atc_source_code_provider=>ty_token
-              bracket_type      type string
+              bracket_type      type string optional
     returning value(is_bracket) type abap_bool.
 
   methods calculate_bracket_end
@@ -28,7 +33,10 @@ interface /cc4a/if_abap_analyzer
               bracket_position      type i
     returning value(end_of_bracket) type i.
 
-  methods token_is_operator
+  "! The method analyze the given token whether this is an comparison operator or not.
+  "! Operators like +, -, * and / does not count as comparison operator.
+  "! The following operators are currently supported: is, in, >, gt, <, lt, >=, ge, <=, le, =, eq, <>, ne
+  methods token_is_comparison_operator
     importing token              type if_ci_atc_source_code_provider=>ty_token
     returning value(is_operator) type abap_bool.
 

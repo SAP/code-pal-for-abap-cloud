@@ -31,7 +31,8 @@ interface /cc4a/if_abap_analyzer
   methods calculate_bracket_end
     importing statement             type if_ci_atc_source_code_provider=>ty_statement
               bracket_position      type i
-    returning value(end_of_bracket) type i.
+    returning value(end_of_bracket) type i
+    raising   /cc4a/cx_token_is_no_bracket.
 
   "! The method analyze the given token whether this is an comparison operator or not.
   "! Operators like +, -, * and / does not count as comparison operator.

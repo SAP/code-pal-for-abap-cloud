@@ -100,7 +100,7 @@ class /cc4a/abap_analyzer implementation.
       endif.
     endloop.
     if end_of_bracket is initial.
-      end_of_bracket = bracket_position + 1.
+      raise exception type /cc4a/cx_token_is_no_bracket.
     endif.
   endmethod.
 

@@ -59,7 +59,7 @@ class /cc4a/abap_analyzer implementation.
       elseif substring( val = next_token-lexeme off = strlen( next_token-lexeme ) - 1 len = 1 ) eq '('.
         is_bracket = abap_true.
       endif.
-    elseif bracket_type eq 'C'.
+    elseif bracket_type eq /cc4a/if_abap_analyzer~bracket_type-closing.
       if next_token-lexeme eq ')'.
         is_bracket = abap_true.
       elseif substring( val = next_token-lexeme len = 1 ) eq ')'.
@@ -72,9 +72,9 @@ class /cc4a/abap_analyzer implementation.
     data(bracket_counter) = 1.
     loop at statement-tokens assigning field-symbol(<token>) from bracket_position.
       data(next_token) = value #( statement-tokens[ sy-tabix + 1 ] optional ).
-      if /cc4a/abap_analyzer=>create( )->next_token_is_bracket( next_token = next_token ).
+      if /cc4a/abap_analyzer=>create( )->next_token_is_bracket( next_token = next_token bracket_type = /cc4a/if_abap_analyzer~bracket_type-opening ).
         bracket_counter = bracket_counter + 1.
-      elseif /cc4a/abap_analyzer=>create( )->next_token_is_bracket( next_token = next_token bracket_type = 'C' ).
+      elseif /cc4a/abap_analyzer=>create( )->next_token_is_bracket( next_token = next_token bracket_type = /cc4a/if_abap_analyzer~bracket_type-closing ).
         if bracket_counter eq 1.
           end_of_bracket = sy-tabix + 1.
           exit.

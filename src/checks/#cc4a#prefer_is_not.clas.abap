@@ -134,12 +134,12 @@ class /cc4a/prefer_is_not implementation.
     data(current_index) = start_position + 1.
     loop at statement-tokens assigning field-symbol(<token>) from current_index.
       data(next_token) = value #( statement-tokens[ current_index ] optional ).
-      if next_token is not initial and not /cc4a/abap_analyzer=>create( )->next_token_is_bracket( next_token = next_token ).
+      if next_token is not initial and not /cc4a/abap_analyzer=>create( )->next_token_is_bracket( next_token = next_token bracket_type = /cc4a/if_abap_analyzer=>bracket_type-opening ).
         next_token = value #( statement-tokens[ current_index + 1 ] optional ).
         if statement-tokens[ start_position + 1 ]-lexeme eq '(' and ( next_token-lexeme eq 'AND' or next_token-lexeme eq 'OR' ).
           clear key_word_information.
           exit.
-        elseif next_token is not initial and /cc4a/abap_analyzer=>create( )->next_token_is_bracket( next_token = next_token bracket_type = 'C' ).
+        elseif next_token is not initial and /cc4a/abap_analyzer=>create( )->next_token_is_bracket( next_token = next_token bracket_type = /cc4a/if_abap_analyzer=>bracket_type-closing ).
           exit.
         elseif /cc4a/abap_analyzer=>create( )->token_is_comparison_operator( token = next_token ).
           insert value #( key_word_position = start_position
@@ -150,12 +150,12 @@ class /cc4a/prefer_is_not implementation.
           else.
             exit.
           endif.
-        elseif next_token is not initial and /cc4a/abap_analyzer=>create( )->next_token_is_bracket( next_token = next_token ).
+        elseif next_token is not initial and /cc4a/abap_analyzer=>create( )->next_token_is_bracket( next_token = next_token bracket_type = /cc4a/if_abap_analyzer=>bracket_type-opening ).
           current_index = /cc4a/abap_analyzer=>create( )->calculate_bracket_end( statement = statement bracket_position = current_index + 1 ).
         else.
           current_index = current_index + 1.
         endif.
-      elseif next_token is not initial and /cc4a/abap_analyzer=>create( )->next_token_is_bracket( next_token = next_token ).
+      elseif next_token is not initial and /cc4a/abap_analyzer=>create( )->next_token_is_bracket( next_token = next_token bracket_type = /cc4a/if_abap_analyzer=>bracket_type-opening ).
         if next_token-lexeme eq '(' and current_index eq start_position + 1.
           next_token = value #( statement-tokens[ /cc4a/abap_analyzer=>create( )->calculate_bracket_end( statement = statement bracket_position = current_index ) + 1 ] optional ).
           if next_token is initial or next_token-lexeme eq 'AND' or next_token-lexeme eq 'OR'.

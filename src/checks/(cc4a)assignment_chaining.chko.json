@@ -1,0 +1,10 @@
+{
+  "formatVersion": "1",
+  "header": {
+    "description": "Assignment Chaining",
+    "originalLanguage": "en"
+  },
+  "category": "/CC4A/CODE_PAL",
+  "implementingClass": "/CC4A/EQUALS_SIGN_CHAINING",
+  "checkType": "remoteEnabled"
+}

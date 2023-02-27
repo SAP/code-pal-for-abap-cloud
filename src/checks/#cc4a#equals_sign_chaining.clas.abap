@@ -30,7 +30,7 @@ CLASS /cc4a/equals_sign_chaining DEFINITION
     DATA code_provider     TYPE REF TO if_ci_atc_source_code_provider.
     DATA assistant_factory TYPE REF TO cl_ci_atc_assistant_factory.
 
-    METHODS calculate_qickfix_data IMPORTING statement      TYPE if_ci_atc_source_code_provider=>ty_statement
+    METHODS calculate_quickfix_data IMPORTING statement      TYPE if_ci_atc_source_code_provider=>ty_statement
                                    RETURNING VALUE(qf_data) TYPE qf_data.
 
 ENDCLASS.

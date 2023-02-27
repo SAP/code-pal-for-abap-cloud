@@ -9,6 +9,13 @@ class /cc4a/abap_analyzer definition
     class-methods create returning value(instance) type ref to /cc4a/if_abap_analyzer.
   protected section.
   private section.
+    types:
+      begin of ty_negation,
+        operator type string,
+        negated  type string,
+      end of ty_negation.
+
+    class-data negations type table of ty_negation.
 endclass.
 
 
@@ -17,6 +24,19 @@ class /cc4a/abap_analyzer implementation.
 
   method create.
     instance = new /cc4a/abap_analyzer( ).
+
+    negations = value #( ( operator = '>' negated = '<=' )
+                         ( operator = 'GT' negated = '<=' )
+                         ( operator = '<' negated = '>=' )
+                         ( operator = 'LT' negated = '>=' )
+                         ( operator = '=' negated = '<>' )
+                         ( operator = 'EQ' negated = '<>' )
+                         ( operator = '<>' negated = '=' )
+                         ( operator = 'NE' negated = '=' )
+                         ( operator = '<=' negated = '>' )
+                         ( operator = 'LE' negated = '>' )
+                         ( operator = '>=' negated = '<' )
+                         ( operator = 'GE' negated = '<' ) ).
   endmethod.
 
   method /cc4a/if_abap_analyzer~find_key_words.
@@ -49,32 +69,28 @@ class /cc4a/abap_analyzer implementation.
     flat_statement = reduce #( init str = `` for tok in tokens next str = |{ str }{ tok-lexeme } | ).
   endmethod.
 
-  method /cc4a/if_abap_analyzer~next_token_is_bracket.
-    is_bracket = abap_false.
-    if bracket_type is initial.
-      if next_token-lexeme eq '('.
-        is_bracket = abap_true.
-      elseif next_token-lexeme eq 'XSDBOOL('.
-        is_bracket = abap_true.
-      elseif substring( val = next_token-lexeme off = strlen( next_token-lexeme ) - 1 len = 1 ) eq '('.
-        is_bracket = abap_true.
-      endif.
-    elseif bracket_type eq /cc4a/if_abap_analyzer~bracket_type-closing.
-      if next_token-lexeme eq ')'.
-        is_bracket = abap_true.
-      elseif substring( val = next_token-lexeme len = 1 ) eq ')'.
-        is_bracket = abap_true.
-      endif.
-    endif.
+  method /cc4a/if_abap_analyzer~is_bracket.
+    case token-lexeme.
+      when '(' or 'XSDBOOL('.
+        bracket_type = /cc4a/if_abap_analyzer=>bracket_type-opening.
+      when ')'.
+        bracket_type = /cc4a/if_abap_analyzer=>bracket_type-closing.
+      when others.
+        if token is not initial and substring( val = token-lexeme off = strlen( token-lexeme ) - 1 len = 1 ) eq '('.
+          bracket_type = /cc4a/if_abap_analyzer=>bracket_type-opening.
+        elseif token is not initial and substring( val = token-lexeme len = 1 ) eq ')'.
+          bracket_type = /cc4a/if_abap_analyzer=>bracket_type-closing.
+        endif.
+    endcase.
   endmethod.
 
   method /cc4a/if_abap_analyzer~calculate_bracket_end.
     data(bracket_counter) = 1.
     loop at statement-tokens assigning field-symbol(<token>) from bracket_position.
       data(next_token) = value #( statement-tokens[ sy-tabix + 1 ] optional ).
-      if /cc4a/abap_analyzer=>create( )->next_token_is_bracket( next_token = next_token bracket_type = /cc4a/if_abap_analyzer~bracket_type-opening ).
+      if /cc4a/abap_analyzer=>create( )->is_bracket( token = next_token ) = /cc4a/if_abap_analyzer=>bracket_type-opening.
         bracket_counter = bracket_counter + 1.
-      elseif /cc4a/abap_analyzer=>create( )->next_token_is_bracket( next_token = next_token bracket_type = /cc4a/if_abap_analyzer~bracket_type-closing ).
+      elseif /cc4a/abap_analyzer=>create( )->is_bracket( token = next_token ) = /cc4a/if_abap_analyzer=>bracket_type-closing.
         if bracket_counter eq 1.
           end_of_bracket = sy-tabix + 1.
           exit.
@@ -83,6 +99,9 @@ class /cc4a/abap_analyzer implementation.
         endif.
       endif.
     endloop.
+    if end_of_bracket is initial.
+      end_of_bracket = bracket_position + 1.
+    endif.
   endmethod.
 
   method /cc4a/if_abap_analyzer~token_is_comparison_operator.
@@ -94,5 +113,8 @@ class /cc4a/abap_analyzer implementation.
     endcase.
   endmethod.
 
+  method /cc4a/if_abap_analyzer~get_negation_for_operator.
+    negated_operator = negations[ operator = operator ]-negated.
+  endmethod.
 
 endclass.

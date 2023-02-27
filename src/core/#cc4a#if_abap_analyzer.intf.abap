@@ -6,8 +6,9 @@ interface /cc4a/if_abap_analyzer
   public .
 
   types: begin of enum ty_bracket_type structure bracket_type base type c,
-           opening value is initial,
-           closing value 'c',
+           no_bracket value is initial,
+           opening    value 'o',
+           closing    value 'c',
          end of enum ty_bracket_type structure bracket_type.
 
   methods find_key_words
@@ -23,10 +24,9 @@ interface /cc4a/if_abap_analyzer
     importing tokens                type if_ci_atc_source_code_provider=>ty_tokens
     returning value(flat_statement) type string.
 
-  methods next_token_is_bracket
-    importing next_token        type if_ci_atc_source_code_provider=>ty_token
-              bracket_type      type ty_bracket_type
-    returning value(is_bracket) type abap_bool.
+  methods is_bracket
+    importing token               type if_ci_atc_source_code_provider=>ty_token
+    returning value(bracket_type) type ty_bracket_type.
 
   methods calculate_bracket_end
     importing statement             type if_ci_atc_source_code_provider=>ty_statement
@@ -39,5 +39,9 @@ interface /cc4a/if_abap_analyzer
   methods token_is_comparison_operator
     importing token              type if_ci_atc_source_code_provider=>ty_token
     returning value(is_operator) type abap_bool.
+
+  methods get_negation_for_operator
+    importing operator                type string
+    returning value(negated_operator) type string.
 
 endinterface.

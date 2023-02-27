@@ -22,8 +22,6 @@ class /cc4a/prefer_is_not definition
     types ty_finding_information type standard table of ty_key_word_information with empty key.
     types ty_starting_positions type standard table of i with empty key.
 
-    data starting_positions type ty_starting_positions.
-    data finding_information type ty_finding_information.
     data code_provider     type ref to if_ci_atc_source_code_provider.
     data assistant_factory type ref to cl_ci_atc_assistant_factory.
 
@@ -36,10 +34,10 @@ class /cc4a/prefer_is_not definition
                 statement                 type if_ci_atc_source_code_provider=>ty_statement
       returning value(key_word_positions) type ty_starting_positions.
 
-    methods find_key_word
+    methods find_operator
       importing statement                   type if_ci_atc_source_code_provider=>ty_statement
                 start_position              type i
-      returning value(key_word_information) type ty_finding_information.
+      returning value(key_word_information) type ty_key_word_information.
 
     methods create_quickfix_code
       importing statement                 type if_ci_atc_source_code_provider=>ty_statement
@@ -89,7 +87,10 @@ class /cc4a/prefer_is_not implementation.
 
 
   method analyze_procedure.
+    data starting_positions type ty_starting_positions.
+    data finding_information type standard table of ty_key_word_information.
     loop at procedure-statements assigning field-symbol(<statement>).
+      data(statement_index) = sy-tabix.
       clear starting_positions.
       clear finding_information.
       if <statement>-keyword eq 'IF' or <statement>-keyword = 'ELSEIF' or <statement>-keyword = 'LOOP'.
@@ -99,28 +100,25 @@ class /cc4a/prefer_is_not implementation.
           starting_positions = find_key_word_positions( statement = <statement> key_word = 'NOT' ).
         endloop.
       endif.
-      if starting_positions is not initial.
-        loop at starting_positions assigning field-symbol(<position>).
-          data(finding) = find_key_word( statement = <statement> start_position = <position> ).
-          insert lines of finding into table finding_information.
-        endloop.
-      endif.
-      if finding_information is not initial.
-        data(statement_index) = sy-tabix.
-        loop at finding_information assigning field-symbol(<finding_information>).
-          data(available_quickfixes) = assistant_factory->create_quickfixes( ).
-          available_quickfixes->create_quickfix( quickfix_code )->replace(
-                    context = assistant_factory->create_quickfix_context( value #( procedure_id = procedure-id statements = value #( from = statement_index to = statement_index ) ) )
-                    code = create_quickfix_code( statement = <statement> key_word_information = <finding_information> ) ).
-          insert value #( code = finding_code
-                  location = value #( object = code_provider->get_statement_location( <statement> )-object
-                                      position = value #( line = code_provider->get_statement_location( <statement> )-position-line column = <finding_information>-operator_position ) )
-                  checksum = code_provider->get_statement_checksum( <statement> )
-                  has_pseudo_comment = xsdbool( line_exists( <statement>-pseudo_comments[ table_line = pseudo_comment ] ) )
-                  details = assistant_factory->create_finding_details( )->attach_quickfixes( available_quickfixes )
-                  ) into table findings.
-        endloop.
-      endif.
+      loop at starting_positions assigning field-symbol(<position>).
+        data(finding) = find_operator( statement = <statement> start_position = <position> ).
+        if finding is not initial.
+          insert finding into table finding_information.
+        endif.
+      endloop.
+      loop at finding_information assigning field-symbol(<finding_information>).
+        data(available_quickfixes) = assistant_factory->create_quickfixes( ).
+        available_quickfixes->create_quickfix( quickfix_code )->replace(
+                  context = assistant_factory->create_quickfix_context( value #( procedure_id = procedure-id statements = value #( from = statement_index to = statement_index ) ) )
+                  code = create_quickfix_code( statement = <statement> key_word_information = <finding_information> ) ).
+        insert value #( code = finding_code
+                location = value #( object = code_provider->get_statement_location( <statement> )-object
+                                    position = value #( line = code_provider->get_statement_location( <statement> )-position-line column = <finding_information>-operator_position ) )
+                checksum = code_provider->get_statement_checksum( <statement> )
+                has_pseudo_comment = xsdbool( line_exists( <statement>-pseudo_comments[ table_line = pseudo_comment ] ) )
+                details = assistant_factory->create_finding_details( )->attach_quickfixes( available_quickfixes )
+                ) into table findings.
+      endloop.
     endloop.
   endmethod.
 
@@ -130,32 +128,32 @@ class /cc4a/prefer_is_not implementation.
     endloop.
   endmethod.
 
-  method find_key_word.
+  method find_operator.
     data(current_index) = start_position + 1.
-    loop at statement-tokens assigning field-symbol(<token>) from current_index.
+    loop at statement-tokens assigning field-symbol(<token>).
       data(next_token) = value #( statement-tokens[ current_index ] optional ).
-      if next_token is not initial and not /cc4a/abap_analyzer=>create( )->next_token_is_bracket( next_token = next_token bracket_type = /cc4a/if_abap_analyzer=>bracket_type-opening ).
+      if next_token is not initial and /cc4a/abap_analyzer=>create( )->is_bracket( token = next_token ) <> /cc4a/if_abap_analyzer=>bracket_type-opening.
         next_token = value #( statement-tokens[ current_index + 1 ] optional ).
         if statement-tokens[ start_position + 1 ]-lexeme eq '(' and ( next_token-lexeme eq 'AND' or next_token-lexeme eq 'OR' ).
           clear key_word_information.
           exit.
-        elseif next_token is not initial and /cc4a/abap_analyzer=>create( )->next_token_is_bracket( next_token = next_token bracket_type = /cc4a/if_abap_analyzer=>bracket_type-closing ).
+        elseif next_token is not initial and /cc4a/abap_analyzer=>create( )->is_bracket( token = next_token ) = /cc4a/if_abap_analyzer=>bracket_type-closing.
           exit.
-        elseif /cc4a/abap_analyzer=>create( )->token_is_comparison_operator( token = next_token ).
-          insert value #( key_word_position = start_position
+        elseif next_token is not initial and /cc4a/abap_analyzer=>create( )->token_is_comparison_operator( token = next_token ).
+          key_word_information = value #( key_word_position = start_position
                                           operator = statement-tokens[ current_index + 1 ]-lexeme
-                                          operator_position = current_index + 1 ) into table key_word_information.
+                                          operator_position = current_index + 1 ).
           if statement-tokens[ start_position + 1 ]-lexeme eq '('.
             current_index = current_index + 1.
           else.
             exit.
           endif.
-        elseif next_token is not initial and /cc4a/abap_analyzer=>create( )->next_token_is_bracket( next_token = next_token bracket_type = /cc4a/if_abap_analyzer=>bracket_type-opening ).
+        elseif next_token is not initial and /cc4a/abap_analyzer=>create( )->is_bracket( token = next_token ) = /cc4a/if_abap_analyzer=>bracket_type-opening.
           current_index = /cc4a/abap_analyzer=>create( )->calculate_bracket_end( statement = statement bracket_position = current_index + 1 ).
         else.
           current_index = current_index + 1.
         endif.
-      elseif next_token is not initial and /cc4a/abap_analyzer=>create( )->next_token_is_bracket( next_token = next_token bracket_type = /cc4a/if_abap_analyzer=>bracket_type-opening ).
+      elseif next_token is not initial and /cc4a/abap_analyzer=>create( )->is_bracket( token = next_token ) = /cc4a/if_abap_analyzer=>bracket_type-opening.
         if next_token-lexeme eq '(' and current_index eq start_position + 1.
           next_token = value #( statement-tokens[ /cc4a/abap_analyzer=>create( )->calculate_bracket_end( statement = statement bracket_position = current_index ) + 1 ] optional ).
           if next_token is initial or next_token-lexeme eq 'AND' or next_token-lexeme eq 'OR'.
@@ -184,24 +182,11 @@ class /cc4a/prefer_is_not implementation.
           <token> = new_statement-tokens[ sy-tabix + 1 ].
         endloop.
         new_statement-tokens[ key_word_information-operator_position - 1 ]-lexeme = 'NOT'.
-      when '>' or 'GT'.
-        create_new_statement( exporting statement = statement new_operator = '<='  key_word_position = key_word_information-key_word_position operator_position = key_word_information-operator_position
-                                receiving changed_new_statement = new_statement ).
-      when '<' or 'LT'.
-        create_new_statement( exporting statement = statement new_operator = '>='  key_word_position = key_word_information-key_word_position operator_position = key_word_information-operator_position
-                                receiving changed_new_statement = new_statement ).
-      when '=' or 'EQ'.
-        create_new_statement( exporting statement = statement new_operator = '<>'  key_word_position = key_word_information-key_word_position operator_position = key_word_information-operator_position
-                                receiving changed_new_statement = new_statement ).
-      when '<>' or 'NE'.
-        create_new_statement( exporting statement = statement new_operator = '='  key_word_position = key_word_information-key_word_position operator_position = key_word_information-operator_position
-                                receiving changed_new_statement = new_statement ).
-      when '<=' or 'LE'.
-        create_new_statement( exporting statement = statement new_operator = '>'  key_word_position = key_word_information-key_word_position operator_position = key_word_information-operator_position
-                                receiving changed_new_statement = new_statement ).
-      when '>=' or 'GE'.
-        create_new_statement( exporting statement = statement new_operator = '<' key_word_position = key_word_information-key_word_position operator_position = key_word_information-operator_position
-                                receiving changed_new_statement = new_statement ).
+      when others.
+        new_statement = create_new_statement( statement = statement
+                                              new_operator = /cc4a/abap_analyzer=>create( )->get_negation_for_operator( key_word_information-operator )
+                                              key_word_position = key_word_information-key_word_position
+                                              operator_position = key_word_information-operator_position ).
     endcase.
 
     data(flat_new_statement) = /cc4a/abap_analyzer=>create( )->flatten_tokens( new_statement-tokens ) && `.`.

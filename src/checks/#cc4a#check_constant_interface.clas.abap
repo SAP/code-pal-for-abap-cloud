@@ -27,10 +27,10 @@ CLASS /cc4a/check_constant_interface IMPLEMENTATION.
   METHOD if_ci_atc_check~get_meta_data.
 
     meta_data = /cc4a/check_meta_data=>create( VALUE #( checked_types     = /cc4a/check_meta_data=>checked_types-abap_programs
-                                                        description       = 'Constants Interface Check'(des)
+                                                        description       = 'Constants in Interfaces'(des)
                                                         finding_codes     = VALUE #( ( code           = message_codes-cons_intf
                                                                                        pseudo_comment = pseudo_comments-cons_intf
-                                                                                       text           = 'There are only constants in this interface!'(mc1) ) )
+                                                                                       text           = 'Interface contains only constants'(mc1) ) )
                                                         remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional ) ).
 
   ENDMETHOD.
@@ -49,7 +49,7 @@ CLASS /cc4a/check_constant_interface IMPLEMENTATION.
 
         IF <statement>-keyword = 'INTERFACE'.
           IF lines( <statement>-tokens ) >= 3.
-            " Ignore interface load and deffered statements, we are only interested in interface definitions
+            " Ignore interface load and deferred statements, we are only interested in interface definitions
             CHECK <statement>-tokens[ 3 ]-lexeme <> 'LOAD' AND <statement>-tokens[ 3 ]-lexeme <> 'DEFERRED'.
           ENDIF.
           if_definition = abap_true.
@@ -76,12 +76,7 @@ CLASS /cc4a/check_constant_interface IMPLEMENTATION.
           ENDIF.
           " Check if there is anything else except constants
           IF      has_something_else              = abap_false
-              AND <statement>-tokens[ 1 ]-lexeme <> 'CONSTANTS'
-              AND <statement>-tokens[ 1 ]-lexeme <> 'INTERFACE'
-              AND <statement>-tokens[ 1 ]-lexeme <> 'ENDINTERFACE'
-              AND <statement>-tokens[ 1 ]-lexeme <> 'BEGIN'
-              AND <statement>-tokens[ 1 ]-lexeme <> 'END'
-              AND <statement>-tokens[ 1 ]-lexeme <> 'OF'.
+              AND <statement>-tokens[ 1 ]-lexeme <> 'CONSTANTS'.
             has_something_else = abap_true.
           ENDIF.
         ENDIF.

@@ -16,13 +16,13 @@
     <item>
      <ID>I</ID>
      <KEY>DES</KEY>
-     <ENTRY>Equals Sign Chaining</ENTRY>
-     <LENGTH>88</LENGTH>
+     <ENTRY>Assignment Chaining</ENTRY>
+     <LENGTH>132</LENGTH>
     </item>
     <item>
      <ID>I</ID>
      <KEY>MC1</KEY>
-     <ENTRY>Values should not be allocated more than once within one statement!</ENTRY>
+     <ENTRY>Values are allocated more than once within one statement</ENTRY>
      <LENGTH>132</LENGTH>
     </item>
     <item>

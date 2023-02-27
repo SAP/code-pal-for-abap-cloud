@@ -16,13 +16,13 @@
     <item>
      <ID>I</ID>
      <KEY>DES</KEY>
-     <ENTRY>Constants Interface Check</ENTRY>
+     <ENTRY>Constants in Interfaces</ENTRY>
      <LENGTH>132</LENGTH>
     </item>
     <item>
      <ID>I</ID>
      <KEY>MC1</KEY>
-     <ENTRY>There are only constants in this interface!</ENTRY>
+     <ENTRY>Interface contains only constants</ENTRY>
      <LENGTH>132</LENGTH>
     </item>
    </TPOOL>

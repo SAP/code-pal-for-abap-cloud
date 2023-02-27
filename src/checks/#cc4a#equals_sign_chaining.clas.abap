@@ -20,13 +20,18 @@ CLASS /cc4a/equals_sign_chaining DEFINITION
       END OF   quickfix_codes.
 
   PRIVATE SECTION.
+    TYPES:
+      BEGIN OF qf_data,
+        replacement              TYPE if_ci_atc_quickfix=>ty_code,
+        insert_after             TYPE if_ci_atc_quickfix=>ty_code,
+        token_tabix_last_eq_sign TYPE i,
+      END OF qf_data.
+
     DATA code_provider     TYPE REF TO if_ci_atc_source_code_provider.
     DATA assistant_factory TYPE REF TO cl_ci_atc_assistant_factory.
 
-    METHODS calc_qf_code IMPORTING statement                TYPE if_ci_atc_source_code_provider=>ty_statement
-                         EXPORTING replacement              TYPE if_ci_atc_quickfix=>ty_code
-                                   insert_after             TYPE if_ci_atc_quickfix=>ty_code
-                                   token_tabix_last_eq_sign TYPE i.
+    METHODS calculate_qickfix_data IMPORTING statement      TYPE if_ci_atc_source_code_provider=>ty_statement
+                                   RETURNING VALUE(qf_data) TYPE qf_data.
 
 ENDCLASS.
 
@@ -38,10 +43,10 @@ CLASS /cc4a/equals_sign_chaining IMPLEMENTATION.
   METHOD if_ci_atc_check~get_meta_data.
 
     meta_data = /cc4a/check_meta_data=>create( VALUE #( checked_types     = /cc4a/check_meta_data=>checked_types-abap_programs
-                                                        description       = 'Equals Sign Chaining'(des)
+                                                        description       = 'Assignment Chaining'(des)
                                                         finding_codes     = VALUE #( ( code           = message_codes-eqals_sign_chaining
                                                                                        pseudo_comment = pseudo_comments-eqals_sign_chaining
-                                                                                       text           = 'Values should not be allocated more than once within one statement!'(mc1) ) )
+                                                                                       text           = 'Values are allocated more than once within one statement'(mc1) ) )
                                                         quickfix_codes    = VALUE #( ( code       = quickfix_codes-break_chain
                                                                                        short_text = 'Break assignment chain into multiple rows'(q1s) ) )
                                                         remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional ) ).
@@ -57,29 +62,26 @@ CLASS /cc4a/equals_sign_chaining IMPLEMENTATION.
     LOOP AT procedures->* ASSIGNING FIELD-SYMBOL(<procedure>).
 
       " Access with primary key needed to receive correct sy-tabix in loop
-      LOOP AT <procedure>-statements ASSIGNING FIELD-SYMBOL(<statement>) WHERE keyword = 'COMPUTE'.
+      LOOP AT <procedure>-statements ASSIGNING FIELD-SYMBOL(<statement>) WHERE keyword = 'COMPUTE' ##PRIMKEY[KEYWORD].
 
         DATA(nr_of_tokens) = lines( <statement>-tokens ).
         CHECK nr_of_tokens > 3.
         IF <statement>-tokens[ 2 ]-lexeme = '=' AND <statement>-tokens[ 4 ]-lexeme = '='.
 
           " Create quickfix BRK_CHAIN
-          calc_qf_code( EXPORTING statement                = <statement>
-                        IMPORTING replacement              = DATA(replacement)
-                                  insert_after             = DATA(insert_after)
-                                  token_tabix_last_eq_sign = DATA(token_tabix_last_eq_sign) ).
+          DATA(qf_data) = calculate_qickfix_data( <statement> ).
           DATA(quickfixes) = assistant_factory->create_quickfixes( ).
           DATA(quickfix_1) = quickfixes->create_quickfix( quickfix_code = quickfix_codes-break_chain ).
           quickfix_1->replace( context = assistant_factory->create_quickfix_context( VALUE #( procedure_id = <procedure>-id
                                                                                               statements   = VALUE #( from = sy-tabix
                                                                                                                       to   = sy-tabix )
                                                                                               tokens       = VALUE #( from = 1
-                                                                                                                      to   = token_tabix_last_eq_sign ) ) )
-                                                                                              code         = replacement ).
+                                                                                                                      to   = qf_data-token_tabix_last_eq_sign ) ) )
+                                                                                              code         = qf_data-replacement ).
           quickfix_1->insert_after( context = assistant_factory->create_quickfix_context( VALUE #( procedure_id = <procedure>-id
                                                                                                    statements   = VALUE #( from = sy-tabix
                                                                                                                            to   = sy-tabix ) ) )
-                                                                                                   code         = insert_after ).
+                                                                                                   code         = qf_data-insert_after ).
 
           INSERT VALUE #( code               = message_codes-eqals_sign_chaining
                           location           = code_provider->get_statement_location( <statement> )
@@ -109,15 +111,14 @@ CLASS /cc4a/equals_sign_chaining IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD calc_qf_code.
+  METHOD calculate_qickfix_data.
 
-    CLEAR: replacement, insert_after. " Needed, do not delete
+    CLEAR: qf_data. " Needed, do not delete
+
+    DATA(line_offset) = statement-tokens[ 1 ]-position-column.
 
     " Find last relevant equal sign of statement
     LOOP AT statement-tokens ASSIGNING FIELD-SYMBOL(<token>).
-      AT FIRST.
-        DATA(line_offset) = <token>-position-column.
-      ENDAT.
 
       IF sy-tabix MOD 2 <> 0.
         CONTINUE.
@@ -125,26 +126,23 @@ CLASS /cc4a/equals_sign_chaining IMPLEMENTATION.
         IF <token>-lexeme <> '='.
           EXIT.
         ENDIF.
-        token_tabix_last_eq_sign = sy-tabix.
+        qf_data-token_tabix_last_eq_sign = sy-tabix.
       ENDIF.
 
     ENDLOOP.
 
     " Calculate replacement code
-    DATA(line_of_code) = |{ statement-tokens[ token_tabix_last_eq_sign - 1 ]-lexeme } = |.
-    INSERT line_of_code INTO TABLE replacement.
+    DATA(line_of_code) = |{ statement-tokens[ qf_data-token_tabix_last_eq_sign - 1 ]-lexeme } = |.
+    INSERT line_of_code INTO TABLE qf_data-replacement.
 
     " Calculate insert after code
-    DATA(helper_var) = token_tabix_last_eq_sign.
+    DATA(token_tabix) = qf_data-token_tabix_last_eq_sign.
     CLEAR line_of_code.
-    DATA offset TYPE string.
-    DO line_offset TIMES.
-      offset = |{ offset } |.
-    ENDDO.
-    DO ( token_tabix_last_eq_sign / 2 ) - 1 TIMES.
-      helper_var -= 2.
-      line_of_code = |{ offset }{ statement-tokens[ helper_var - 1 ]-lexeme } = { statement-tokens[ helper_var + 1 ]-lexeme }.|.
-      INSERT line_of_code INTO TABLE insert_after.
+    DATA(offset) = |{ '' WIDTH = line_offset PAD = ` ` }|.
+    DO ( qf_data-token_tabix_last_eq_sign / 2 ) - 1 TIMES.
+      token_tabix -= 2.
+      line_of_code = |{ offset }{ statement-tokens[ token_tabix - 1 ]-lexeme } = { statement-tokens[ token_tabix + 1 ]-lexeme }.|.
+      INSERT line_of_code INTO TABLE qf_data-insert_after.
     ENDDO.
 
   ENDMETHOD.

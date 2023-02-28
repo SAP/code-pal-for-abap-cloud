@@ -69,7 +69,7 @@ CLASS /cc4a/equals_sign_chaining IMPLEMENTATION.
         IF <statement>-tokens[ 2 ]-lexeme = '=' AND <statement>-tokens[ 4 ]-lexeme = '='.
 
           " Create quickfix BRK_CHAIN
-          DATA(qf_data) = calculate_qickfix_data( <statement> ).
+          DATA(qf_data) = calculate_quickfix_data( <statement> ).
           DATA(quickfixes) = assistant_factory->create_quickfixes( ).
           DATA(quickfix_1) = quickfixes->create_quickfix( quickfix_code = quickfix_codes-break_chain ).
           quickfix_1->replace( context = assistant_factory->create_quickfix_context( VALUE #( procedure_id = <procedure>-id
@@ -111,7 +111,7 @@ CLASS /cc4a/equals_sign_chaining IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD calculate_qickfix_data.
+  METHOD calculate_quickfix_data.
 
     CLEAR: qf_data. " Needed, do not delete
 

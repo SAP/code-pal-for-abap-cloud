@@ -6,18 +6,20 @@ class /cc4a/message_easy2find definition
   public section.
     interfaces if_ci_atc_check.
 
-    CONSTANTS:
-      BEGIN OF message_codes,
-        msg_find TYPE if_ci_atc_check=>ty_finding_code VALUE 'MSG_FIND',
-      END OF   message_codes.
-    CONSTANTS:
-      BEGIN OF pseudo_comments,
-        msg_find TYPE string VALUE 'MSG_FIND',
-      END OF   pseudo_comments.
+    constants:
+      begin of message_codes,
+        msg_find type if_ci_atc_check=>ty_finding_code value 'MSG_FIND',
+      end of   message_codes.
+    constants:
+      begin of pseudo_comments,
+        msg_find type string value 'MSG_FIND',
+      end of   pseudo_comments.
 
   protected section.
 
   private section.
+    data code_provider     type ref to if_ci_atc_source_code_provider.
+
 
 endclass.
 
@@ -39,6 +41,12 @@ class /cc4a/message_easy2find implementation.
   endmethod.
 
   method if_ci_atc_check~run.
+
+    code_provider = data_provider->get_code_provider( ).
+    data(procedures) = code_provider->get_procedures( exporting compilation_unit = code_provider->object_to_comp_unit( object = object ) ).
+
+
+
 
   endmethod.
 

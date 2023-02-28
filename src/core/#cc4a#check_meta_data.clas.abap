@@ -69,7 +69,7 @@ CLASS /CC4A/CHECK_META_DATA IMPLEMENTATION.
 
   method if_ci_atc_check_meta_data~get_checked_object_types.
     types = switch #( meta_data-checked_types
-      when checked_types-abap_programs then value #( ( 'PROG' ) ( 'CLAS' ) ( 'FUGR' ) )
+      when checked_types-abap_programs then value #( ( 'PROG' ) ( 'CLAS' ) ( 'FUGR' ) ( 'INTF' ) )
     ).
   endmethod.
 

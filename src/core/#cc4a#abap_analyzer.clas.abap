@@ -85,8 +85,8 @@ class /cc4a/abap_analyzer implementation.
   endmethod.
 
   method /cc4a/if_abap_analyzer~calculate_bracket_end.
-    if not ( /cc4a/abap_analyzer=>create( )->is_bracket( token = statement-tokens[ bracket_position ] ) = /cc4a/if_abap_analyzer=>bracket_type-opening and
-             /cc4a/abap_analyzer=>create( )->is_bracket( token = statement-tokens[ bracket_position ] ) = /cc4a/if_abap_analyzer=>bracket_type-closing ).
+    if /cc4a/abap_analyzer=>create( )->is_bracket( token = statement-tokens[ bracket_position ] ) ne /cc4a/if_abap_analyzer=>bracket_type-opening and
+       /cc4a/abap_analyzer=>create( )->is_bracket( token = statement-tokens[ bracket_position ] ) ne /cc4a/if_abap_analyzer=>bracket_type-closing.
       raise exception type /cc4a/cx_token_is_no_bracket.
     endif.
 

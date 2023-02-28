@@ -85,6 +85,11 @@ class /cc4a/abap_analyzer implementation.
   endmethod.
 
   method /cc4a/if_abap_analyzer~calculate_bracket_end.
+    if not ( /cc4a/abap_analyzer=>create( )->is_bracket( token = statement-tokens[ bracket_position ] ) = /cc4a/if_abap_analyzer=>bracket_type-opening and
+             /cc4a/abap_analyzer=>create( )->is_bracket( token = statement-tokens[ bracket_position ] ) = /cc4a/if_abap_analyzer=>bracket_type-closing ).
+      raise exception type /cc4a/cx_token_is_no_bracket.
+    endif.
+
     data(bracket_counter) = 1.
     loop at statement-tokens assigning field-symbol(<token>) from bracket_position.
       data(next_token) = value #( statement-tokens[ sy-tabix + 1 ] optional ).
@@ -100,7 +105,7 @@ class /cc4a/abap_analyzer implementation.
       endif.
     endloop.
     if end_of_bracket is initial.
-      raise exception type /cc4a/cx_token_is_no_bracket.
+      end_of_bracket = -1.
     endif.
   endmethod.
 

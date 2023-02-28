@@ -11,6 +11,12 @@ interface /cc4a/if_abap_analyzer
            closing    value 'c',
          end of enum ty_bracket_type structure bracket_type.
 
+  types: begin of enum ty_comparison_operator structure comparison_operator base type c,
+           no_operator value is initial,
+           opening     value 'o',
+           closing     value 'c',
+         end of enum ty_comparison_operator structure comparison_operator.
+
   methods find_key_words
     importing key_words       type string_table
               statement       type if_ci_atc_source_code_provider=>ty_statement
@@ -41,8 +47,9 @@ interface /cc4a/if_abap_analyzer
     importing token              type if_ci_atc_source_code_provider=>ty_token
     returning value(is_operator) type abap_bool.
 
-  methods get_negation_for_operator
-    importing operator                type string
-    returning value(negated_operator) type string.
+  methods negate_comparison_operator
+    importing comparison_operator                type string
+    returning value(negated_comparison_operator) type string
+    raising   /cc4a/cx_token_is_no_operator.
 
 endinterface.

@@ -118,8 +118,11 @@ class /cc4a/abap_analyzer implementation.
     endcase.
   endmethod.
 
-  method /cc4a/if_abap_analyzer~get_negation_for_operator.
-    negated_operator = negations[ operator = operator ]-negated.
+  method /cc4a/if_abap_analyzer~negate_comparison_operator.
+    if not /cc4a/if_abap_analyzer~token_is_comparison_operator( token = value #( lexeme = comparison_operator ) ).
+      raise exception type /cc4a/cx_token_is_no_operator.
+    endif.
+    negated_comparison_operator = negations[ operator = comparison_operator ]-negated.
   endmethod.
 
 endclass.

@@ -34,7 +34,15 @@ class /cc4a/prefer_is_not definition
                 statement                 type if_ci_atc_source_code_provider=>ty_statement
       returning value(key_word_positions) type ty_starting_positions.
 
-    methods find_operator
+    "! This method is searching the comparison operator for a keyword and its given position
+    "! (parameter start_position). Since the comparison operator has to be modified or changed,
+    "! it is important that it has no connection (AND, OR, EQUIV) after the given start position.
+    "! Therefore the methods loops over the given statement and analyzes the next token from the
+    "! start position. If the next token is the comparison operator, the operator with the position
+    "! will be returned. Otherwise the next token is analyzed until the comparison operator is
+    "! found. If any connection is found during this process, the method returns an empty structure.
+    "! This also happens if no comparison operator is found.
+    methods find_operator_with_position
       importing statement                   type if_ci_atc_source_code_provider=>ty_statement
                 start_position              type i
       returning value(key_word_information) type ty_key_word_information.
@@ -50,6 +58,16 @@ class /cc4a/prefer_is_not definition
                 key_word_position            type i
                 operator_position            type i
       returning value(changed_new_statement) type if_ci_atc_source_code_provider=>ty_statement.
+
+    "! This method takes the current token and token index from a statement and determines the next relevant token
+    "! to analyze. For this the method ignores brackets (e.g. method calls, XSDBOOL() or nested brackets) and gives
+    "! back the index of the next token in the statement which is relevant to analyze.
+    methods determine_next_relevant_token
+      importing statement                           type if_ci_atc_source_code_provider=>ty_statement
+                token                               type if_ci_atc_source_code_provider=>ty_token
+                token_index                         type i
+                start_position                      type i
+      returning value(next_relevant_token_position) type i.
 endclass.
 
 
@@ -101,7 +119,7 @@ class /cc4a/prefer_is_not implementation.
         endloop.
       endif.
       loop at starting_positions assigning field-symbol(<position>).
-        data(finding) = find_operator( statement = <statement> start_position = <position> ).
+        data(finding) = find_operator_with_position( statement = <statement> start_position = <position> ).
         if finding is not initial.
           insert finding into table finding_information.
         endif.
@@ -128,13 +146,13 @@ class /cc4a/prefer_is_not implementation.
     endloop.
   endmethod.
 
-  method find_operator.
+  method find_operator_with_position.
     data(current_index) = start_position + 1.
     loop at statement-tokens assigning field-symbol(<token>).
       data(next_token) = value #( statement-tokens[ current_index ] optional ).
       if next_token is not initial and /cc4a/abap_analyzer=>create( )->is_bracket( token = next_token ) <> /cc4a/if_abap_analyzer=>bracket_type-opening.
         next_token = value #( statement-tokens[ current_index + 1 ] optional ).
-        if statement-tokens[ start_position + 1 ]-lexeme eq '(' and ( next_token-lexeme eq 'AND' or next_token-lexeme eq 'OR' ).
+        if statement-tokens[ start_position + 1 ]-lexeme eq '(' and ( next_token-lexeme eq 'AND' or next_token-lexeme eq 'OR' or next_token-lexeme eq 'EQUIV' ).
           clear key_word_information.
           exit.
         elseif next_token is not initial and /cc4a/abap_analyzer=>create( )->is_bracket( token = next_token ) = /cc4a/if_abap_analyzer=>bracket_type-closing.
@@ -154,16 +172,7 @@ class /cc4a/prefer_is_not implementation.
           current_index = current_index + 1.
         endif.
       elseif next_token is not initial and /cc4a/abap_analyzer=>create( )->is_bracket( token = next_token ) = /cc4a/if_abap_analyzer=>bracket_type-opening.
-        if next_token-lexeme eq '(' and current_index eq start_position + 1.
-          next_token = value #( statement-tokens[ /cc4a/abap_analyzer=>create( )->calculate_bracket_end( statement = statement bracket_position = current_index ) + 1 ] optional ).
-          if next_token is initial or next_token-lexeme eq 'AND' or next_token-lexeme eq 'OR'.
-            current_index = current_index + 1.
-          else.
-            current_index = /cc4a/abap_analyzer=>create( )->calculate_bracket_end( statement = statement bracket_position = current_index ).
-          endif.
-        else.
-          current_index = /cc4a/abap_analyzer=>create( )->calculate_bracket_end( statement = statement bracket_position = current_index ).
-        endif.
+        current_index = determine_next_relevant_token( statement = statement token = next_token token_index = current_index start_position = start_position ).
       endif.
     endloop.
   endmethod.
@@ -184,7 +193,7 @@ class /cc4a/prefer_is_not implementation.
         new_statement-tokens[ key_word_information-operator_position - 1 ]-lexeme = 'NOT'.
       when others.
         new_statement = create_new_statement( statement = statement
-                                              new_operator = /cc4a/abap_analyzer=>create( )->get_negation_for_operator( key_word_information-operator )
+                                              new_operator = /cc4a/abap_analyzer=>create( )->negate_comparison_operator( key_word_information-operator )
                                               key_word_position = key_word_information-key_word_position
                                               operator_position = key_word_information-operator_position ).
     endcase.
@@ -201,6 +210,19 @@ class /cc4a/prefer_is_not implementation.
     new_statement-tokens[ operator_position - 1 ]-lexeme = new_operator.
     delete new_statement-tokens index operator_position + 1.
     changed_new_statement = new_statement.
+  endmethod.
+
+  method determine_next_relevant_token.
+    if token-lexeme eq '(' and token_index eq start_position + 1.
+      data(next_token) = value #( statement-tokens[ /cc4a/abap_analyzer=>create( )->calculate_bracket_end( statement = statement bracket_position = token_index ) + 1 ] optional ).
+      if next_token is initial or next_token-lexeme eq 'AND' or next_token-lexeme eq 'OR' or next_token-lexeme eq 'EQUIV'.
+        next_relevant_token_position = token_index + 1.
+      else.
+        next_relevant_token_position = /cc4a/abap_analyzer=>create( )->calculate_bracket_end( statement = statement bracket_position = token_index ).
+      endif.
+    else.
+      next_relevant_token_position = /cc4a/abap_analyzer=>create( )->calculate_bracket_end( statement = statement bracket_position = token_index ).
+    endif.
   endmethod.
 
 endclass.

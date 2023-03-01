@@ -34,15 +34,16 @@ class /cc4a/prefer_is_not definition
                 statement                 type if_ci_atc_source_code_provider=>ty_statement
       returning value(key_word_positions) type ty_starting_positions.
 
-    "! This method is searching the comparison operator for a keyword and its given position
-    "! (parameter start_position). Since the comparison operator has to be modified or changed,
-    "! it is important that it has no connection (AND, OR, EQUIV) after the given start position.
-    "! Therefore the methods loops over the given statement and analyzes the next token from the
-    "! start position. If the next token is the comparison operator, the operator with the position
-    "! will be returned. Otherwise the next token is analyzed until the comparison operator is
-    "! found. If any connection is found during this process, the method returns an empty structure.
+    "! This method is determining if the given statement contains a finding. Therefore it is searching the comparison
+    "! operator for a keyword and its given position (parameter start_position). Since the comparison operator has to
+    "! be negate in further actions, it is important that the statement has no connections (AND, OR, EQUIV) after the
+    "! given start position which makes a negation to complex (e.g keyword ( 1 = 2 and 3 = 2 ) ). Therefore the method
+    "! loops over the given statement and analyzes the next token from the start position. If the next token is the comparison
+    "! operator, the operator with the position will be returned as a mark that a finding could be determined. Otherwise
+    "! the next token is analyzed until the comparison operator is found. If a connection is found which makes it to
+    "! complex to negate the operator, the method returns an empty structure which equals that no finding was found.
     "! This also happens if no comparison operator is found.
-    methods find_operator_with_position
+    methods determine_finding
       importing statement                   type if_ci_atc_source_code_provider=>ty_statement
                 start_position              type i
       returning value(key_word_information) type ty_key_word_information.
@@ -119,7 +120,7 @@ class /cc4a/prefer_is_not implementation.
         endloop.
       endif.
       loop at starting_positions assigning field-symbol(<position>).
-        data(finding) = find_operator_with_position( statement = <statement> start_position = <position> ).
+        data(finding) = determine_finding( statement = <statement> start_position = <position> ).
         if finding is not initial.
           insert finding into table finding_information.
         endif.
@@ -146,7 +147,7 @@ class /cc4a/prefer_is_not implementation.
     endloop.
   endmethod.
 
-  method find_operator_with_position.
+  method determine_finding.
     data(current_index) = start_position + 1.
     loop at statement-tokens assigning field-symbol(<token>).
       data(next_token) = value #( statement-tokens[ current_index ] optional ).

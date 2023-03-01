@@ -1,21 +1,11 @@
-"! Shared functionality to analyze ABAP code.
-"!
-"! Any logic that processes ABAP code information (e.g. parsing a specific assignment) should be located here so it can be accessed
-"! by any check that needs it.
 interface /cc4a/if_abap_analyzer
   public .
 
-  types: begin of enum ty_bracket_type structure bracket_type base type c,
-           no_bracket value is initial,
-           opening    value 'o',
-           closing    value 'c',
+  types: begin of enum ty_bracket_type structure bracket_type,
+           no_bracket,
+           opening,
+           closing,
          end of enum ty_bracket_type structure bracket_type.
-
-  types: begin of enum ty_comparison_operator structure comparison_operator base type c,
-           no_operator value is initial,
-           opening     value 'o',
-           closing     value 'c',
-         end of enum ty_comparison_operator structure comparison_operator.
 
   methods find_key_words
     importing key_words       type string_table

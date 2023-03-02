@@ -19,7 +19,6 @@ class /cc4a/prefer_is_not definition
         operator_position type i,
       end of ty_key_word_information.
 
-    types ty_finding_information type standard table of ty_key_word_information with empty key.
     types ty_starting_positions type standard table of i with empty key.
 
     data code_provider     type ref to if_ci_atc_source_code_provider.
@@ -172,7 +171,7 @@ class /cc4a/prefer_is_not implementation.
         else.
           current_index = current_index + 1.
         endif.
-      elseif next_token is not initial and /cc4a/abap_analyzer=>create( )->is_bracket( token = next_token ) = /cc4a/if_abap_analyzer=>bracket_type-opening.
+      elseif next_token is not initial.
         current_index = determine_next_relevant_token( statement = statement token = next_token token_index = current_index start_position = start_position ).
       endif.
     endloop.

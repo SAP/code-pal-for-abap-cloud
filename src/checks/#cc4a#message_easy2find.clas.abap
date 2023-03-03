@@ -16,8 +16,8 @@ class /cc4a/message_easy2find definition
       end of   pseudo_comments.
     constants:
       begin of quickfix_codes,
-        replace_w_literal type cl_ci_atc_quickfixes=>ty_quickfix_code value 'MSG_RWL',
-      end of quickfix_codes.
+        msg_resolve type cl_ci_atc_quickfixes=>ty_quickfix_code value 'MSG_RSLV',
+      end of   quickfix_codes.
 
   protected section.
 
@@ -31,6 +31,10 @@ class /cc4a/message_easy2find definition
 
     data code_provider     type ref to if_ci_atc_source_code_provider.
     data assistant_factory type ref to cl_ci_atc_assistant_factory.
+    data procedures        type ref to if_ci_atc_source_code_provider=>ty_procedures.
+
+    methods message_class_exists importing i_message_class type sxco_mc_object_name
+                                 returning value(value)    type abap_bool.
 
     methods calculate_quickfix_data importing statement      type if_ci_atc_source_code_provider=>ty_statement
                                     returning value(qf_data) type qf_data.
@@ -38,6 +42,7 @@ class /cc4a/message_easy2find definition
     methods analyze_procedure
       importing procedure       type if_ci_atc_source_code_provider=>ty_procedure
       returning value(findings) type if_ci_atc_check=>ty_findings.
+
 
 endclass.
 
@@ -54,6 +59,8 @@ class /cc4a/message_easy2find implementation.
                                                                                        pseudo_comment = pseudo_comments-msg_find
                                                                                        text           = 'Make the Message Easy to Find'(mc1) ) )
                                                         remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
+                                                        quickfix_codes = value #( ( code = quickfix_codes-msg_resolve
+                                                                                    short_text = 'Replace MESSAGE ID variable - by - MESSAGE ID with resolved Message Class as string literal'(qf1) ) )
                                                        )
                                              ).
 
@@ -62,7 +69,7 @@ class /cc4a/message_easy2find implementation.
 
   method if_ci_atc_check~run.
     code_provider = data_provider->get_code_provider( ).
-    data(procedures) = code_provider->get_procedures( exporting compilation_unit = code_provider->object_to_comp_unit( object = object ) ).
+    procedures    = code_provider->get_procedures( exporting compilation_unit = code_provider->object_to_comp_unit( object = object ) ).
 
     loop at procedures->* assigning field-symbol(<procedure>).
       insert lines of analyze_procedure( <procedure> ) into table findings.
@@ -71,9 +78,7 @@ class /cc4a/message_easy2find implementation.
 
 
   method if_ci_atc_check~set_assistant_factory.
-
     assistant_factory = factory.
-
   endmethod.
 
 
@@ -85,47 +90,75 @@ class /cc4a/message_easy2find implementation.
     " Access with primary key needed to receive correct sy-tabix in loop
     loop at procedure-statements assigning field-symbol(<statement>)
                                  where keyword = 'MESSAGE' ##PRIMKEY[KEYWORD].
-*      CL_ABAP_REGEX
-      if <statement>-tokens[ 1 ]-lexeme = 'MESSAGE' and
-         <statement>-tokens[ 2 ]-lexeme = 'ID' and
-         <statement>-tokens[ 3 ]-lexeme = '`'.
-        "statement Message ID found
+      data(message_statement_pos) = sy-tabix.
+      if <statement>-tokens[ 2 ]-lexeme     = 'ID' and
+         <statement>-tokens[ 3 ]-lexeme(1) <> `'` and
+         <statement>-tokens[ 3 ]-lexeme(1) <> '`'.
+        "in this case message id is NOT followed by a Message Class in String literal directly but <statement>-tokens[ 3 ]-lexeme is a variable
+        "for quickfix proposal
+        data(qf_data) = calculate_quickfix_data( <statement> ).
+        if qf_data is not initial.
+          data(quickfixes) = assistant_factory->create_quickfixes( ).
+          data(quickfix_1) = quickfixes->create_quickfix( quickfix_code = quickfix_codes-msg_resolve ).
+
+          quickfix_1->replace( context = assistant_factory->create_quickfix_context( value #( procedure_id = procedure-id
+                                                                                              statements   = value #( from = message_statement_pos
+                                                                                                                      to   = message_statement_pos )
+                                                                                              tokens       = value #( from = 3
+                                                                                                                      to   = 3 )
+                                                                                            )
+                                                                                    )
+                               code         = qf_data-replacement
+                             ).
+        endif.
+
+        "statement Message ID without direct literal - will not be found by
         insert value #( code               = message_codes-msg_find
                         location           = code_provider->get_statement_location( <statement> )
                         checksum           = code_provider->get_statement_checksum( <statement> )
                         has_pseudo_comment = xsdbool( line_exists( <statement>-pseudo_comments[ table_line = pseudo_comments-msg_find ] ) )
-*                        details            = assistant_factory->create_finding_details( )->attach_quickfixes( quickfixes )
+                        details            = assistant_factory->create_finding_details( )->attach_quickfixes( quickfixes )
                       ) into table findings.
 
       endif.
-
-*        " Create quickfix BRK_CHAIN
-*        data(qf_data) = calculate_quickfix_data( <statement> ).
-*        data(quickfixes) = assistant_factory->create_quickfixes( ).
-*        data(quickfix_1) = quickfixes->create_quickfix( quickfix_code = quickfix_codes-replace_w_literal ).
-*        quickfix_1->replace( context = assistant_factory->create_quickfix_context( value #( procedure_id = procedure-id
-*                                                                                            statements   = value #( from = sy-tabix
-*                                                                                                                    to   = sy-tabix )
-*                                                                                            tokens       = value #( from = 1
-*                                                                                                                    to   = qf_data-token_tabix_last_eq_sign ) ) )
-*                                                                                            code         = qf_data-replacement ).
-*        quickfix_1->insert_after( context = assistant_factory->create_quickfix_context( value #( procedure_id = procedure-id
-*                                                                                                 statements   = value #( from = sy-tabix
-*                                                                                                                         to   = sy-tabix ) ) )
-*                                                                                                 code         = qf_data-insert_after ).
-*
-*        insert value #( code               = message_codes-msg_find
-*                        location           = code_provider->get_statement_location( <statement> )
-*                        checksum           = code_provider->get_statement_checksum( <statement> )
-*                        has_pseudo_comment = xsdbool( line_exists( <statement>-pseudo_comments[ table_line = pseudo_comments-msg_find ] ) )
-*                        details            = assistant_factory->create_finding_details( )->attach_quickfixes( quickfixes ) ) into table findings.
-*      endif.
     endloop.
 
   endmethod.
 
   method calculate_quickfix_data.
+    " Calculate replacement code
+    data(message_class_var) = statement-tokens[ 3 ]-lexeme.
+    "try to find constants with name message_class_var and get value in current procedures
+    " Access with primary key needed to receive correct sy-tabix in loop
+    loop at procedures->* assigning field-symbol(<procedure>).
+      loop at <procedure>-statements assigning field-symbol(<statement>)
+                                     where keyword = 'CONSTANTS' ##PRIMKEY[KEYWORD].
+        if <statement>-tokens[ 2 ]-lexeme = message_class_var.
+          data lexme_is_value type abap_bool.
+          loop at <statement>-tokens from 3 assigning field-symbol(<token>).
+            if lexme_is_value = abap_true.
+              data(message_class_literal) = <token>-lexeme.
+              "token contains leading and ending apostroph
+              data(str_lenghth) = strlen( message_class_literal ) - 2.
+              data(message_class) = message_class_literal+1(str_lenghth).
+              exit.
+            endif.
+            if <token>-lexeme = 'VALUE'.
+              "next token lexme is value
+              lexme_is_value = abap_true.
+            endif.
+          endloop.
+        endif.
+      endloop.
+    endloop.
+    if message_class_exists( i_message_class = conv #( message_class ) ).
+      data(line_of_code) = message_class_literal.
+      insert line_of_code into table qf_data-replacement.
+    endif.
+  endmethod.
 
+  method message_class_exists.
+    value = xco_cp_abap_repository=>object->msag->for( i_message_class )->exists( ).
   endmethod.
 
 endclass.

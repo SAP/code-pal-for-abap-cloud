@@ -26,17 +26,17 @@ class /cc4a/abap_analyzer implementation.
     instance = new /cc4a/abap_analyzer( ).
 
     negations = value #( ( operator = '>' negated = '<=' )
-                         ( operator = 'GT' negated = '<=' )
+                         ( operator = 'GT' negated = 'LE' )
                          ( operator = '<' negated = '>=' )
-                         ( operator = 'LT' negated = '>=' )
+                         ( operator = 'LT' negated = 'GE' )
                          ( operator = '=' negated = '<>' )
-                         ( operator = 'EQ' negated = '<>' )
+                         ( operator = 'EQ' negated = 'NE' )
                          ( operator = '<>' negated = '=' )
-                         ( operator = 'NE' negated = '=' )
+                         ( operator = 'NE' negated = 'EQ' )
                          ( operator = '<=' negated = '>' )
-                         ( operator = 'LE' negated = '>' )
+                         ( operator = 'LE' negated = 'GT' )
                          ( operator = '>=' negated = '<' )
-                         ( operator = 'GE' negated = '<' ) ).
+                         ( operator = 'GE' negated = 'LT' ) ).
   endmethod.
 
   method /cc4a/if_abap_analyzer~find_key_words.

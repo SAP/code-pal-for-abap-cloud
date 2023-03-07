@@ -13,11 +13,11 @@ class /cc4a/prefer_is_not definition
     constants pseudo_comment type string value 'PREFER_IS_NOT'.
 
     types:
-      begin of ty_key_word_information,
+      begin of ty_finding_information,
         key_word_position type i,
         operator          type string,
         operator_position type i,
-      end of ty_key_word_information.
+      end of ty_finding_information.
 
     types ty_starting_positions type standard table of i with empty key.
 
@@ -34,22 +34,22 @@ class /cc4a/prefer_is_not definition
       returning value(key_word_positions) type ty_starting_positions.
 
     "! This method is determining if the given statement contains a finding. Therefore it is searching the comparison
-    "! operator for a keyword and its given position (parameter start_position). Since the comparison operator has to
-    "! be negate in further actions, it is important that the statement has no connections (AND, OR, EQUIV) after the
-    "! given start position which makes a negation to complex (e.g keyword ( 1 = 2 and 3 = 2 ) ). Therefore the method
-    "! loops over the given statement and analyzes the next token from the start position. If the next token is the comparison
-    "! operator, the operator with the position will be returned as a mark that a finding could be determined. Otherwise
-    "! the next token is analyzed until the comparison operator is found. If a connection is found which makes it to
-    "! complex to negate the operator, the method returns an empty structure which equals that no finding was found.
-    "! This also happens if no comparison operator is found.
+    "! operator which is related to the given keyword and its given position (parameter start_position). Since the
+    "! comparison operator has to be negated when fixing the finding, it is important that the statement has no
+    "! connectives (AND, OR, EQUIV) after the given start position which makes a negation too complex (e.g keyword ( 1 = 2 and 3 = 2 ) ).
+    "! Therefore the method loops over the given statement and analyzes the next token from the start position. If the
+    "! next token is the comparison operator, the operator with the position will be returned as a mark that a finding
+    "! could be determined. Otherwise the next token is analyzed until the comparison operator is found. If a connection
+    "! is found which makes it too complex to negate the operator, the method returns an empty structure and no finding
+    "! should be reported. This also happens if no comparison operator is found.
     methods determine_finding
-      importing statement                   type if_ci_atc_source_code_provider=>ty_statement
-                start_position              type i
-      returning value(key_word_information) type ty_key_word_information.
+      importing statement                 type if_ci_atc_source_code_provider=>ty_statement
+                start_position            type i
+      returning value(operator_to_negate) type ty_finding_information.
 
     methods create_quickfix_code
       importing statement                 type if_ci_atc_source_code_provider=>ty_statement
-                key_word_information      type ty_key_word_information
+                finding_information       type ty_finding_information
       returning value(modified_statement) type if_ci_atc_quickfix=>ty_code.
 
     methods create_new_statement
@@ -106,7 +106,7 @@ class /cc4a/prefer_is_not implementation.
 
   method analyze_procedure.
     data starting_positions type ty_starting_positions.
-    data finding_information type standard table of ty_key_word_information.
+    data finding_information type standard table of ty_finding_information.
     loop at procedure-statements assigning field-symbol(<statement>).
       data(statement_index) = sy-tabix.
       clear starting_positions.
@@ -128,7 +128,7 @@ class /cc4a/prefer_is_not implementation.
         data(available_quickfixes) = assistant_factory->create_quickfixes( ).
         available_quickfixes->create_quickfix( quickfix_code )->replace(
                   context = assistant_factory->create_quickfix_context( value #( procedure_id = procedure-id statements = value #( from = statement_index to = statement_index ) ) )
-                  code = create_quickfix_code( statement = <statement> key_word_information = <finding_information> ) ).
+                  code = create_quickfix_code( statement = <statement> finding_information = <finding_information> ) ).
         insert value #( code = finding_code
                 location = value #( object = code_provider->get_statement_location( <statement> )-object
                                     position = value #( line = code_provider->get_statement_location( <statement> )-position-line column = <finding_information>-operator_position ) )
@@ -148,17 +148,18 @@ class /cc4a/prefer_is_not implementation.
 
   method determine_finding.
     data(current_index) = start_position + 1.
+    data(analyzer) = /cc4a/abap_analyzer=>create( ).
     loop at statement-tokens assigning field-symbol(<token>).
       data(next_token) = value #( statement-tokens[ current_index ] optional ).
-      if next_token is not initial and /cc4a/abap_analyzer=>create( )->is_bracket( token = next_token ) <> /cc4a/if_abap_analyzer=>bracket_type-opening.
+      if next_token is not initial and analyzer->is_bracket( token = next_token ) <> /cc4a/if_abap_analyzer=>bracket_type-opening.
         next_token = value #( statement-tokens[ current_index + 1 ] optional ).
         if statement-tokens[ start_position + 1 ]-lexeme eq '(' and ( next_token-lexeme eq 'AND' or next_token-lexeme eq 'OR' or next_token-lexeme eq 'EQUIV' ).
-          clear key_word_information.
+          clear operator_to_negate.
           exit.
-        elseif next_token is not initial and /cc4a/abap_analyzer=>create( )->is_bracket( token = next_token ) = /cc4a/if_abap_analyzer=>bracket_type-closing.
+        elseif next_token is not initial and analyzer->is_bracket( token = next_token ) = /cc4a/if_abap_analyzer=>bracket_type-closing.
           exit.
-        elseif next_token is not initial and /cc4a/abap_analyzer=>create( )->token_is_comparison_operator( token = next_token ).
-          key_word_information = value #( key_word_position = start_position
+        elseif next_token is not initial and analyzer->token_is_comparison_operator( token = next_token ).
+          operator_to_negate = value #( key_word_position = start_position
                                           operator = statement-tokens[ current_index + 1 ]-lexeme
                                           operator_position = current_index + 1 ).
           if statement-tokens[ start_position + 1 ]-lexeme eq '('.
@@ -166,8 +167,8 @@ class /cc4a/prefer_is_not implementation.
           else.
             exit.
           endif.
-        elseif next_token is not initial and /cc4a/abap_analyzer=>create( )->is_bracket( token = next_token ) = /cc4a/if_abap_analyzer=>bracket_type-opening.
-          current_index = /cc4a/abap_analyzer=>create( )->calculate_bracket_end( statement = statement bracket_position = current_index + 1 ).
+        elseif next_token is not initial and analyzer->is_bracket( token = next_token ) = /cc4a/if_abap_analyzer=>bracket_type-opening.
+          current_index = analyzer->calculate_bracket_end( statement = statement bracket_position = current_index + 1 ).
         else.
           current_index = current_index + 1.
         endif.
@@ -179,27 +180,28 @@ class /cc4a/prefer_is_not implementation.
 
   method create_quickfix_code.
     data(new_statement) = statement.
+    data(analyzer) = /cc4a/abap_analyzer=>create( ).
 
-    case key_word_information-operator.
+    case finding_information-operator.
       when 'IS'.
-        loop at new_statement-tokens assigning field-symbol(<token>) from key_word_information-key_word_position to key_word_information-operator_position - 1.
+        loop at new_statement-tokens assigning field-symbol(<token>) from finding_information-key_word_position to finding_information-operator_position - 1.
           <token> = new_statement-tokens[ sy-tabix + 1 ].
         endloop.
-        new_statement-tokens[ key_word_information-operator_position ]-lexeme = 'NOT'.
+        new_statement-tokens[ finding_information-operator_position ]-lexeme = 'NOT'.
       when 'IN'.
-        loop at new_statement-tokens assigning <token> from key_word_information-key_word_position to key_word_information-operator_position - 2.
+        loop at new_statement-tokens assigning <token> from finding_information-key_word_position to finding_information-operator_position - 2.
           <token> = new_statement-tokens[ sy-tabix + 1 ].
         endloop.
-        new_statement-tokens[ key_word_information-operator_position - 1 ]-lexeme = 'NOT'.
+        new_statement-tokens[ finding_information-operator_position - 1 ]-lexeme = 'NOT'.
       when others.
         new_statement = create_new_statement( statement = statement
-                                              new_operator = /cc4a/abap_analyzer=>create( )->negate_comparison_operator( key_word_information-operator )
-                                              key_word_position = key_word_information-key_word_position
-                                              operator_position = key_word_information-operator_position ).
+                                              new_operator = analyzer->negate_comparison_operator( finding_information-operator )
+                                              key_word_position = finding_information-key_word_position
+                                              operator_position = finding_information-operator_position ).
     endcase.
 
-    data(flat_new_statement) = /cc4a/abap_analyzer=>create( )->flatten_tokens( new_statement-tokens ) && `.`.
-    modified_statement = /cc4a/abap_analyzer=>create( )->break_into_lines( flat_new_statement ).
+    data(flat_new_statement) = analyzer->flatten_tokens( new_statement-tokens ) && `.`.
+    modified_statement = analyzer->break_into_lines( flat_new_statement ).
   endmethod.
 
   method create_new_statement.
@@ -213,15 +215,16 @@ class /cc4a/prefer_is_not implementation.
   endmethod.
 
   method determine_next_relevant_token.
+    data(analyzer) = /cc4a/abap_analyzer=>create( ).
     if token-lexeme eq '(' and token_index eq start_position + 1.
-      data(next_token) = value #( statement-tokens[ /cc4a/abap_analyzer=>create( )->calculate_bracket_end( statement = statement bracket_position = token_index ) + 1 ] optional ).
+      data(next_token) = value #( statement-tokens[ analyzer->calculate_bracket_end( statement = statement bracket_position = token_index ) + 1 ] optional ).
       if next_token is initial or next_token-lexeme eq 'AND' or next_token-lexeme eq 'OR' or next_token-lexeme eq 'EQUIV'.
         next_relevant_token_position = token_index + 1.
       else.
-        next_relevant_token_position = /cc4a/abap_analyzer=>create( )->calculate_bracket_end( statement = statement bracket_position = token_index ).
+        next_relevant_token_position = analyzer->calculate_bracket_end( statement = statement bracket_position = token_index ).
       endif.
     else.
-      next_relevant_token_position = /cc4a/abap_analyzer=>create( )->calculate_bracket_end( statement = statement bracket_position = token_index ).
+      next_relevant_token_position = analyzer->calculate_bracket_end( statement = statement bracket_position = token_index ).
     endif.
   endmethod.
 

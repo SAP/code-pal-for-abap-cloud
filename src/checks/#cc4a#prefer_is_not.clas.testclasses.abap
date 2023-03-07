@@ -202,35 +202,35 @@ class test implementation.
                                        quickfix_code = /cc4a/prefer_is_not=>quickfix_code
                                        location = without_brackets_9
                                        code = value #(
-                                       ( `IF X = XSDBOOL( 1 = 2 ) .` ) ) ) ) )
+                                       ( `IF X EQ XSDBOOL( 1 = 2 ) .` ) ) ) ) )
                                    ( code = /cc4a/prefer_is_not=>finding_code
                                      location = without_brackets_10
                                      quickfixes = value #( (
                                        quickfix_code = /cc4a/prefer_is_not=>quickfix_code
                                        location = without_brackets_10
                                        code = value #(
-                                       ( `IF X >= 1 OR NOT X GE GETBOOL( XSDBOOL( 1 = 2 ) ) .` ) ) ) ) )
+                                       ( `IF X GE 1 OR NOT X GE GETBOOL( XSDBOOL( 1 = 2 ) ) .` ) ) ) ) )
                                    ( code = /cc4a/prefer_is_not=>finding_code
                                      location = without_brackets_11
                                      quickfixes = value #( (
                                        quickfix_code = /cc4a/prefer_is_not=>quickfix_code
                                        location = without_brackets_11
                                        code = value #(
-                                       ( `IF NOT X LT 1 OR X < GETBOOL( XSDBOOL( 1 = 2 ) ) .` ) ) ) ) )
+                                       ( `IF NOT X LT 1 OR X LT GETBOOL( XSDBOOL( 1 = 2 ) ) .` ) ) ) ) )
                                    ( code = /cc4a/prefer_is_not=>finding_code
                                      location = without_brackets_12
                                      quickfixes = value #( (
                                        quickfix_code = /cc4a/prefer_is_not=>quickfix_code
                                        location = without_brackets_12
                                        code = value #(
-                                       ( `IF X > 1 AND NOT X EQ 2 .` ) ) ) ) )
+                                       ( `IF X GT 1 AND NOT X EQ 2 .` ) ) ) ) )
                                    ( code = /cc4a/prefer_is_not=>finding_code
                                      location = without_brackets_13
                                      quickfixes = value #( (
                                        quickfix_code = /cc4a/prefer_is_not=>quickfix_code
                                        location = without_brackets_13
                                        code = value #(
-                                       ( `IF NOT X LE 1 AND X <> 2 .` ) ) ) ) )
+                                       ( `IF NOT X LE 1 AND X NE 2 .` ) ) ) ) )
                                    ( code = /cc4a/prefer_is_not=>finding_code
                                      location = without_brackets_14
                                      quickfixes = value #( (
@@ -300,14 +300,14 @@ class test implementation.
                                        quickfix_code = /cc4a/prefer_is_not=>quickfix_code
                                        location = with_brackets_9
                                        code = value #(
-                                       ( `IF ( X = XSDBOOL( 1 = XSDBOOL( 1 = 2 ) ) ) .` ) ) ) ) )
+                                       ( `IF ( X EQ XSDBOOL( 1 = XSDBOOL( 1 = 2 ) ) ) .` ) ) ) ) )
                                    ( code = /cc4a/prefer_is_not=>finding_code
                                      location = with_brackets_10
                                      quickfixes = value #( (
                                        quickfix_code = /cc4a/prefer_is_not=>quickfix_code
                                        location = with_brackets_10
                                        code = value #(
-                                       ( `IF NOT ( X LE 1 AND X <> 2 ) .` ) ) ) ) )
+                                       ( `IF NOT ( X LE 1 AND X NE 2 ) .` ) ) ) ) )
                                    ( code = /cc4a/prefer_is_not=>finding_code
                                      location = with_brackets_11
                                      quickfixes = value #( (
@@ -398,14 +398,14 @@ class test implementation.
                                        quickfix_code = /cc4a/prefer_is_not=>quickfix_code
                                        location = with_pseudo_commets_9
                                        code = value #(
-                                       ( `IF ( X = XSDBOOL( 1 = XSDBOOL( 1 = 2 ) ) ) .` ) ) ) ) )
+                                       ( `IF ( X EQ XSDBOOL( 1 = XSDBOOL( 1 = 2 ) ) ) .` ) ) ) ) )
                                    ( code = /cc4a/prefer_is_not=>finding_code
                                      location = with_pseudo_commets_10
                                      quickfixes = value #( (
                                        quickfix_code = /cc4a/prefer_is_not=>quickfix_code
                                        location = with_pseudo_commets_10
                                        code = value #(
-                                       ( `IF NOT ( X LE 1 AND X <> 2 ) .` ) ) ) ) )
+                                       ( `IF NOT ( X LE 1 AND X NE 2 ) .` ) ) ) ) )
                                    ( code = /cc4a/prefer_is_not=>finding_code
                                      location = with_pseudo_commets_11
                                      quickfixes = value #( (

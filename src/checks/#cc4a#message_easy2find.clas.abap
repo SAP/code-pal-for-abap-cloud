@@ -36,12 +36,17 @@ class /cc4a/message_easy2find definition
     methods message_class_exists importing i_message_class type sxco_mc_object_name
                                  returning value(value)    type abap_bool.
 
-    methods calculate_quickfix_data importing statement      type if_ci_atc_source_code_provider=>ty_statement
-                                    returning value(qf_data) type qf_data.
+    methods calculate_quickfix_data importing procedure           type if_ci_atc_source_code_provider=>ty_procedure
+                                              message_class_const type string
+                                    returning value(qf_data)      type qf_data.
 
-    methods analyze_procedure
-      importing procedure       type if_ci_atc_source_code_provider=>ty_procedure
-      returning value(findings) type if_ci_atc_check=>ty_findings.
+    methods analyze_procedure importing procedure       type if_ci_atc_source_code_provider=>ty_procedure
+                              returning value(findings) type if_ci_atc_check=>ty_findings.
+
+    methods find_message_class importing statement             type if_ci_atc_source_code_provider=>ty_statement
+                                         message_class_const   type string
+                               exporting message_class         type sxco_mc_object_name
+                                         message_class_literal type string.
 
 
 endclass.
@@ -94,9 +99,10 @@ class /cc4a/message_easy2find implementation.
       if <statement>-tokens[ 2 ]-lexeme     = 'ID' and
          <statement>-tokens[ 3 ]-lexeme(1) <> `'` and
          <statement>-tokens[ 3 ]-lexeme(1) <> '`'.
-        "in this case message id is NOT followed by a Message Class in String literal directly but <statement>-tokens[ 3 ]-lexeme is a variable
-        "for quickfix proposal
-        data(qf_data) = calculate_quickfix_data( <statement> ).
+        "in this case message id is NOT followed by a Message Class in String literal directly but <statement>-tokens[ 3 ]-lexeme is a variable for a message class
+        data(qf_data) = calculate_quickfix_data( procedure           = procedure
+                                                 message_class_const = <statement>-tokens[ 3 ]-lexeme
+                                               ).
         if qf_data is not initial.
           data(quickfixes) = assistant_factory->create_quickfixes( ).
           data(quickfix_1) = quickfixes->create_quickfix( quickfix_code = quickfix_codes-msg_resolve ).
@@ -127,31 +133,41 @@ class /cc4a/message_easy2find implementation.
 
   method calculate_quickfix_data.
     " Calculate replacement code
-    data(message_class_var) = statement-tokens[ 3 ]-lexeme.
-    "try to find constants with name message_class_var and get value in current procedures
+    "try to find constants with name message_class_var and get value in current procedure
     " Access with primary key needed to receive correct sy-tabix in loop
-    loop at procedures->* assigning field-symbol(<procedure>).
-      loop at <procedure>-statements assigning field-symbol(<statement>)
-                                     where keyword = 'CONSTANTS' ##PRIMKEY[KEYWORD].
-        if <statement>-tokens[ 2 ]-lexeme = message_class_var.
-          data lexme_is_value type abap_bool.
-          loop at <statement>-tokens from 3 assigning field-symbol(<token>).
-            if lexme_is_value = abap_true.
-              data(message_class_literal) = <token>-lexeme.
-              "token contains leading and ending apostroph
-              data(str_lenghth) = strlen( message_class_literal ) - 2.
-              data(message_class) = message_class_literal+1(str_lenghth).
-              exit.
-            endif.
-            if <token>-lexeme = 'VALUE'.
-              "next token lexme is value
-              lexme_is_value = abap_true.
-            endif.
-          endloop.
-        endif.
-      endloop.
+    loop at procedure-statements assigning field-symbol(<statement>)
+                                 where keyword = 'CONSTANTS' ##PRIMKEY[KEYWORD].
+
+      find_message_class( exporting statement = <statement>
+                                    message_class_const = message_class_const
+                          importing message_class_literal = data(message_class_literal)
+                                    message_class = data(message_class)
+                                  ).
+      if message_class is not initial.
+        exit.
+      endif.
     endloop.
-    if message_class_exists( i_message_class = conv #( message_class ) ).
+    if message_class is initial.
+      "in case of classes
+      "check if message_class_const can be found in definition
+      loop at procedures->* assigning field-symbol(<procedure>)
+                            where id-kind = if_ci_atc_source_code_provider=>procedure_kinds-class_definition.
+        loop at <procedure>-statements assigning <statement>
+                                       where keyword = 'CONSTANTS' ##PRIMKEY[KEYWORD].
+
+          find_message_class( exporting statement = <statement>
+                                        message_class_const = message_class_const
+                              importing message_class_literal = message_class_literal
+                                        message_class = message_class
+                                      ).
+          if message_class is not initial.
+            exit.
+          endif.
+        endloop.
+      endloop.
+    endif.
+    if message_class is not initial and
+       message_class_exists( i_message_class = message_class ).
       data(line_of_code) = message_class_literal.
       insert line_of_code into table qf_data-replacement.
     endif.
@@ -159,6 +175,31 @@ class /cc4a/message_easy2find implementation.
 
   method message_class_exists.
     value = xco_cp_abap_repository=>object->msag->for( i_message_class )->exists( ).
+  endmethod.
+
+
+  method find_message_class.
+    data lexme_is_value type abap_bool.
+
+    clear lexme_is_value.
+    clear message_class.
+    clear message_class_literal.
+
+    if statement-tokens[ 2 ]-lexeme = message_class_const.
+      loop at statement-tokens from 3 assigning field-symbol(<token>).
+        if lexme_is_value = abap_true.
+          message_class_literal = <token>-lexeme.
+          "token contains leading and ending apostroph - can be ' or `
+          data(str_lenghth) = strlen( message_class_literal ) - 2.
+          message_class = message_class_literal+1(str_lenghth).
+          exit.
+        endif.
+        if <token>-lexeme = 'VALUE'.
+          "next token lexme is value
+          lexme_is_value = abap_true.
+        endif.
+      endloop.
+    endif.
   endmethod.
 
 endclass.

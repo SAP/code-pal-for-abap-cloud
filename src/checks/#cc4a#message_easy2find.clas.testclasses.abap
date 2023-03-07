@@ -13,6 +13,7 @@ class test definition final for testing
         not_easy2find_3          type c length 30 value 'NOT_EASY2FIND_3',
         not_easy2find_4          type c length 30 value 'NOT_EASY2FIND_4',
         not_easy2find_5          type c length 30 value 'NOT_EASY2FIND_5',
+        not_easy2find_6          type c length 30 value 'NOT_EASY2FIND_6',
       end of test_class_methods.
 
     methods execute_test_class for testing raising cx_static_check.
@@ -54,9 +55,17 @@ class test implementation.
                                                                     position = value #( line = 3 column = 4 )
                                                                   ).
 
-    "for finding 3
+     "for finding 5
     data(loc_not_easy2find_5) = value if_ci_atc_check=>ty_location( object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class
                                                                                                                                   method = test_class_methods-not_easy2find_5
+                                                                                                                                )
+                                                                                                                       )
+                                                                    position = value #( line = 3 column = 4 )
+                                                                  ).
+
+    "for finding 6
+    data(loc_not_easy2find_6) = value if_ci_atc_check=>ty_location( object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class
+                                                                                                                                  method = test_class_methods-not_easy2find_6
                                                                                                                                 )
                                                                                                                        )
                                                                     position = value #( line = 4 column = 4 )
@@ -68,14 +77,14 @@ class test implementation.
       expected_findings = value #( ( code = /cc4a/message_easy2find=>message_codes-msg_find
                                      location = loc_not_easy2find_1
                                      quickfixes = value #( ( quickfix_code = /cc4a/message_easy2find=>quickfix_codes-msg_resolve
-                                                             location = loc_not_easy2find_3
+                                                             location = loc_not_easy2find_1
                                                              code = value #( ( `message id '/CC4A/TEST_EASY2FIN4' type 'I' number message_no into data(dummy1).` ) )
                                                           ) )
                                    )
                                    ( code = /cc4a/message_easy2find=>message_codes-msg_find
                                      location = loc_not_easy2find_2
                                      quickfixes = value #( ( quickfix_code = /cc4a/message_easy2find=>quickfix_codes-msg_resolve
-                                                             location = loc_not_easy2find_3
+                                                             location = loc_not_easy2find_2
                                                              code = value #( ( `message id '/CC4A/TEST_EASY2FIN5' type 'I' number message_no into data(dummy1).` ) )
                                                           ) )
                                    )
@@ -89,14 +98,21 @@ class test implementation.
                                    ( code = /cc4a/message_easy2find=>message_codes-msg_find
                                      location = loc_not_easy2find_4
                                      quickfixes = value #( ( quickfix_code = /cc4a/message_easy2find=>quickfix_codes-msg_resolve
-                                                             location = loc_not_easy2find_3
+                                                             location = loc_not_easy2find_4
                                                              code = value #( ( `message id '/CC4A/TEST_EASY2FIN3' type 'I' number message_no into data(dummy1).` ) )
                                                           ) )
                                    )
                                    ( code = /cc4a/message_easy2find=>message_codes-msg_find
                                      location = loc_not_easy2find_5
                                      quickfixes = value #( ( quickfix_code = /cc4a/message_easy2find=>quickfix_codes-msg_resolve
-                                                             location = loc_not_easy2find_3
+                                                             location = loc_not_easy2find_5
+                                                             code = value #( ( `message id '/CC4A/TEST_EASY2FIND' type 'I' number message_no into data(dummy1).` ) )
+                                                          ) )
+                                   )
+                                   ( code = /cc4a/message_easy2find=>message_codes-msg_find
+                                     location = loc_not_easy2find_6
+                                     quickfixes = value #( ( quickfix_code = /cc4a/message_easy2find=>quickfix_codes-msg_resolve
+                                                             location = loc_not_easy2find_6
                                                              code = value #( ( `message id '/CC4A/TEST_EASY2FIN6' type 'I' number message_no into data(dummy1).` ) )
                                                           ) )
                                    )

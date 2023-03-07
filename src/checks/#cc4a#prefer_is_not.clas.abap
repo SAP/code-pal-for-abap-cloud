@@ -34,14 +34,14 @@ class /cc4a/prefer_is_not definition
       returning value(key_word_positions) type ty_starting_positions.
 
     "! This method is determining if the given statement contains a finding. Therefore it is searching the comparison
-    "! operator which is related to the given keyword and its given position (parameter start_position). Since the
-    "! comparison operator has to be negated when fixing the finding, it is important that the statement has no
-    "! connectives (AND, OR, EQUIV) after the given start position which makes a negation too complex (e.g keyword ( 1 = 2 and 3 = 2 ) ).
-    "! Therefore the method loops over the given statement and analyzes the next token from the start position. If the
-    "! next token is the comparison operator, the operator with the position will be returned as a mark that a finding
-    "! could be determined. Otherwise the next token is analyzed until the comparison operator is found. If a connection
-    "! is found which makes it too complex to negate the operator, the method returns an empty structure and no finding
-    "! should be reported. This also happens if no comparison operator is found.
+    "! operator which has to be negated due to the NOT condition. Since the comparison operator has to be negated when
+    "! fixing the finding, it is important that the statement has no connectives (AND, OR, EQUIV) after the given start
+    "! position which makes a negation too complex (e.g keyword ( 1 = 2 and 3 = 2 ) ). Therefore the method loops over
+    "! the given statement and analyzes the next token from the start position. If the next token is the comparison
+    "! operator, the operator with the position will be returned as a mark that a finding could be determined. Otherwise
+    "! the next token is analyzed until the comparison operator is found. If a connection is found which makes it too
+    "! complex to negate the operator, the method returns an empty structure and no finding should be reported. This also
+    "! happens if no comparison operator is found.
     methods determine_finding
       importing statement                 type if_ci_atc_source_code_provider=>ty_statement
                 start_position            type i
@@ -149,7 +149,7 @@ class /cc4a/prefer_is_not implementation.
   method determine_finding.
     data(current_index) = start_position + 1.
     data(analyzer) = /cc4a/abap_analyzer=>create( ).
-    loop at statement-tokens assigning field-symbol(<token>).
+    while current_index <= lines( statement-tokens ).
       data(next_token) = value #( statement-tokens[ current_index ] optional ).
       if next_token is not initial and analyzer->is_bracket( token = next_token ) <> /cc4a/if_abap_analyzer=>bracket_type-opening.
         next_token = value #( statement-tokens[ current_index + 1 ] optional ).
@@ -175,7 +175,7 @@ class /cc4a/prefer_is_not implementation.
       elseif next_token is not initial.
         current_index = determine_next_relevant_token( statement = statement token = next_token token_index = current_index start_position = start_position ).
       endif.
-    endloop.
+    endwhile.
   endmethod.
 
   method create_quickfix_code.

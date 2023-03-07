@@ -3,14 +3,14 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <VSEOCLASS>
-    <CLSNAME>/CC4A/ABAP_ANALYZER</CLSNAME>
+    <CLSNAME>/CC4A/CX_TOKEN_IS_NO_OPERATOR</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>ABAP code analysis</DESCRIPT>
+    <DESCRIPT>Exception if given token is not an operator</DESCRIPT>
+    <CATEGORY>40</CATEGORY>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>
-    <UNICODE>5</UNICODE>
-    <WITH_UNIT_TESTS>X</WITH_UNIT_TESTS>
+    <UNICODE>X</UNICODE>
    </VSEOCLASS>
   </asx:values>
  </asx:abap>

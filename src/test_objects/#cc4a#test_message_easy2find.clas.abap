@@ -112,6 +112,7 @@ class /cc4a/test_message_easy2find implementation.
     m_message_id = '/CC4A/TEST_EASY2FIN5'.
     m_message_id = '/CC4A/TEST_EASY2FIN4'.
     message id m_message_id type 'I' number message_no into data(dummy1).
+    m_message_id = '/CC4A/TEST_EASY2FIN6'.
   endmethod.
 
   method not_easy2find_7.

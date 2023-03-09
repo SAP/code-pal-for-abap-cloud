@@ -94,7 +94,7 @@ class /cc4a/message_easy2find implementation.
                                                         description       = 'Messages not Easy to Find'(des)
                                                         finding_codes     = value #( ( code           = message_codes-msg_find
                                                                                        pseudo_comment = pseudo_comments-msg_find
-                                                                                       text           = 'Make the Message Easy to Find'(mc1) ) )
+                                                                                       text           = 'Used message cannot be found by where-used'(mc1) ) )
                                                         remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
                                                         quickfix_codes = value #( ( code = quickfix_codes-msg_resolve
                                                                                     short_text = 'Replace MESSAGE ID variable - by - MESSAGE ID with resolved Message Class as string literal'(qf1) ) )

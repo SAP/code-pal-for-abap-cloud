@@ -28,7 +28,7 @@
     <item>
      <ID>I</ID>
      <KEY>QF1</KEY>
-     <ENTRY>Replace MESSAGE ID variable - by - MESSAGE ID with resolved Message Class as string literal</ENTRY>
+     <ENTRY>Replace MESSAGE ID variable by MESSAGE ID with resolved Message Class as string literal</ENTRY>
      <LENGTH>132</LENGTH>
     </item>
    </TPOOL>

@@ -14,6 +14,12 @@ class test definition final for testing
         not_easy2find_4          type c length 30 value 'NOT_EASY2FIND_4',
         not_easy2find_5          type c length 30 value 'NOT_EASY2FIND_5',
         not_easy2find_6          type c length 30 value 'NOT_EASY2FIND_6',
+        easy2find_1              type c length 30 value 'EASY2FIND_1',
+        easy2find_2              type c length 30 value 'EASY2FIND_2',
+        easy2find_3              type c length 30 value 'EASY2FIND_3',
+        easy2find_4              type c length 30 value 'EASY2FIND_4',
+        easy2find_5              type c length 30 value 'EASY2FIND_5',
+        easy2find_6              type c length 30 value 'EASY2FIND_6',
       end of test_class_methods.
 
     methods execute_test_class for testing raising cx_static_check.
@@ -55,7 +61,7 @@ class test implementation.
                                                                     position = value #( line = 3 column = 4 )
                                                                   ).
 
-     "for finding 5
+    "for finding 5
     data(loc_not_easy2find_5) = value if_ci_atc_check=>ty_location( object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class
                                                                                                                                   method = test_class_methods-not_easy2find_5
                                                                                                                                 )

@@ -33,15 +33,15 @@ class /cc4a/db_access_in_ut definition
              risk_level type string,
            end of ty_class_risk_level.
 
-    types classes_with_risk_level       type standard table of ty_class_risk_level with empty key.
-    types classes_with_test_environment type standard table of string with empty key.
+    types ty_classes_with_risk_level       type hashed table of ty_class_risk_level with unique key class_id class_name.
+    types ty_classes_with_test_envrnment type standard table of string with empty key.
 
     data code_provider                  type ref to if_ci_atc_source_code_provider.
     data assistant_factory              type ref to cl_ci_atc_assistant_factory.
 
     methods get_relevant_class_information
       importing procedures                     type ref to if_ci_atc_source_code_provider=>ty_procedures
-      returning value(classes_with_risk_level) type classes_with_risk_level.
+      returning value(classes_with_risk_level) type ty_classes_with_risk_level.
 
     methods determine_class_risk_level
       importing procedure                         type if_ci_atc_source_code_provider=>ty_procedure
@@ -49,21 +49,23 @@ class /cc4a/db_access_in_ut definition
 
     methods get_class_name_and_risk_level
       importing statement                         type if_ci_atc_source_code_provider=>ty_statement
+                procedure_id                      type string
       returning value(class_name_with_risk_level) type ty_class_risk_level.
 
     methods find_test_environment
       importing procedure                          type if_ci_atc_source_code_provider=>ty_procedure
+                classes_with_risk_level            type ty_classes_with_risk_level
       returning value(class_with_test_environment) type string.
 
     methods analyze_procedure
       importing procedure               type if_ci_atc_source_code_provider=>ty_procedure
-                classes_with_risk_level type classes_with_risk_level
+                classes_with_risk_level type ty_classes_with_risk_level
       returning value(findings)         type if_ci_atc_check=>ty_findings.
 
     methods get_relevant_classes
-      importing classes_with_risk_level       type classes_with_risk_level
-                classes_with_test_environment type classes_with_test_environment
-      returning value(relevant_classes)          type classes_with_risk_level.
+      importing classes_with_risk_level       type ty_classes_with_risk_level
+                classes_with_test_environment type ty_classes_with_test_envrnment
+      returning value(relevant_classes)       type ty_classes_with_risk_level.
 
 endclass.
 
@@ -86,13 +88,8 @@ class /cc4a/db_access_in_ut implementation.
     data(classes_with_risk_level) = get_relevant_class_information( procedures = procedures ).
 
     loop at procedures->* assigning field-symbol(<procedure>).
-      if <procedure>-id-name cs '=>'.
-        data(class_name) = substring_before( val = <procedure>-id-name sub = '=>' ).
-      else.
-        data(class_id) = <procedure>-id-name.
-      endif.
-      if line_exists( classes_with_risk_level[ class_name = class_name ] )
-         or line_exists( classes_with_risk_level[ class_id = class_id ] ).
+      if line_exists( classes_with_risk_level[ class_name = substring_before( val = <procedure>-id-name sub = '=>' ) ] )
+         or line_exists( classes_with_risk_level[ class_id = <procedure>-id-name ] ).
         insert lines of analyze_procedure( procedure = <procedure>
                                            classes_with_risk_level = classes_with_risk_level ) into table findings.
       endif.
@@ -100,15 +97,18 @@ class /cc4a/db_access_in_ut implementation.
   endmethod.
 
   method get_relevant_class_information.
-    data classes_with_test_environment type classes_with_test_environment.
+    data classes_with_test_environment type ty_classes_with_test_envrnment.
     loop at procedures->* assigning field-symbol(<procedure>).
       data(class_with_risk_level) = determine_class_risk_level( procedure = <procedure> ).
-      data(class_with_test_environment) = find_test_environment( procedure = <procedure> ).
       if class_with_risk_level is not initial.
         insert class_with_risk_level into table classes_with_risk_level.
       endif.
-      if class_with_test_environment is not initial.
-        insert class_with_test_environment into table classes_with_test_environment.
+      if line_exists( classes_with_risk_level[ class_name = substring_before( val = <procedure>-id-name sub = '=>' ) ] )
+         or line_exists( classes_with_risk_level[ class_id = <procedure>-id-name ] ).
+        data(class_with_test_environment) = find_test_environment( procedure = <procedure> classes_with_risk_level = classes_with_risk_level ).
+        if class_with_test_environment is not initial.
+          insert class_with_test_environment into table classes_with_test_environment.
+        endif.
       endif.
     endloop.
     classes_with_risk_level = get_relevant_classes( classes_with_risk_level = classes_with_risk_level classes_with_test_environment = classes_with_test_environment ).
@@ -116,8 +116,7 @@ class /cc4a/db_access_in_ut implementation.
 
   method get_relevant_classes.
     loop at classes_with_risk_level assigning field-symbol(<class_with_risk_level>).
-      if not line_exists( classes_with_test_environment[ table_line = <class_with_risk_level>-class_id ] )
-           and not line_exists( classes_with_test_environment[ table_line = <class_with_risk_level>-class_name ] ).
+      if not line_exists( classes_with_test_environment[ table_line = <class_with_risk_level>-class_name ] ).
         insert <class_with_risk_level> into table relevant_classes.
       endif.
     endloop.
@@ -133,10 +132,9 @@ class /cc4a/db_access_in_ut implementation.
 
   method determine_class_risk_level.
     loop at procedure-statements assigning field-symbol(<statement>) using key keyword where keyword eq 'CLASS'.
-      loop at <statement>-tokens assigning field-symbol(<token>) where lexeme eq 'FOR'.
+      loop at <statement>-tokens transporting no fields where lexeme eq 'FOR'.
         if <statement>-tokens[ sy-tabix + 1 ]-lexeme eq 'TESTING'.
-          class_name_with_risk_level = get_class_name_and_risk_level( statement = <statement> ).
-          class_name_with_risk_level-class_id = procedure-id-name.
+          class_name_with_risk_level = get_class_name_and_risk_level( statement = <statement> procedure_id = procedure-id-name ).
         endif.
       endloop.
     endloop.
@@ -144,7 +142,8 @@ class /cc4a/db_access_in_ut implementation.
 
   method get_class_name_and_risk_level.
     class_name_with_risk_level-class_name = statement-tokens[ 2 ]-lexeme.
-    loop at statement-tokens assigning field-symbol(<token>) where lexeme eq 'RISK'.
+    class_name_with_risk_level-class_id = procedure_id.
+    loop at statement-tokens transporting no fields where lexeme eq 'RISK'.
       if statement-tokens[ sy-tabix + 1 ]-lexeme eq 'LEVEL'.
         class_name_with_risk_level-risk_level = statement-tokens[ sy-tabix + 2 ]-lexeme.
       endif.
@@ -161,7 +160,7 @@ class /cc4a/db_access_in_ut implementation.
           if procedure-id-name cs '=>'.
             class_with_test_environment = substring_before( val = procedure-id-name sub = '=>' ).
           else.
-            class_with_test_environment = procedure-id-name.
+            class_with_test_environment = classes_with_risk_level[ class_id = procedure-id-name ]-class_name.
           endif.
         endif.
       endloop.
@@ -169,34 +168,28 @@ class /cc4a/db_access_in_ut implementation.
   endmethod.
 
   method analyze_procedure.
+    data relevant_keywords type range of string.
     if procedure-id-name cs '=>'.
       data(risk_level) = classes_with_risk_level[ class_name = substring_before( val = procedure-id-name sub = '=>' ) ]-risk_level.
     else.
       risk_level = classes_with_risk_level[ class_id = procedure-id-name ]-risk_level.
     endif.
-    case risk_level.
-      when risk_levels-harmless or risk_levels-without.
-        loop at procedure-statements assigning field-symbol(<statement>) where keyword eq 'SELECT' or keyword eq 'INSERT' or keyword eq 'UPDATE' or keyword eq 'MODIFY' or
-                                                                               keyword eq 'DELETE' or keyword eq 'ROLLBACK' or keyword eq 'COMMIT' or keyword eq 'ALTER'.
-          insert value #( code = finding_code
-                location = value #( object = code_provider->get_statement_location( <statement> )-object
-                                    position = code_provider->get_statement_location( <statement> )-position )
-                checksum = code_provider->get_statement_checksum( <statement> )
-                has_pseudo_comment = xsdbool( line_exists( <statement>-pseudo_comments[ table_line = pseudo_comment ] ) )
-                ) into table findings.
-        endloop.
-      when risk_levels-dangerous or risk_levels-critical.
-        loop at procedure-statements assigning <statement> where keyword eq 'UPDATE' or keyword eq 'MODIFY' or keyword eq 'DELETE' or keyword eq 'ALTER'.
-          insert value #( code = finding_code
-                          location = value #( object = code_provider->get_statement_location( <statement> )-object
-                                              position = code_provider->get_statement_location( <statement> )-position )
-                          checksum = code_provider->get_statement_checksum( <statement> )
-                          has_pseudo_comment = xsdbool( line_exists( <statement>-pseudo_comments[ table_line = pseudo_comment ] ) )
-                          ) into table findings.
-        endloop.
-      when others.
-        exit.
-    endcase.
+
+    if risk_level = risk_levels-dangerous or risk_level = risk_levels-critical.
+      relevant_keywords = value #( ( sign = 'I' option = 'EQ' low = 'UPDATE' ) ( sign = 'I' option = 'EQ' low = 'MODIFY' ) ( sign = 'I' option = 'EQ' low = 'DELETE' ) ( sign = 'I' option = 'EQ' low = 'ALTER' ) ).
+    elseif risk_level = risk_levels-harmless or risk_level = risk_levels-without.
+      relevant_keywords = value #( ( sign = 'I' option = 'EQ' low = 'SELECT' ) ( sign = 'I' option = 'EQ' low = 'INSERT' ) ( sign = 'I' option = 'EQ' low = 'UPDATE' ) ( sign = 'I' option = 'EQ' low = 'MODIFY' )
+                                   ( sign = 'I' option = 'EQ' low = 'DELETE' ) ( sign = 'I' option = 'EQ' low = 'ROLLBACK' ) ( sign = 'I' option = 'EQ' low = 'COMMIT' ) ( sign = 'I' option = 'EQ' low = 'ALTER' ) ).
+    endif.
+
+    loop at procedure-statements assigning field-symbol(<statement>) where keyword in relevant_keywords.
+      insert value #( code = finding_code
+        location = value #( object = code_provider->get_statement_location( <statement> )-object
+                            position = code_provider->get_statement_location( <statement> )-position )
+        checksum = code_provider->get_statement_checksum( <statement> )
+        has_pseudo_comment = xsdbool( line_exists( <statement>-pseudo_comments[ table_line = pseudo_comment ] ) )
+        ) into table findings.
+    endloop.
   endmethod.
 
 endclass.

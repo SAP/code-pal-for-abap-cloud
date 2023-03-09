@@ -16,6 +16,7 @@ class /cc4a/test_message_easy2find definition
     methods not_easy2find_4.
     methods not_easy2find_5.
     methods not_easy2find_6.
+    methods not_easy2find_7.
     methods easy2find_1.
     methods easy2find_2.
     methods easy2find_3.
@@ -109,7 +110,14 @@ class /cc4a/test_message_easy2find implementation.
     data m_message_id type sxco_mc_object_name value '/CC4A/TEST_EASY2FIN6'.
     data(message_no) = 001.
     m_message_id = '/CC4A/TEST_EASY2FIN5'.
+    m_message_id = '/CC4A/TEST_EASY2FIN4'.
     message id m_message_id type 'I' number message_no into data(dummy1).
+  endmethod.
+
+  method not_easy2find_7.
+    data l_message_id type sxco_mc_object_name.
+    data(message_no) = 001.
+    message id l_message_id type 'I' number message_no into data(dummy1).
   endmethod.
 
 endclass.

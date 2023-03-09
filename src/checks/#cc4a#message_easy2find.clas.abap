@@ -51,6 +51,7 @@ class /cc4a/message_easy2find definition
 
     methods calculate_quickfix_data importing procedure                    type if_ci_atc_source_code_provider=>ty_procedure
                                               definition_statement         type if_ci_atc_source_code_provider=>ty_statement
+                                              message_id_location          type if_ci_atc_check=>ty_location
                                               relative_definition_position type ty_definition_position
                                               message_class_var            type string
                                     returning value(qf_data)               type qf_data.
@@ -142,9 +143,11 @@ class /cc4a/message_easy2find implementation.
            definition_statement is not initial.
           "in this case message id is NOT followed by a Message Class in String literal directly but <statement>-tokens[ 3 ]-lexeme is a variable (not constant) for a message class
           "in case of constants the where used list will find the usage
+          data(message_id_finding_location) = code_provider->get_statement_location( <statement> ).
           data(qf_data) = calculate_quickfix_data( procedure                    = procedure
                                                    definition_statement         = definition_statement
                                                    message_class_var            = mid
+                                                   message_id_location          = message_id_finding_location
                                                    relative_definition_position = relative_definition_position
                                                  ).
           if qf_data is not initial.
@@ -164,7 +167,7 @@ class /cc4a/message_easy2find implementation.
 
           "statement Message ID without direct literal - will not be found by
           insert value #( code               = message_codes-msg_find
-                          location           = code_provider->get_statement_location( <statement> )
+                          location           = message_id_finding_location
                           checksum           = code_provider->get_statement_checksum( <statement> )
                           has_pseudo_comment = xsdbool( line_exists( <statement>-pseudo_comments[ table_line = pseudo_comments-msg_find ] ) )
                           details            = assistant_factory->create_finding_details( )->attach_quickfixes( quickfixes )
@@ -179,24 +182,18 @@ class /cc4a/message_easy2find implementation.
 
     case relative_definition_position.
       when definition_positions-local.
-        "check if any compute with this variable is done in local procedure
-        "if not, offer qf
+        "check if any compute with this variable is done in local procedure before message id position
+        "if so, offer qf with "last found position before message id
         loop at procedure-statements assigning field-symbol(<statement>)
-                                     where keyword = 'COMPUTE' ##PRIMKEY[KEYWORD].
-          data(is_msg_class_variable_used) = is_msg_class_variable_used( exporting statement = <statement>
-                                                                                   message_class_var = message_class_var ).
-
-          if is_msg_class_variable_used = abap_true.
-            exit.
-          endif.
-        endloop.
-        if is_msg_class_variable_used = abap_false.
-          reveal_message_class( exporting statement = definition_statement
+                                     where ( keyword = 'COMPUTE' or
+                                             keyword = 'DATA' ) and
+                                           position < message_id_location-position ##PRIMKEY[KEYWORD].
+          reveal_message_class( exporting statement = <statement>
                                           message_class_var = message_class_var
                                 importing message_class_literal = data(message_class_literal)
                                           message_class = data(message_class)
                                   ).
-        endif.
+        endloop.
 
       when others.
         return.
@@ -217,25 +214,25 @@ class /cc4a/message_easy2find implementation.
   method reveal_message_class.
     data lexeme_is_value type abap_bool.
 
-    clear lexeme_is_value.
-    clear message_class.
-    clear message_class_literal.
+    loop at statement-tokens assigning field-symbol(<token>).
+      if <token>-lexeme = message_class_var.
+        data(message_class_var_found) = abap_true.
+      endif.
+      if lexeme_is_value = abap_true.
+        message_class_literal = <token>-lexeme.
+        "token contains leading and ending apostroph - can be ' or `
+        data(str_lenghth) = strlen( message_class_literal ) - 2.
+        message_class = message_class_literal+1(str_lenghth).
+        exit.
+      endif.
+      if message_class_var_found = abap_true and
+         ( <token>-lexeme = 'VALUE' or
+           <token>-lexeme = '=' ).
+        "next token lexme is value
+        lexeme_is_value = abap_true.
+      endif.
+    endloop.
 
-    if value #( statement-tokens[ 2 ]-lexeme optional ) = message_class_var.
-      loop at statement-tokens from 3 assigning field-symbol(<token>).
-        if lexeme_is_value = abap_true.
-          message_class_literal = <token>-lexeme.
-          "token contains leading and ending apostroph - can be ' or `
-          data(str_lenghth) = strlen( message_class_literal ) - 2.
-          message_class = message_class_literal+1(str_lenghth).
-          exit.
-        endif.
-        if <token>-lexeme = 'VALUE'.
-          "next token lexme is value
-          lexeme_is_value = abap_true.
-        endif.
-      endloop.
-    endif.
   endmethod.
 
   method find_definition_part.

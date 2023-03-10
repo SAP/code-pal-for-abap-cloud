@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_FUGR" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <AREAT>Test FuGr for check Message Easy to Find</AREAT>
+   <INCLUDES>
+    <SOBJ_NAME>/CC4A/LTEST_MESS_EASY2FINDTOP</SOBJ_NAME>
+    <SOBJ_NAME>/CC4A/SAPLTEST_MESS_EASY2FIND</SOBJ_NAME>
+   </INCLUDES>
+   <FUNCTIONS>
+    <item>
+     <FUNCNAME>/CC4A/TEST_MESSAGE_EASY2FIND</FUNCNAME>
+     <SHORT_TEXT>Test FuBa for check Message Easy to Find</SHORT_TEXT>
+    </item>
+   </FUNCTIONS>
+  </asx:values>
+ </asx:abap>
+</abapGit>

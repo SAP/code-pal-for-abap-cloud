@@ -172,6 +172,7 @@ class /cc4a/message_easy2find implementation.
                           has_pseudo_comment = xsdbool( line_exists( <statement>-pseudo_comments[ table_line = pseudo_comments-msg_find ] ) )
                           details            = assistant_factory->create_finding_details( )->attach_quickfixes( quickfixes )
                         ) into table findings.
+          free quickfixes.
         endif.
       endif.
     endloop.
@@ -236,6 +237,7 @@ class /cc4a/message_easy2find implementation.
   endmethod.
 
   method find_definition_part.
+    clear relative_definition_position.
     loop at procedure-statements assigning field-symbol(<statement>)
                                  where keyword = 'CONSTANTS' or
                                        keyword = 'DATA' ##PRIMKEY[KEYWORD].
@@ -258,7 +260,8 @@ class /cc4a/message_easy2find implementation.
     if relative_definition_position is initial.
       "check if can be find "global"
       loop at procedures->* assigning field-symbol(<procedure>)
-                            where id-kind = if_ci_atc_source_code_provider=>procedure_kinds-class_definition.
+                            where id-kind = if_ci_atc_source_code_provider=>procedure_kinds-class_definition or
+                                  id-kind = if_ci_atc_source_code_provider=>procedure_kinds-start_of_selection.
         loop at <procedure>-statements assigning <statement>
                                        where keyword = 'CONSTANTS' or
                                              keyword = 'DATA' ##PRIMKEY[KEYWORD].

@@ -180,11 +180,9 @@ class /cc4a/message_easy2find implementation.
 
       endif.
     endloop.
-
   endmethod.
 
   method calculate_quickfix_data.
-
     case definition_part_info-relative_definition_position.
       when definition_positions-local.
         "check if any compute with this variable is done in local procedure before message id position
@@ -209,7 +207,6 @@ class /cc4a/message_easy2find implementation.
       data(line_of_code) = literal_info-message_class_literal.
       insert line_of_code into table qf_data-replacement.
     endif.
-
   endmethod.
 
   method message_class_exists.
@@ -229,7 +226,7 @@ class /cc4a/message_easy2find implementation.
         data(lexeme_length) = strlen( <token>-lexeme ).
         data(msg_class_var_length) = strlen( message_class_var ).
         if lexeme_length >= msg_class_var_length + 4 and
-           <token>-lexeme+5(msg_class_var_length) = message_class_var.
+           <token>-lexeme+5(msg_class_var_length) = message_class_var. "is inline declaration
           message_class_var_found = abap_true.
           continue.
         endif.

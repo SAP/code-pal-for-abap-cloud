@@ -119,6 +119,7 @@ class /cc4a/test_message_easy2find implementation.
   endmethod.
 
   method not_easy2find_9.
+    "should not be found by the check!
     message id msgid type 'I' number 001 into data(dummy1).
   endmethod.
 

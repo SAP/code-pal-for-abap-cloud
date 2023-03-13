@@ -96,7 +96,7 @@ class test implementation.
                                                                     position = value #( line = 3 column = 4 )
                                                                   ).
 
-    "for finding 9
+    "no finding for this usage - as dynamic
     data(loc_not_easy2find_9) = value if_ci_atc_check=>ty_location( object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class
                                                                                                                                   method = test_class_methods-not_easy2find_9
                                                                                                                                 )
@@ -150,9 +150,6 @@ class test implementation.
                                                              location = loc_not_easy2find_8
                                                              code = value #( ( `message id '/CC4A/TEST_EASY2FIN6' type 'I' number 001 into data(dummy1).` ) )
                                                           ) )
-                                   )
-                                   ( code = /cc4a/message_easy2find=>message_codes-msg_find
-                                     location = loc_not_easy2find_9
                                    )
                                    ( code = /cc4a/message_easy2find=>message_codes-msg_find
                                      location = loc_not_easy2find_10

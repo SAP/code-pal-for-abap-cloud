@@ -78,12 +78,10 @@ class /cc4a/message_easy2find definition
     methods analyze_statement importing statement             type if_ci_atc_source_code_provider=>ty_statement
                                         var_or_const          type string
                               returning value(statement_kind) type ty_statement_type.
-    methods analyze_proc_stat_4_def_part
-      importing
-        procedure                   type if_ci_atc_source_code_provider=>ty_procedure
-        var_or_const                type string
-      returning
-        value(definition_part_info) type /cc4a/message_easy2find=>ty_definition_part_info.
+
+    methods analyze_proc_stat_4_def_part importing procedure                   type if_ci_atc_source_code_provider=>ty_procedure
+                                                   var_or_const                type string
+                                         returning value(definition_part_info) type /cc4a/message_easy2find=>ty_definition_part_info.
 
 endclass.
 
@@ -140,7 +138,8 @@ class /cc4a/message_easy2find implementation.
          mid+mid_last_char_pos <> '`'.
         data(definition_part_info) = find_definition_part( exporting procedure    = procedure
                                                                      var_or_const = mid ).
-        if definition_part_info-statement_kind = statement_kinds-constants.
+        if definition_part_info is initial or
+           definition_part_info-statement_kind = statement_kinds-constants.
           continue.
         endif.
         data(message_id_finding_location) = code_provider->get_statement_location( <statement> ).
@@ -281,7 +280,9 @@ class /cc4a/message_easy2find implementation.
       statement_kind = statement_kinds-data.
     endif.
     if statement-keyword = 'COMPUTE'.
-      if value #( statement-tokens[ 1 ]-lexeme(4) optional ) = 'DATA'. "is inline declaration
+      "first lexeme is always present but could be shorter than 4 (=length of DATA)
+      if strlen( statement-tokens[ 1 ]-lexeme ) > 4 and
+         value #( statement-tokens[ 1 ]-lexeme(4) optional ) = 'DATA'. "is inline declaration
         statement_kind = statement_kinds-data.
       endif.
     endif.

@@ -15,6 +15,9 @@ class test definition final for testing
         not_easy2find_5          type c length 30 value 'NOT_EASY2FIND_5',
         not_easy2find_6          type c length 30 value 'NOT_EASY2FIND_6',
         not_easy2find_7          type c length 30 value 'NOT_EASY2FIND_7',
+        not_easy2find_8          type c length 30 value 'NOT_EASY2FIND_8',
+        not_easy2find_9          type c length 30 value 'NOT_EASY2FIND_9',
+        not_easy2find_10         type c length 30 value 'NOT_EASY2FIND_10',
         easy2find_1              type c length 30 value 'EASY2FIND_1',
         easy2find_2              type c length 30 value 'EASY2FIND_2',
         easy2find_3              type c length 30 value 'EASY2FIND_3',
@@ -35,7 +38,7 @@ class test implementation.
                                                                                                                                   method = test_class_methods-not_easy2find_1
                                                                                                                                 )
                                                                                                                        )
-                                                                    position = value #( line = 4 column = 4 )
+                                                                    position = value #( line = 3 column = 4 )
                                                                   ).
 
     "for finding 2
@@ -43,7 +46,7 @@ class test implementation.
                                                                                                                                   method = test_class_methods-not_easy2find_2
                                                                                                                                 )
                                                                                                                        )
-                                                                    position = value #( line = 3 column = 4 )
+                                                                    position = value #( line = 2 column = 4 )
                                                                   ).
 
     "for finding 3
@@ -51,7 +54,7 @@ class test implementation.
                                                                                                                                   method = test_class_methods-not_easy2find_3
                                                                                                                                 )
                                                                                                                        )
-                                                                    position = value #( line = 3 column = 4 )
+                                                                    position = value #( line = 2 column = 4 )
                                                                   ).
 
     "for finding 4
@@ -59,7 +62,7 @@ class test implementation.
                                                                                                                                   method = test_class_methods-not_easy2find_4
                                                                                                                                 )
                                                                                                                        )
-                                                                    position = value #( line = 3 column = 4 )
+                                                                    position = value #( line = 2 column = 4 )
                                                                   ).
 
     "for finding 5
@@ -67,7 +70,7 @@ class test implementation.
                                                                                                                                   method = test_class_methods-not_easy2find_5
                                                                                                                                 )
                                                                                                                        )
-                                                                    position = value #( line = 3 column = 4 )
+                                                                    position = value #( line = 2 column = 4 )
                                                                   ).
 
     "for finding 6
@@ -75,15 +78,39 @@ class test implementation.
                                                                                                                                   method = test_class_methods-not_easy2find_6
                                                                                                                                 )
                                                                                                                        )
-                                                                    position = value #( line = 6 column = 4 )
+                                                                    position = value #( line = 5 column = 4 )
                                                                   ).
-
+    "for finding 7
     data(loc_not_easy2find_7) = value if_ci_atc_check=>ty_location( object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class
                                                                                                                                   method = test_class_methods-not_easy2find_7
                                                                                                                                 )
                                                                                                                        )
-                                                                    position = value #( line = 4 column = 4 )
+                                                                    position = value #( line = 3 column = 4 )
                                                                   ).
+
+    "for finding 8
+    data(loc_not_easy2find_8) = value if_ci_atc_check=>ty_location( object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class
+                                                                                                                                  method = test_class_methods-not_easy2find_8
+                                                                                                                                )
+                                                                                                                       )
+                                                                    position = value #( line = 3 column = 4 )
+                                                                  ).
+
+    "for finding 9
+    data(loc_not_easy2find_9) = value if_ci_atc_check=>ty_location( object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class
+                                                                                                                                  method = test_class_methods-not_easy2find_9
+                                                                                                                                )
+                                                                                                                       )
+                                                                    position = value #( line = 2 column = 4 )
+                                                                  ).
+
+    "for finding 10
+    data(loc_not_easy2find_10) = value if_ci_atc_check=>ty_location( object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class
+                                                                                                                                   method = test_class_methods-not_easy2find_10
+                                                                                                                                  )
+                                                                                                                        )
+                                                                     position = value #( line = 4 column = 4 )
+                                                                   ).
 
     cl_ci_atc_unit_driver=>create_asserter( )->check_and_assert(
       check             = new /cc4a/message_easy2find( )
@@ -91,8 +118,8 @@ class test implementation.
       expected_findings = value #( ( code = /cc4a/message_easy2find=>message_codes-msg_find
                                      location = loc_not_easy2find_1
                                      quickfixes = value #( ( quickfix_code = /cc4a/message_easy2find=>quickfix_codes-msg_resolve
-                                                             location = loc_not_easy2find_1
-                                                             code = value #( ( `message id '/CC4A/TEST_EASY2FIN4' type 'I' number message_no into data(dummy1).` ) )
+                                                             location = loc_not_easy2find_3
+                                                             code = value #( ( `message id '/CC4A/TEST_EASY2FIN4' type 'I' number 001 into data(dummy1).` ) )
                                                           ) )
                                    )
                                    ( code = /cc4a/message_easy2find=>message_codes-msg_find
@@ -111,11 +138,28 @@ class test implementation.
                                      location = loc_not_easy2find_6
                                      quickfixes = value #( ( quickfix_code = /cc4a/message_easy2find=>quickfix_codes-msg_resolve
                                                              location = loc_not_easy2find_6
-                                                             code = value #( ( `message id '/CC4A/TEST_EASY2FIN4' type 'I' number message_no into data(dummy1).` ) )
+                                                             code = value #( ( `message id '/CC4A/TEST_EASY2FIN4' type 'I' number 001 into data(dummy1).` ) )
                                                           ) )
                                    )
                                    ( code = /cc4a/message_easy2find=>message_codes-msg_find
                                      location = loc_not_easy2find_7
+                                   )
+                                   ( code = /cc4a/message_easy2find=>message_codes-msg_find
+                                     location = loc_not_easy2find_8
+                                     quickfixes = value #( ( quickfix_code = /cc4a/message_easy2find=>quickfix_codes-msg_resolve
+                                                             location = loc_not_easy2find_8
+                                                             code = value #( ( `message id '/CC4A/TEST_EASY2FIN6' type 'I' number 001 into data(dummy1).` ) )
+                                                          ) )
+                                   )
+                                   ( code = /cc4a/message_easy2find=>message_codes-msg_find
+                                     location = loc_not_easy2find_9
+                                   )
+                                   ( code = /cc4a/message_easy2find=>message_codes-msg_find
+                                     location = loc_not_easy2find_10
+                                     quickfixes = value #( ( quickfix_code = /cc4a/message_easy2find=>quickfix_codes-msg_resolve
+                                                             location = loc_not_easy2find_10
+                                                             code = value #( ( `message id '/CC4A/TEST_EASY2FIN4' type 'I' number 001 into data(dummy1).` ) )
+                                                          ) )
                                    )
                                  )
       asserter_config   = value #( quickfixes = abap_false

@@ -17,6 +17,10 @@ class /cc4a/test_message_easy2find definition
     methods not_easy2find_5.
     methods not_easy2find_6.
     methods not_easy2find_7.
+    methods not_easy2find_8.
+    methods not_easy2find_9
+      importing msgid type sxco_mc_object_name.
+    methods not_easy2find_10.
     methods easy2find_1.
     methods easy2find_2.
     methods easy2find_3.
@@ -44,81 +48,84 @@ class /cc4a/test_message_easy2find implementation.
 
   method easy2find_1.
     constants lc_message_id type sxco_mc_object_name value '/CC4A/TEST_EASY2FIN4'.
-    data(message_no) = 001.
-    message id lc_message_id type 'I' number message_no into data(dummy1).
+    message id lc_message_id type 'I' number 001 into data(dummy1).
   endmethod.
 
   method easy2find_2.
-    data(message_no) = 001.
+
     constants c_pub_message_id type sxco_mc_object_name value '/CC4A/TEST_EASY2FIN5'.
-    message id c_pub_message_id type 'I' number message_no into data(dummy1).
+    message id c_pub_message_id type 'I' number 001 into data(dummy1).
   endmethod.
 
   method easy2find_3.
-    data(message_no) = 001.
-    message id c_pro_message_id type 'I' number message_no into data(dummy1).
+
+    message id c_pro_message_id type 'I' number 001 into data(dummy1).
   endmethod.
 
   method easy2find_4.
-    data(message_no) = 001.
-    message id c_pri_message_id type 'I' number message_no into data(dummy1).
+    message id c_pri_message_id type 'I' number 001 into data(dummy1).
   endmethod.
 
   method easy2find_5.
-    data(message_no) = 001.
-    message id c_pub_message_id type 'I' number message_no into data(dummy1).
+    message id c_pub_message_id type 'I' number 001 into data(dummy1).
   endmethod.
 
   method easy2find_6.
     constants lc_message_id type sxco_mc_object_name value '/CC4A/TEST_EASY2FIN6'.
-    data(message_no) = 001.
-    message id lc_message_id type 'I' number message_no into data(dummy1).
+    message id lc_message_id type 'I' number 001 into data(dummy1).
   endmethod.
 
   method not_easy2find_pseudo_com.
-    data(message_no) = 001.
-    message id m_pub_message_id type 'I' number message_no into data(dummy1). "#EC MSG_FIND
+    message id m_pub_message_id type 'I' number 001 into data(dummy1). "#EC MSG_FIND
   endmethod.
 
   method not_easy2find_1.
     data l_message_id type sxco_mc_object_name value '/CC4A/TEST_EASY2FIN4'.
-    data(message_no) = 001.
-    message id l_message_id type 'I' number message_no into data(dummy1).
+    message id l_message_id type 'I' number 001 into data(dummy1).
   endmethod.
 
   method not_easy2find_2.
-    data(message_no) = 001.
-    message id m_pro_message_id type 'I' number message_no into data(dummy1).
+    message id m_pro_message_id type 'I' number 001 into data(dummy1).
   endmethod.
 
   method not_easy2find_3.
-    data(message_no) = 001.
-    message id m_pro_message_id type 'I' number message_no into data(dummy1).
+    message id m_pro_message_id type 'I' number 001 into data(dummy1).
   endmethod.
 
   method not_easy2find_4.
-    data(message_no) = 001.
-    message id m_pri_message_id type 'I' number message_no into data(dummy1).
+    message id m_pri_message_id type 'I' number 001 into data(dummy1).
   endmethod.
 
   method not_easy2find_5.
-    data(message_no) = 001.
-    message id m_pub_message_id type 'I' number message_no into data(dummy1).
+    message id m_pub_message_id type 'I' number 001 into data(dummy1).
   endmethod.
 
   method not_easy2find_6.
     data m_message_id type sxco_mc_object_name value '/CC4A/TEST_EASY2FIN6'.
-    data(message_no) = 001.
     m_message_id = '/CC4A/TEST_EASY2FIN5'.
     m_message_id = '/CC4A/TEST_EASY2FIN4'.
-    message id m_message_id type 'I' number message_no into data(dummy1).
+    message id m_message_id type 'I' number 001 into data(dummy1).
     m_message_id = '/CC4A/TEST_EASY2FIN6'.
   endmethod.
 
   method not_easy2find_7.
     data l_message_id type sxco_mc_object_name.
-    data(message_no) = 001.
-    message id l_message_id type 'I' number message_no into data(dummy1).
+    message id l_message_id type 'I' number 001 into data(dummy1).
+  endmethod.
+
+  method not_easy2find_8.
+    data(message_id) = '/CC4A/TEST_EASY2FIN6'.
+    message id message_id type 'I' number 001 into data(dummy1).
+  endmethod.
+
+  method not_easy2find_9.
+    message id msgid type 'I' number 001 into data(dummy1).
+  endmethod.
+
+  method not_easy2find_10.
+    data(message_id) = '/CC4A/TEST_EASY2FIN6'.
+    message_id = '/CC4A/TEST_EASY2FIN4'.
+    message id message_id type 'I' number 001 into data(dummy1).
   endmethod.
 
 endclass.

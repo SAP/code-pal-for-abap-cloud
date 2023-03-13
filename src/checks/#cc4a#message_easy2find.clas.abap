@@ -282,7 +282,7 @@ class /cc4a/message_easy2find implementation.
     if statement-keyword = 'COMPUTE'.
       "first lexeme is always present but could be shorter than 4 (=length of DATA)
       if strlen( statement-tokens[ 1 ]-lexeme ) > 4 and
-         value #( statement-tokens[ 1 ]-lexeme(4) optional ) = 'DATA'. "is inline declaration
+         statement-tokens[ 1 ]-lexeme(4) = 'DATA'. "is inline declaration
         statement_kind = statement_kinds-data.
       endif.
     endif.

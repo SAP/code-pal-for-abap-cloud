@@ -343,12 +343,11 @@ class /cc4a/message_easy2find implementation.
   endmethod.
 
   method is_text_element.
-    result = xsdbool( contains( val = flat_statement
-                                start = 'TEXT-' ) ).
+    result = xsdbool( flat_statement cs 'TEXT-' ).
   endmethod.
 
   method is_sy_msgid.
-    result = xsdbool( flat_statement = 'SY-MSGID' ).
+    result = xsdbool( flat_statement cs 'SY-MSGID' ).
   endmethod.
 
   method is_static_short_form.
@@ -372,8 +371,8 @@ class /cc4a/message_easy2find implementation.
   endmethod.
 
   method is_method_call.
-    result = xsdbool( flat_statement ca '=>'
-                   or flat_statement ca '->' ).
+    result = xsdbool( flat_statement cs '=>'
+                   or flat_statement cs '->' ).
   endmethod.
 
   method is_message_class_explicit.

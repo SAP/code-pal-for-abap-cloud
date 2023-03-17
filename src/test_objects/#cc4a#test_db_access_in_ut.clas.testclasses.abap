@@ -7,34 +7,28 @@ endclass.
 
 class test_without implementation.
   method without.
-    data ltable type table of string.
+    data wa type /cc4a/test_db.
+    wa = value #( user_id = 'Y' ).
 
-    data a type standard table of tadir.
-
-    insert value #( author = 'ME' ) into table a.
-    delete a where author = 'ME'.
-    modify table a from value #( author = 'ME' ).
-
-
-    select * from tadir into @data(x) where author = ''. endselect.
-    data wa type demo_expressions.
-    wa = value #( id = 'Y' num1 = 222 ).
-    insert demo_expressions from @wa.
-    update demo_update from @( value #( id = 'X' col1 = 100
-                                             col2 = 200
-                                             col3 = 300
-                                             col4 = 400 ) ).
-    modify demo_update from table @(
-value #( ( id = 'X' col1 =  1 col2 =  2 col3 =  3 col4 =  4 )
-( id = 'Y' col1 = 11 col2 = 12 col3 = 13 col4 = 14 )
-( id = 'Z' col1 = 21 col2 = 22 col3 = 23 col4 = 24 ) ) ).
-    delete demo_update from @( value #( id = 'X' ) ).
-    rollback work.
-    commit work.
+    select * from /cc4a/test_db into @data(x) where first_name = ''. endselect.
+    insert /cc4a/test_db from @wa.
+    update /cc4a/test_db from @( value #( user_id = 'X' ) ).
+    modify /cc4a/test_db from table @(
+        value #( ( user_id = 'X' )
+        ( user_id = 'Y' )
+        ( user_id = 'Z' ) ) ).
+    delete /cc4a/test_db from @( value #( user_id = 'X' ) ).
     rollback entities.
     commit entities.
 
-
+    data a type standard table of /cc4a/test_db.
+    ##ITAB_KEY_IN_SELECT
+    select * from @a as abc where abc~first_name eq '' into @data(y).endselect.
+    insert value #( first_name = 'ME' ) into table a.
+    modify table a from value #( first_name = 'ME' ).
+    delete a where first_name = 'ME'.
+    rollback work.
+    commit work.
   endmethod.
 
 endclass.
@@ -49,7 +43,28 @@ endclass.
 
 class test_harmless implementation.
   method harmless.
-    data ltable type table of string.
+    data wa type /cc4a/test_db.
+    wa = value #( user_id = 'Y' ).
+
+    select * from /cc4a/test_db into @data(x) where first_name = ''. endselect.
+    insert /cc4a/test_db from @wa.
+    update /cc4a/test_db from @( value #( user_id = 'X' ) ).
+    modify /cc4a/test_db from table @(
+        value #( ( user_id = 'X' )
+        ( user_id = 'Y' )
+        ( user_id = 'Z' ) ) ).
+    delete /cc4a/test_db from @( value #( user_id = 'X' ) ).
+    rollback entities.
+    commit entities.
+
+    data a type standard table of /cc4a/test_db.
+    ##ITAB_KEY_IN_SELECT
+    select * from @a as abc where abc~first_name eq '' into @data(y).endselect.
+    insert value #( first_name = 'ME' ) into table a.
+    modify table a from value #( first_name = 'ME' ).
+    delete a where first_name = 'ME'.
+    rollback work.
+    commit work.
   endmethod.
 
 endclass.
@@ -64,30 +79,28 @@ endclass.
 
 class test_dangerous implementation.
   method dangerous.
-    data ltable type table of string.
-    data a type standard table of tadir.
+    data wa type /cc4a/test_db.
+    wa = value #( user_id = 'Y' ).
 
-    select * from @a as b into @data(y). endselect.
-    insert value #( author = 'ME' ) into table a.
-    delete a where author = 'ME'.
-    modify table a from value #( author = 'ME' ).
-
-
-    select * from tadir into @data(x) where author = ''. endselect.
-    data wa type demo_expressions.
-    wa = value #( id = 'Y' num1 = 222 ).
-    insert demo_expressions from @wa.
-    update demo_update from @( value #( id = 'X' col1 = 100
-                                             col2 = 200
-                                             col3 = 300
-                                             col4 = 400 ) ).
-    modify demo_update from table @(
-value #( ( id = 'X' col1 =  1 col2 =  2 col3 =  3 col4 =  4 )
-( id = 'Y' col1 = 11 col2 = 12 col3 = 13 col4 = 14 )
-( id = 'Z' col1 = 21 col2 = 22 col3 = 23 col4 = 24 ) ) ).
-    delete demo_update from @( value #( id = 'X' ) ).
+    select * from /cc4a/test_db into @data(x) where first_name = ''. endselect.
+    insert /cc4a/test_db from @wa.
+    update /cc4a/test_db from @( value #( user_id = 'X' ) ).
+    modify /cc4a/test_db from table @(
+        value #( ( user_id = 'X' )
+        ( user_id = 'Y' )
+        ( user_id = 'Z' ) ) ).
+    delete /cc4a/test_db from @( value #( user_id = 'X' ) ).
     rollback entities.
     commit entities.
+
+    data a type standard table of /cc4a/test_db.
+    ##ITAB_KEY_IN_SELECT
+    select * from @a as abc where abc~first_name eq '' into @data(y).endselect.
+    insert value #( first_name = 'ME' ) into table a.
+    modify table a from value #( first_name = 'ME' ).
+    delete a where first_name = 'ME'.
+    rollback work.
+    commit work.
   endmethod.
 
 endclass.
@@ -102,7 +115,28 @@ endclass.
 
 class test_critical implementation.
   method critical.
-    data ltable type table of string.
+    data wa type /cc4a/test_db.
+    wa = value #( user_id = 'Y' ).
+
+    select * from /cc4a/test_db into @data(x) where first_name = ''. endselect.
+    insert /cc4a/test_db from @wa.
+    update /cc4a/test_db from @( value #( user_id = 'X' ) ).
+    modify /cc4a/test_db from table @(
+        value #( ( user_id = 'X' )
+        ( user_id = 'Y' )
+        ( user_id = 'Z' ) ) ).
+    delete /cc4a/test_db from @( value #( user_id = 'X' ) ).
+    rollback entities.
+    commit entities.
+
+    data a type standard table of /cc4a/test_db.
+    ##ITAB_KEY_IN_SELECT
+    select * from @a as abc where abc~first_name eq '' into @data(y).endselect.
+    insert value #( first_name = 'ME' ) into table a.
+    modify table a from value #( first_name = 'ME' ).
+    delete a where first_name = 'ME'.
+    rollback work.
+    commit work.
   endmethod.
 endclass.
 
@@ -118,7 +152,28 @@ endclass.
 
 class test_environment_in_definition implementation.
   method environment.
-    data ltable type table of string.
+    data wa type /cc4a/test_db.
+    wa = value #( user_id = 'Y' ).
+
+    select * from /cc4a/test_db into @data(x) where first_name = ''. endselect.
+    insert /cc4a/test_db from @wa.
+    update /cc4a/test_db from @( value #( user_id = 'X' ) ).
+    modify /cc4a/test_db from table @(
+        value #( ( user_id = 'X' )
+        ( user_id = 'Y' )
+        ( user_id = 'Z' ) ) ).
+    delete /cc4a/test_db from @( value #( user_id = 'X' ) ).
+    rollback entities.
+    commit entities.
+
+    data a type standard table of /cc4a/test_db.
+    ##ITAB_KEY_IN_SELECT
+    select * from @a as abc where abc~first_name eq '' into @data(y).endselect.
+    insert value #( first_name = 'ME' ) into table a.
+    modify table a from value #( first_name = 'ME' ).
+    delete a where first_name = 'ME'.
+    rollback work.
+    commit work.
   endmethod.
 endclass.
 
@@ -135,6 +190,65 @@ endclass.
 class test_environment_in_method implementation.
   method environment.
     data test_environment type ref to if_cds_test_environment.
-    data ltable type table of string.
+    data wa type /cc4a/test_db.
+    wa = value #( user_id = 'Y' ).
+
+    select * from /cc4a/test_db into @data(x) where first_name = ''. endselect.
+    insert /cc4a/test_db from @wa.
+    update /cc4a/test_db from @( value #( user_id = 'X' ) ).
+    modify /cc4a/test_db from table @(
+        value #( ( user_id = 'X' )
+        ( user_id = 'Y' )
+        ( user_id = 'Z' ) ) ).
+    delete /cc4a/test_db from @( value #( user_id = 'X' ) ).
+    rollback entities.
+    commit entities.
+
+    data a type standard table of /cc4a/test_db.
+    ##ITAB_KEY_IN_SELECT
+    select * from @a as abc where abc~first_name eq '' into @data(y).endselect.
+    insert value #( first_name = 'ME' ) into table a.
+    modify table a from value #( first_name = 'ME' ).
+    delete a where first_name = 'ME'.
+    rollback work.
+    commit work.
+  endmethod.
+endclass.
+
+class test_pseudo_comments definition final for testing
+duration short
+risk level harmless.
+
+  private section.
+    methods pseudo_comments.
+
+
+endclass.
+
+class test_pseudo_comments implementation.
+  method pseudo_comments.
+    data wa type /cc4a/test_db.
+    wa = value #( user_id = 'Y' ).
+
+    select * from /cc4a/test_db into @data(x) where first_name = ''. "#EC DB_ACCESS_UT
+    endselect.
+    insert /cc4a/test_db from @wa.                    "#EC DB_ACCESS_UT
+    update /cc4a/test_db from @( value #( user_id = 'X' ) ). "#EC DB_ACCESS_UT
+    modify /cc4a/test_db from table @(                "#EC DB_ACCESS_UT
+        value #( ( user_id = 'X' )
+        ( user_id = 'Y' )
+        ( user_id = 'Z' ) ) ).
+    delete /cc4a/test_db from @( value #( user_id = 'X' ) ). "#EC DB_ACCESS_UT
+    rollback entities.                                "#EC DB_ACCESS_UT
+    commit entities.                                  "#EC DB_ACCESS_UT
+
+    data a type standard table of /cc4a/test_db.
+    ##ITAB_KEY_IN_SELECT
+    select * from @a as abc where abc~first_name eq '' into @data(y).endselect.
+    insert value #( first_name = 'ME' ) into table a.
+    modify table a from value #( first_name = 'ME' ).
+    delete a where first_name = 'ME'.
+    rollback work.                                    "#EC DB_ACCESS_UT
+    commit work.                                      "#EC DB_ACCESS_UT
   endmethod.
 endclass.

@@ -14,25 +14,31 @@ class /cc4a/chain_declaration definition
 
     data code_provider     type ref to if_ci_atc_source_code_provider.
     data assistant_factory type ref to cl_ci_atc_assistant_factory.
-    data chained_statements type if_ci_atc_source_code_provider=>ty_statements.
+    data nxt_relevant_stmnt_position type i.
 
     methods analyze_procedure
       importing procedure       type if_ci_atc_source_code_provider=>ty_procedure
       returning value(findings) type if_ci_atc_check=>ty_findings.
 
     methods get_chained_statements
-      importing procedure              type if_ci_atc_source_code_provider=>ty_procedure
-                declaration_position   type if_ci_atc_source_code_provider=>ty_source_position
-                keyword                type if_ci_atc_source_code_provider=>ty_keyword
-      returning value(chaining_exists) type abap_bool.
+      importing procedure                 type if_ci_atc_source_code_provider=>ty_procedure
+                declaration_position      type if_ci_atc_source_code_provider=>ty_source_position
+                keyword                   type if_ci_atc_source_code_provider=>ty_keyword
+                start_position            type i
+      returning value(chained_statements) type if_ci_atc_source_code_provider=>ty_statements.
 
     methods create_quickfix_code
       importing statement                 type if_ci_atc_source_code_provider=>ty_statement
       returning value(modified_statement) type if_ci_atc_quickfix=>ty_code.
 
-    methods check_for_begin_of
-      importing statement                type if_ci_atc_source_code_provider=>ty_statement
-      returning value(position_begin_of) type if_ci_atc_source_code_provider=>ty_source_position.
+    methods get_pseudo_quickfix_code
+      importing statement                 type if_ci_atc_source_code_provider=>ty_statement
+      returning value(modified_statement) type if_ci_atc_quickfix=>ty_code.
+
+    methods find_position_end_of_statement
+      importing procedure                        type if_ci_atc_source_code_provider=>ty_procedure
+                start_position                   type i
+      returning value(position_end_of_statement) type i.
 endclass.
 
 
@@ -64,66 +70,138 @@ class /cc4a/chain_declaration implementation.
   endmethod.
 
   method analyze_procedure.
-    data position_begin_of type if_ci_atc_source_code_provider=>ty_source_position.
-
+    data chained_statements type if_ci_atc_source_code_provider=>ty_statements.
+    clear nxt_relevant_stmnt_position.
     loop at procedure-statements assigning field-symbol(<statement>) where keyword = 'DATA' or keyword = 'TYPES' or keyword = 'CLASS-DATA' or keyword = 'CONSTANTS' or keyword = 'STATICS'.
-      if <statement>-tokens[ 1 ]-position ne position_begin_of.
-        position_begin_of = check_for_begin_of( statement = <statement> ).
-      endif.
-      data(chaining_exists) = abap_false.
-      if <statement>-tokens[ 1 ]-position eq procedure-statements[ sy-tabix + 1 ]-tokens[ 1 ]-position and <statement>-tokens[ 1 ]-position ne position_begin_of.
-        if not line_exists( chained_statements[ table_line = <statement> ] ).
-          chaining_exists = get_chained_statements( procedure = procedure declaration_position = <statement>-tokens[ 1 ]-position keyword = <statement>-keyword ).
+      clear chained_statements.
+      data(next_statement) = value #( procedure-statements[ sy-tabix + 1 ] optional ).
+      if next_statement is not initial and sy-tabix >= nxt_relevant_stmnt_position.
+        if not line_exists( chained_statements[ table_line = <statement> ] ) ##PRIMKEY[KEYWORD].
+          chained_statements = get_chained_statements( procedure = procedure declaration_position = <statement>-tokens[ 1 ]-position keyword = <statement>-keyword start_position = sy-tabix ).
         endif.
       endif.
-      if chaining_exists = abap_true.
-        data(chaining_statement_index) = sy-tabix.
+      if chained_statements is not initial.
+        data(finding_has_pseudo_comment) = xsdbool( line_exists( <statement>-pseudo_comments[ table_line = pseudo_comment ] ) ).
+        data(chaining_statement_index) = sy-tabix + 1.
         data(available_quickfixes) = assistant_factory->create_quickfixes( ).
         data(quick_fix) = available_quickfixes->create_quickfix( quickfix_code )->replace(
-                      context = assistant_factory->create_quickfix_context( value #( procedure_id = procedure-id statements = value #( from = chaining_statement_index to = chaining_statement_index ) ) )
-                      code = create_quickfix_code( statement = <statement> ) ).
-        loop at chained_statements assigning field-symbol(<chained_statement>).
-          if <chained_statement>-tokens[ 1 ]-position eq <statement>-tokens[ 1 ]-position and <chained_statement> ne <statement>.
-            chaining_statement_index = chaining_statement_index + 1.
+                                  context = assistant_factory->create_quickfix_context( value #( procedure_id = procedure-id statements = value #( from = sy-tabix to = sy-tabix ) ) )
+                                  code = create_quickfix_code( statement = <statement> ) ).
+        loop at procedure-statements assigning field-symbol(<chaining_statement>) from sy-tabix + 1.
+          if xsdbool( line_exists( <chaining_statement>-pseudo_comments[ table_line = pseudo_comment ] ) ) eq abap_true and <chaining_statement>-tokens[ 1 ]-position eq <statement>-tokens[ 1 ]-position.
+            finding_has_pseudo_comment = abap_true.
+          endif.
+          if line_exists( chained_statements[ table_line = <chaining_statement> ] ) and <chaining_statement>-tokens[ 1 ]-position eq <statement>-tokens[ 1 ]-position ##PRIMKEY[KEYWORD].
             quick_fix->replace( context = assistant_factory->create_quickfix_context( value #( procedure_id = procedure-id statements = value #( from = chaining_statement_index to = chaining_statement_index ) ) )
-                                code = create_quickfix_code( statement = <chained_statement> ) ).
+                                code = create_quickfix_code( statement = <chaining_statement> ) ).
+            chaining_statement_index = chaining_statement_index + 1.
+          elseif <chaining_statement>-tokens[ 1 ]-position eq <statement>-tokens[ 1 ]-position.
+            quick_fix->replace( context = assistant_factory->create_quickfix_context( value #( procedure_id = procedure-id statements = value #( from = chaining_statement_index to = chaining_statement_index ) ) )
+                                code = get_pseudo_quickfix_code( statement = <chaining_statement> ) ).
+            chaining_statement_index = chaining_statement_index + 1.
 
+          elseif <chaining_statement>-tokens[ 1 ]-position ne <statement>-tokens[ 1 ]-position.
+            exit.
           endif.
         endloop.
         insert value #( code = finding_code
-                        location = code_provider->get_statement_location( <statement> )
-                        checksum = code_provider->get_statement_checksum( <statement> )
-                        has_pseudo_comment = xsdbool( line_exists( <statement>-pseudo_comments[ table_line = pseudo_comment ] ) )
-                          details = assistant_factory->create_finding_details( )->attach_quickfixes( available_quickfixes )
-                        ) into table findings.
+          location = code_provider->get_statement_location( <statement> )
+          checksum = code_provider->get_statement_checksum( <statement> )
+          has_pseudo_comment = finding_has_pseudo_comment
+            details = assistant_factory->create_finding_details( )->attach_quickfixes( available_quickfixes )
+          ) into table findings.
       endif.
     endloop.
   endmethod.
 
   method get_chained_statements.
     data chaining_statements type if_ci_atc_source_code_provider=>ty_statements.
-    loop at procedure-statements assigning field-symbol(<statement>) using key keyword where keyword eq keyword.
-      if <statement>-tokens[ 1 ]-position eq declaration_position.
-        insert <statement> into table chaining_statements.
+    data chained_statement_counter type i.
+    data(statement_counter) = start_position.
+
+    data(next_statement) = value #( procedure-statements[ statement_counter ] optional ).
+    while next_statement-keyword eq keyword.
+      if next_statement is not initial and next_statement-tokens[ 1 ]-position eq declaration_position.
+        loop at next_statement-tokens transporting no fields where lexeme eq 'BEGIN'.
+          data(next_token) = value #( next_statement-tokens[ sy-tabix + 1 ] optional ).
+          if next_token is not initial and next_statement-tokens[ sy-tabix + 1 ]-lexeme eq 'OF'.
+            data(position_end_of_statement) = find_position_end_of_statement( procedure = procedure start_position = statement_counter ).
+          endif.
+        endloop.
+        if position_end_of_statement is not initial.
+          chained_statement_counter = chained_statement_counter + 1.
+          insert next_statement into table chaining_statements.
+          insert procedure-statements[ position_end_of_statement ] into table chaining_statements.
+          statement_counter = position_end_of_statement + 1.
+        else.
+          chained_statement_counter = chained_statement_counter + 1.
+          statement_counter = statement_counter + 1.
+          insert next_statement into table chaining_statements.
+        endif.
+      else.
+        exit.
       endif.
-    endloop.
-    if lines( chaining_statements ) > 1.
-      chaining_exists = abap_true.
+      next_statement = value #( procedure-statements[ statement_counter ] optional ).
+      clear position_end_of_statement.
+    endwhile.
+
+    if chained_statement_counter > 1.
       insert lines of chaining_statements into table chained_statements.
     endif.
+
+    nxt_relevant_stmnt_position = statement_counter.
   endmethod.
 
   method create_quickfix_code.
-    data(flat_new_statement) = /cc4a/abap_analyzer=>create( )->flatten_tokens( statement-tokens ) && `.`.
-    modified_statement = /cc4a/abap_analyzer=>create( )->break_into_lines( flat_new_statement ).
+    data(new_statement) = statement.
+    if statement-tokens[ 2 ]-lexeme eq 'BEGIN' and statement-tokens[ 3 ]-lexeme eq 'OF'.
+      new_statement-tokens[ 1 ]-lexeme = statement-tokens[ 1 ]-lexeme && `:`.
+      data(flat_new_statement) = /cc4a/abap_analyzer=>create( )->flatten_tokens( new_statement-tokens ) && `,`.
+      modified_statement = /cc4a/abap_analyzer=>create( )->break_into_lines( flat_new_statement ).
+    elseif statement-tokens[ 2 ]-lexeme eq 'END' and statement-tokens[ 3 ]-lexeme eq 'OF'.
+      delete new_statement-tokens index 1.
+      flat_new_statement = /cc4a/abap_analyzer=>create( )->flatten_tokens( new_statement-tokens ) && `.`.
+      modified_statement = /cc4a/abap_analyzer=>create( )->break_into_lines( flat_new_statement ).
+    else.
+      flat_new_statement = /cc4a/abap_analyzer=>create( )->flatten_tokens( new_statement-tokens ) && `.`.
+      modified_statement = /cc4a/abap_analyzer=>create( )->break_into_lines( flat_new_statement ).
+    endif.
   endmethod.
 
-  method check_for_begin_of.
-    loop at statement-tokens assigning field-symbol(<token>) where lexeme eq 'BEGIN'.
-      if statement-tokens[ sy-tabix + 1 ]-lexeme eq 'OF'.
-        position_begin_of = statement-tokens[ 1 ]-position.
+  method find_position_end_of_statement.
+    position_end_of_statement = start_position.
+    data(end_of_found) = abap_false.
+    data(begin_of_counter) = 1.
+    loop at procedure-statements assigning field-symbol(<statement>) from start_position + 1.
+      loop at <statement>-tokens assigning field-symbol(<token>) where lexeme eq 'BEGIN' or lexeme eq 'END'.
+        data(next_token) = value #( <statement>-tokens[ sy-tabix + 1 ] optional ).
+        if next_token is not initial and next_token-lexeme eq 'OF'.
+          if <token>-lexeme eq 'BEGIN'.
+            begin_of_counter = begin_of_counter + 1.
+          elseif <token>-lexeme eq 'END'.
+            if begin_of_counter eq 1.
+              end_of_found = abap_true.
+              exit.
+            else.
+              begin_of_counter = begin_of_counter - 1.
+            endif.
+          endif.
+        endif.
+      endloop.
+      if end_of_found = abap_true.
+        position_end_of_statement = position_end_of_statement + 1.
+        exit.
+      else.
+        position_end_of_statement = position_end_of_statement + 1.
       endif.
     endloop.
+  endmethod.
+
+  method get_pseudo_quickfix_code.
+    data(new_statement) = statement.
+    delete new_statement-tokens index 1.
+    data(flat_new_statement) = /cc4a/abap_analyzer=>create( )->flatten_tokens( new_statement-tokens ) && `,`.
+    modified_statement = /cc4a/abap_analyzer=>create( )->break_into_lines( flat_new_statement ).
   endmethod.
 
 endclass.

@@ -66,7 +66,6 @@ class /cc4a/db_access_in_ut definition
       importing classes_with_risk_level       type ty_classes_with_risk_level
                 classes_with_test_environment type ty_classes_with_test_envrnment
       returning value(relevant_classes)       type ty_classes_with_risk_level.
-
 endclass.
 
 
@@ -168,28 +167,38 @@ class /cc4a/db_access_in_ut implementation.
   endmethod.
 
   method analyze_procedure.
-    data relevant_keywords type range of string.
+    types ty_key_word_range type range of string.
+    data(relevant_keywords) = value ty_key_word_range( sign = cl_abap_range=>sign-including option = cl_abap_range=>option-equal ( low = 'UPDATE' ) ( low = 'MODIFY' ) ( low = 'DELETE' ) ( low = 'ALTER' ) ).
+
     if procedure-id-name cs '=>'.
       data(risk_level) = classes_with_risk_level[ class_name = substring_before( val = procedure-id-name sub = '=>' ) ]-risk_level.
     else.
       risk_level = classes_with_risk_level[ class_id = procedure-id-name ]-risk_level.
     endif.
 
-    if risk_level = risk_levels-dangerous or risk_level = risk_levels-critical.
-      relevant_keywords = value #( ( sign = 'I' option = 'EQ' low = 'UPDATE' ) ( sign = 'I' option = 'EQ' low = 'MODIFY' ) ( sign = 'I' option = 'EQ' low = 'DELETE' ) ( sign = 'I' option = 'EQ' low = 'ALTER' ) ).
-    elseif risk_level = risk_levels-harmless or risk_level = risk_levels-without.
-      relevant_keywords = value #( ( sign = 'I' option = 'EQ' low = 'SELECT' ) ( sign = 'I' option = 'EQ' low = 'INSERT' ) ( sign = 'I' option = 'EQ' low = 'UPDATE' ) ( sign = 'I' option = 'EQ' low = 'MODIFY' )
-                                   ( sign = 'I' option = 'EQ' low = 'DELETE' ) ( sign = 'I' option = 'EQ' low = 'ROLLBACK' ) ( sign = 'I' option = 'EQ' low = 'COMMIT' ) ( sign = 'I' option = 'EQ' low = 'ALTER' ) ).
+    if risk_level = risk_levels-harmless or risk_level = risk_levels-without.
+      data(key_words_harmless_without) = value ty_key_word_range( sign = cl_abap_range=>sign-including option = cl_abap_range=>option-equal ( low = 'SELECT' ) ( low = 'INSERT' ) ( low = 'COMMIT' ) ( low = 'ROLLBACK' ) ).
+      insert lines of key_words_harmless_without into table relevant_keywords.
     endif.
 
     loop at procedure-statements assigning field-symbol(<statement>) where keyword in relevant_keywords.
-      insert value #( code = finding_code
-        location = value #( object = code_provider->get_statement_location( <statement> )-object
-                            position = code_provider->get_statement_location( <statement> )-position )
-        checksum = code_provider->get_statement_checksum( <statement> )
-        has_pseudo_comment = xsdbool( line_exists( <statement>-pseudo_comments[ table_line = pseudo_comment ] ) )
-        ) into table findings.
+      data(second_token) = value #( <statement>-tokens[ 2 ] optional ).
+      data(third_token) = value #( <statement>-tokens[ 3 ] optional ).
+      if /cc4a/abap_analyzer=>create( )->is_db_statement( statement = <statement> ).
+        insert value #( code = finding_code
+          location = value #( object = code_provider->get_statement_location( <statement> )-object
+                              position = code_provider->get_statement_location( <statement> )-position )
+          checksum = code_provider->get_statement_checksum( <statement> )
+          has_pseudo_comment = xsdbool( line_exists( <statement>-pseudo_comments[ table_line = pseudo_comment ] ) )
+          ) into table findings.
+      elseif <statement>-keyword eq 'ROLLBACK' or <statement>-keyword eq 'COMMIT'.
+        insert value #( code = finding_code
+            location = value #( object = code_provider->get_statement_location( <statement> )-object
+                                position = code_provider->get_statement_location( <statement> )-position )
+            checksum = code_provider->get_statement_checksum( <statement> )
+            has_pseudo_comment = xsdbool( line_exists( <statement>-pseudo_comments[ table_line = pseudo_comment ] ) )
+            ) into table findings.
+      endif.
     endloop.
   endmethod.
-
 endclass.

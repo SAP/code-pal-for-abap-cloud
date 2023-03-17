@@ -46,4 +46,21 @@ interface /cc4a/if_abap_analyzer
     returning value(negated_comparison_operator) type string
     raising   /cc4a/cx_token_is_no_operator.
 
+  methods is_db_statement
+    importing statement type if_ci_atc_source_code_provider=>ty_statement
+    exporting dbtab type string
+    returning value(result) type abap_bool.
+"! The method checks if clause is contained in tokens
+"! if so it returns the index of the first token of the first occurrence of the clause
+"! otherwise token_index = 0
+  methods find_clause_index
+    importing tokens type if_ci_atc_source_code_provider=>ty_tokens
+              value(clause) type string
+              start_index type i default 1
+    returning value(token_index) type i
+    raising /cc4a/cx_clause_is_initial.
+  methods is_token_keyword
+    importing token type if_ci_atc_source_code_provider=>ty_token
+              keyword type string
+    RETURNING VALUE(result) type abap_bool.
 endinterface.

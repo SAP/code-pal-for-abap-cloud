@@ -76,46 +76,7 @@ class test implementation.
     cl_ci_atc_unit_driver=>create_asserter( )->check_and_assert(
           check             = new /cc4a/db_access_in_ut( )
           object            = value #( type = 'CLAS' name = test_class )
-          expected_findings = value #( ( code = /cc4a/db_access_in_ut=>finding_code
-                                         location = finding_1 )
-                                       ( code = /cc4a/db_access_in_ut=>finding_code
-                                         location = finding_2 )
-                                       ( code = /cc4a/db_access_in_ut=>finding_code
-                                         location = finding_3 )
-                                       ( code = /cc4a/db_access_in_ut=>finding_code
-                                         location = finding_4 )
-                                       ( code = /cc4a/db_access_in_ut=>finding_code
-                                         location = finding_5 )
-                                       ( code = /cc4a/db_access_in_ut=>finding_code
-                                         location = finding_6 )
-                                       ( code = /cc4a/db_access_in_ut=>finding_code
-                                         location = finding_7 )
-                                       ( code = /cc4a/db_access_in_ut=>finding_code
-                                         location = finding_8 )
-                                       ( code = /cc4a/db_access_in_ut=>finding_code
-                                         location = finding_9 )
-                                       ( code = /cc4a/db_access_in_ut=>finding_code
-                                         location = finding_10 )
-                                       ( code = /cc4a/db_access_in_ut=>finding_code
-                                         location = finding_11 )
-                                       ( code = /cc4a/db_access_in_ut=>finding_code
-                                         location = finding_12 )
-                                       ( code = /cc4a/db_access_in_ut=>finding_code
-                                         location = finding_13 )
-                                       ( code = /cc4a/db_access_in_ut=>finding_code
-                                         location = finding_14 )
-                                       ( code = /cc4a/db_access_in_ut=>finding_code
-                                         location = finding_15 )
-                                       ( code = /cc4a/db_access_in_ut=>finding_code
-                                         location = finding_16 )
-                                       ( code = /cc4a/db_access_in_ut=>finding_code
-                                         location = finding_17 )
-                                       ( code = /cc4a/db_access_in_ut=>finding_code
-                                         location = finding_18 )
-                                       ( code = /cc4a/db_access_in_ut=>finding_code
-                                         location = finding_19 )
-                                       ( code = /cc4a/db_access_in_ut=>finding_code
-                                         location = finding_20 ) )
+          expected_findings = value #( )
           asserter_config   = value #( quickfixes = abap_false ) ).
   endmethod.
 

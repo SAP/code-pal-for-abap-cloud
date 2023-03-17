@@ -9,22 +9,32 @@ class test_without implementation.
   method without.
     data ltable type table of string.
 
+    data a type standard table of tadir.
 
-    select * from scarr into table @data(entries).
+    insert value #( author = 'ME' ) into table a.
+    delete a where author = 'ME'.
+    modify table a from value #( author = 'ME' ).
 
-    insert value #(  ) into ltable index 1.           "#EC DB_ACCESS_UT
 
-    update scarr from @( value #(  ) ).
-
-    modify table ltable from value #(  ).
-
-    delete ltable index 1.
-
-    rollback entities.                                "#EC DB_ACCESS_UT
-
+    select * from tadir into @data(x) where author = ''. endselect.
+    data wa type demo_expressions.
+    wa = value #( id = 'Y' num1 = 222 ).
+    insert demo_expressions from @wa.
+    update demo_update from @( value #( id = 'X' col1 = 100
+                                             col2 = 200
+                                             col3 = 300
+                                             col4 = 400 ) ).
+    modify demo_update from table @(
+value #( ( id = 'X' col1 =  1 col2 =  2 col3 =  3 col4 =  4 )
+( id = 'Y' col1 = 11 col2 = 12 col3 = 13 col4 = 14 )
+( id = 'Z' col1 = 21 col2 = 22 col3 = 23 col4 = 24 ) ) ).
+    delete demo_update from @( value #( id = 'X' ) ).
+    rollback work.
+    commit work.
+    rollback entities.
     commit entities.
 
-*    alter table ltable add ('City' Nvarchar(35)).
+
   endmethod.
 
 endclass.
@@ -40,22 +50,6 @@ endclass.
 class test_harmless implementation.
   method harmless.
     data ltable type table of string.
-
-    select * from scarr into table @data(entries).    "#EC DB_ACCESS_UT
-
-    insert value #(  ) into ltable index 1.
-
-    update scarr from @( value #(  ) ).
-
-    modify table ltable from value #(  ).
-
-    delete ltable index 1.
-
-    rollback entities.
-
-    commit entities.                                  "#EC DB_ACCESS_UT
-
-*    alter
   endmethod.
 
 endclass.
@@ -71,23 +65,29 @@ endclass.
 class test_dangerous implementation.
   method dangerous.
     data ltable type table of string.
+    data a type standard table of tadir.
+
+    select * from @a as b into @data(y). endselect.
+    insert value #( author = 'ME' ) into table a.
+    delete a where author = 'ME'.
+    modify table a from value #( author = 'ME' ).
 
 
-    select * from scarr into table @data(entries).
-
-    insert value #(  ) into ltable index 1.
-
-    update scarr from @( value #(  ) ).               "#EC DB_ACCESS_UT
-
-    modify table ltable from value #(  ).             "#EC DB_ACCESS_UT
-
-    delete ltable index 1.
-
+    select * from tadir into @data(x) where author = ''. endselect.
+    data wa type demo_expressions.
+    wa = value #( id = 'Y' num1 = 222 ).
+    insert demo_expressions from @wa.
+    update demo_update from @( value #( id = 'X' col1 = 100
+                                             col2 = 200
+                                             col3 = 300
+                                             col4 = 400 ) ).
+    modify demo_update from table @(
+value #( ( id = 'X' col1 =  1 col2 =  2 col3 =  3 col4 =  4 )
+( id = 'Y' col1 = 11 col2 = 12 col3 = 13 col4 = 14 )
+( id = 'Z' col1 = 21 col2 = 22 col3 = 23 col4 = 24 ) ) ).
+    delete demo_update from @( value #( id = 'X' ) ).
     rollback entities.
-
     commit entities.
-
-*    alter
   endmethod.
 
 endclass.
@@ -103,23 +103,6 @@ endclass.
 class test_critical implementation.
   method critical.
     data ltable type table of string.
-
-
-    select * from scarr into table @data(entries).
-
-    insert value #(  ) into ltable index 1.
-
-    update scarr from @( value #(  ) ).
-
-    modify table ltable from value #(  ).
-
-    delete ltable index 1.                            "#EC DB_ACCESS_UT
-
-    rollback entities.
-
-    commit entities.
-
-*    alter "#EC DB_ACCESS_UT
   endmethod.
 endclass.
 
@@ -136,23 +119,6 @@ endclass.
 class test_environment_in_definition implementation.
   method environment.
     data ltable type table of string.
-
-
-    select * from scarr into table @data(entries).
-
-    insert value #(  ) into ltable index 1.
-
-    update scarr from @( value #(  ) ).
-
-    modify table ltable from value #(  ).
-
-    delete ltable index 1.
-
-    rollback entities.
-
-    commit entities.
-
-*    alter
   endmethod.
 endclass.
 
@@ -170,22 +136,5 @@ class test_environment_in_method implementation.
   method environment.
     data test_environment type ref to if_cds_test_environment.
     data ltable type table of string.
-
-
-    select * from scarr into table @data(entries).
-
-    insert value #(  ) into ltable index 1.
-
-    update scarr from @( value #(  ) ).
-
-    modify table ltable from value #(  ).
-
-    delete ltable index 1.
-
-    rollback entities.
-
-    commit entities.
-
-*    alter
   endmethod.
 endclass.

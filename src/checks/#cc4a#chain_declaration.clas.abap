@@ -13,7 +13,7 @@ class /cc4a/chain_declaration definition
     constants pseudo_comment type string value 'CHAIN_DECL_USAG'.
 
     types: begin of ty_relevant_stmt_information,
-             stmts_relevant_for_quickfix type if_ci_atc_source_code_provider=>ty_statements,
+             chained_stmts_for_quickfix type if_ci_atc_source_code_provider=>ty_statements,
              next_relevant_stmt_position type i,
            end of ty_relevant_stmt_information.
 
@@ -79,7 +79,6 @@ class /cc4a/chain_declaration implementation.
 
   method analyze_procedure.
     data nxt_relevant_stmnt_position type i.
-    data quickfix_statements type if_ci_atc_source_code_provider=>ty_statements.
 
     loop at procedure-statements assigning field-symbol(<statement>) where keyword = 'DATA' or keyword = 'TYPES' or keyword = 'CLASS-DATA' or keyword = 'CONSTANTS' or keyword = 'STATICS'.
       data(statement_index) = sy-tabix.
@@ -87,16 +86,16 @@ class /cc4a/chain_declaration implementation.
       if next_statement is not initial and statement_index >= nxt_relevant_stmnt_position.
         data(relevant_stmt_information) = get_relevant_stmt_information( procedure = procedure declaration_position = <statement>-tokens[ 1 ]-position keyword = <statement>-keyword start_position = statement_index ).
         nxt_relevant_stmnt_position = relevant_stmt_information-next_relevant_stmt_position.
-        if relevant_stmt_information-stmts_relevant_for_quickfix is not initial.
+        if relevant_stmt_information-chained_stmts_for_quickfix is not initial.
           data(available_quickfixes) = assistant_factory->create_quickfixes( ).
           data(quick_fix) = available_quickfixes->create_quickfix( quickfix_code ).
           data(quick_fix_stmt_index) = statement_index.
           data(finding_has_pseudo_comment) =  xsdbool( line_exists( <statement>-pseudo_comments[ table_line = pseudo_comment ] ) ).
-          loop at relevant_stmt_information-stmts_relevant_for_quickfix assigning field-symbol(<quickfix_stmt>).
+          loop at relevant_stmt_information-chained_stmts_for_quickfix assigning field-symbol(<quickfix_stmt>).
             if xsdbool( line_exists( <quickfix_stmt>-pseudo_comments[ table_line = pseudo_comment ] ) ) eq abap_true.
               finding_has_pseudo_comment = abap_true.
             endif.
-            clear quickfix_statements.
+            data(quickfix_statements) = value if_ci_atc_source_code_provider=>ty_statements( ).
             if check_stmt_is_begin_of( <quickfix_stmt> ).
               data(position_end_of_statement) = find_position_end_of_statement( procedure = procedure start_position = quick_fix_stmt_index ).
               loop at procedure-statements assigning field-symbol(<statement_for_quickfix>) from quick_fix_stmt_index to position_end_of_statement.
@@ -112,8 +111,8 @@ class /cc4a/chain_declaration implementation.
             endif.
           endloop.
           insert value #( code = finding_code
-            location = code_provider->get_statement_location( relevant_stmt_information-stmts_relevant_for_quickfix[ 2 ] )
-            checksum = code_provider->get_statement_checksum( relevant_stmt_information-stmts_relevant_for_quickfix[ 2 ] )
+            location = code_provider->get_statement_location( relevant_stmt_information-chained_stmts_for_quickfix[ 2 ] )
+            checksum = code_provider->get_statement_checksum( relevant_stmt_information-chained_stmts_for_quickfix[ 2 ] )
             has_pseudo_comment = finding_has_pseudo_comment
             details = assistant_factory->create_finding_details( )->attach_quickfixes( available_quickfixes )
             ) into table findings.
@@ -147,7 +146,7 @@ class /cc4a/chain_declaration implementation.
     endwhile.
 
     if chained_statement_counter > 1.
-      insert lines of chaining_statements into table relevant_stmt_information-stmts_relevant_for_quickfix.
+      relevant_stmt_information-chained_stmts_for_quickfix = chaining_statements.
     endif.
 
     relevant_stmt_information-next_relevant_stmt_position = statement_counter.

@@ -43,9 +43,9 @@ class /cc4a/db_access_in_ut definition
       importing procedures                     type ref to if_ci_atc_source_code_provider=>ty_procedures
       returning value(classes_with_risk_level) type ty_classes_with_risk_level.
 
-    methods determine_class_risk_level
+    methods determine_classes_risk_level
       importing procedure                         type if_ci_atc_source_code_provider=>ty_procedure
-      returning value(class_name_with_risk_level) type ty_class_risk_level.
+      returning value(class_names_with_risk_level) type ty_classes_with_risk_level.
 
     methods get_class_name_and_risk_level
       importing statement                         type if_ci_atc_source_code_provider=>ty_statement
@@ -98,9 +98,9 @@ class /cc4a/db_access_in_ut implementation.
   method get_relevant_class_information.
     data classes_with_test_environment type ty_classes_with_test_envrnment.
     loop at procedures->* assigning field-symbol(<procedure>).
-      data(class_with_risk_level) = determine_class_risk_level( procedure = <procedure> ).
+      data(class_with_risk_level) = determine_classes_risk_level( procedure = <procedure> ).
       if class_with_risk_level is not initial.
-        insert class_with_risk_level into table classes_with_risk_level.
+        insert lines of class_with_risk_level into table classes_with_risk_level.
       endif.
       if line_exists( classes_with_risk_level[ class_name = substring_before( val = <procedure>-id-name sub = '=>' ) ] )
          or line_exists( classes_with_risk_level[ class_id = <procedure>-id-name ] ).
@@ -129,11 +129,11 @@ class /cc4a/db_access_in_ut implementation.
   method if_ci_atc_check~verify_prerequisites.
   endmethod.
 
-  method determine_class_risk_level.
+  method determine_classes_risk_level.
     loop at procedure-statements assigning field-symbol(<statement>) using key keyword where keyword eq 'CLASS'.
       loop at <statement>-tokens transporting no fields where lexeme eq 'FOR'.
         if <statement>-tokens[ sy-tabix + 1 ]-lexeme eq 'TESTING'.
-          class_name_with_risk_level = get_class_name_and_risk_level( statement = <statement> procedure_id = procedure-id-name ).
+          insert get_class_name_and_risk_level( statement = <statement> procedure_id = procedure-id-name ) into table class_names_with_risk_level.
         endif.
       endloop.
     endloop.

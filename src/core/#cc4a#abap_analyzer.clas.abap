@@ -162,6 +162,8 @@ CLASS /cc4a/abap_analyzer IMPLEMENTATION.
       ENDIF.
     ENDLOOP.
   ENDMETHOD.
+
+
   METHOD /cc4a/if_abap_analyzer~is_token_keyword.
     result = abap_true.
     IF token-references IS NOT INITIAL OR token-lexeme <> keyword.
@@ -169,78 +171,90 @@ CLASS /cc4a/abap_analyzer IMPLEMENTATION.
     ENDIF.
   ENDMETHOD.
 
+
   METHOD /cc4a/if_abap_analyzer~is_db_statement.
     CONSTANTS tag_common_part TYPE if_ci_atc_source_code_provider=>ty_compiler_reference_tag
-                              VALUE if_ci_atc_source_code_provider=>compiler_reference_kinds-common_part.
-    CONSTANTS tag_data TYPE if_ci_atc_source_code_provider=>ty_compiler_reference_tag
-                              VALUE if_ci_atc_source_code_provider=>compiler_reference_kinds-data.
-    CONSTANTS tag_type TYPE if_ci_atc_source_code_provider=>ty_compiler_reference_tag
-                              VALUE if_ci_atc_source_code_provider=>compiler_reference_kinds-type.
+                              VALUE if_ci_atc_source_code_provider=>compiler_reference_kinds-common_part ##TYPE.
+    CONSTANTS tag_data        TYPE if_ci_atc_source_code_provider=>ty_compiler_reference_tag
+                              VALUE if_ci_atc_source_code_provider=>compiler_reference_kinds-data ##TYPE.
+    CONSTANTS tag_type        TYPE if_ci_atc_source_code_provider=>ty_compiler_reference_tag
+                              VALUE if_ci_atc_source_code_provider=>compiler_reference_kinds-type ##TYPE.
     DATA: token_idx      TYPE i,
-          expect_idx     TYPE i,
           check_if_dbtab TYPE abap_bool VALUE abap_true,
           token_db       TYPE if_ci_atc_source_code_provider=>ty_token.
 
     result = abap_false.
 
-    CLEAR dbtab.
-    result = abap_false.
+    CLEAR: dbtab, dbtab_subquery.
+
     DATA(analyzer) =   /cc4a/abap_analyzer=>create( ).
-    IF lines( statement-tokens ) > 2 AND statement-tokens[ 2 ]-lexeme = '%_EXPECT('
-    AND statement-tokens[ 2 ]-references IS INITIAL
-    AND statement-keyword <> 'CLOSE'.
-      expect_idx = 3.
-      result = abap_true.
-      IF dbtab IS NOT SUPPLIED.
+
+    CASE statement-keyword.
+      WHEN 'SELECT' OR 'WITH' OR 'DELETE' OR 'UPDATE' OR 'INSERT' OR 'MODIFY' OR 'READ' OR 'LOOP'
+      OR 'IMPORT' OR 'EXPORT' OR 'FETCH' OR 'OPEN' OR 'EXEC'.
+        IF ( analyzer->find_clause_index( tokens = statement-tokens clause = 'CONNECTION' ) <> 0
+             AND (    statement-keyword = 'DELETE'
+                   OR statement-keyword = 'UPDATE'
+                   OR statement-keyword = 'INSERT'
+                   OR statement-keyword = 'MODIFY' ) ).
+          result = abap_true.
+          check_if_dbtab = abap_false.
+          IF dbtab IS NOT SUPPLIED.
+            RETURN.
+          ENDIF.
+        ENDIF.
+      WHEN OTHERS.
         RETURN.
-      ENDIF.
-      check_if_dbtab = abap_false.
-    ENDIF.
-    IF analyzer->find_clause_index( tokens = statement-tokens clause = 'USING CLIENT' ) <> 0
-    OR analyzer->find_clause_index( tokens = statement-tokens clause = 'CLIENT SPECIFIED' ) <> 0
-    OR ( analyzer->find_clause_index( tokens = statement-tokens clause = 'CONNECTION' ) <> 0
-         AND (    statement-keyword = 'DELETE'
-               OR statement-keyword = 'UPDATE'
-               OR statement-keyword = 'INSERT'
-               OR statement-keyword = 'MODIFY' ) ).
-      result = abap_true.
-      check_if_dbtab = abap_false.
-      IF dbtab IS NOT SUPPLIED.
-        RETURN.
-      ENDIF.
-    ENDIF.
-    token_idx = 1.
+    ENDCASE.
+    token_idx = 2.
+    WHILE lines( statement-tokens ) > token_idx AND statement-tokens[ token_idx ]-lexeme CP '%_*('
+    AND statement-tokens[ token_idx ]-references IS INITIAL.
+      token_idx += 3.
+    ENDWHILE.
+
     CASE statement-keyword.
       WHEN 'SELECT'.
         check_if_dbtab = abap_false.
-        DO.
-          token_idx = analyzer->find_clause_index( tokens = statement-tokens clause = 'FROM'
-                                                   start_index = token_idx ).
-          IF token_idx <= 1.
-            RETURN.
-          ENDIF.
-          ASSIGN statement-tokens[ token_idx - 1 ] TO FIELD-SYMBOL(<token>).
-          IF sy-subrc = 0 AND <token>-lexeme = 'CONNECTION' AND <token>-references IS INITIAL.
-            token_idx = analyzer->find_clause_index( tokens = statement-tokens clause = 'FROM' start_index = token_idx + 1 ).
-          ENDIF.
+        token_idx = analyzer->find_clause_index( tokens = statement-tokens clause = 'FROM'
+                                                 start_index = token_idx ).
+        IF token_idx <= 1.
+          RETURN.
+        ENDIF.
+        ASSIGN statement-tokens[ token_idx - 1 ] TO FIELD-SYMBOL(<token>).
+        IF sy-subrc = 0 AND <token>-lexeme = 'CONNECTION' AND <token>-references IS INITIAL.
+          token_idx = analyzer->find_clause_index( tokens = statement-tokens clause = 'FROM' start_index = token_idx + 1 ).
+        ENDIF.
+        token_idx += 1.
+        WHILE statement-tokens[ token_idx ]-lexeme = '('.
           token_idx += 1.
-          WHILE statement-tokens[ token_idx ]-lexeme = '('.
-            token_idx += 1.
-          ENDWHILE.
-          token_db = statement-tokens[ token_idx ].
-          IF token_db-lexeme CP 'HIERARCHY*(' AND token_db-references IS INITIAL.
-            IF analyzer->is_token_keyword( token = statement-tokens[ token_idx + 1 ] keyword = 'SOURCE' ).
-              token_idx += 2.
-              token_db = statement-tokens[ token_idx ].
-            ELSE.
-              CONTINUE.
-            ENDIF.
-          ENDIF.
-          IF token_db-lexeme(1) <> '@'.
-            result = abap_true.
+        ENDWHILE.
+        WHILE statement-tokens[ token_idx ]-lexeme CP 'HIERARCHY*(' AND statement-tokens[ token_idx ]-references IS INITIAL.
+          IF analyzer->is_token_keyword( token = statement-tokens[ token_idx + 1 ] keyword = 'SOURCE' ).
+            token_idx += 2.
+          ELSE.
             EXIT.
           ENDIF.
-        ENDDO.
+        ENDWHILE.
+        token_db = statement-tokens[ token_idx ].
+        IF token_db-lexeme(1) = '@'.
+*         check for joined tables
+          DO.
+            token_idx = analyzer->find_clause_index( tokens = statement-tokens clause = 'JOIN'
+                                                     start_index = token_idx ).
+            IF token_idx = 0.
+              RETURN.
+            ELSE.
+              IF statement-tokens[ token_idx + 1 ]-lexeme(1) <> '@'.
+                result = abap_true.
+                RETURN.
+              ELSE.
+                CONTINUE.
+              ENDIF.
+            ENDIF.
+          ENDDO.
+        ELSE.
+          result = abap_true.
+        ENDIF.
       WHEN 'WITH'.
         check_if_dbtab = abap_false.
         DO.
@@ -254,13 +268,15 @@ CLASS /cc4a/abap_analyzer IMPLEMENTATION.
             RETURN.
           ENDIF.
           token_idx += 1.
-          token_db = statement-tokens[ token_idx ].
-          IF token_db-lexeme CP 'HIERARCHY*(' AND token_db-references IS INITIAL.
+          WHILE statement-tokens[ token_idx ]-lexeme CP 'HIERARCHY*(' AND statement-tokens[ token_idx ]-references IS INITIAL.
             IF analyzer->is_token_keyword( token = statement-tokens[ token_idx + 1 ] keyword = 'SOURCE' ).
               token_idx += 2.
             ELSE.
-              CONTINUE.
+              EXIT.
             ENDIF.
+          ENDWHILE.
+          IF statement-tokens[ token_idx ]-lexeme CP 'HIERARCHY*(' AND statement-tokens[ token_idx ]-references IS INITIAL.
+            CONTINUE.
           ENDIF.
           token_db = statement-tokens[ token_idx ].
           IF token_db-lexeme(1) <> '@' AND token_db-lexeme(1) <> '+'.
@@ -273,7 +289,6 @@ CLASS /cc4a/abap_analyzer IMPLEMENTATION.
           result = abap_true.
           check_if_dbtab = abap_false.
         ENDIF.
-        token_idx = 2 + expect_idx.
         ASSIGN statement-tokens[ token_idx ] TO <token>.
         IF <token>-references IS INITIAL AND <token>-lexeme(1) <> '('.
           CASE <token>-lexeme.
@@ -304,18 +319,11 @@ CLASS /cc4a/abap_analyzer IMPLEMENTATION.
         ELSEIF statement-tokens[ 3 ]-lexeme = 'INDEX' AND statement-tokens[ 3 ]-references IS INITIAL.
           RETURN.
         ELSE.
-*          token_idx = analyzer->find_clause_index( tokens = statement-tokens clause = 'FROM' ).
-*          ASSIGN statement-tokens[ token_idx + 1 ] TO <token>.
-*          IF <token>-lexeme = 'TABLE' AND <token>-references IS INITIAL
-*          OR <token>-references IS NOT INITIAL.
-*            result = abap_true.
-*            token_db = <token>.
-*          ENDIF.
-          token_db = statement-tokens[ 2 + expect_idx ].
+          token_db = statement-tokens[ token_idx ].
           result = abap_true.
-          IF token_db-lexeme(1) = '('
-          AND statement-tokens[ 3 + expect_idx ]-lexeme = 'FROM'
-          AND statement-tokens[ 3 + expect_idx ]-references IS INITIAL .
+          IF token_db-lexeme(1) = '('.
+            "          AND statement-tokens[ token_idx + 1 ]-lexeme = 'FROM'
+            "          AND statement-tokens[ token_idx + 1 ]-references IS INITIAL .
             check_if_dbtab = abap_false.
           ENDIF.
         ENDIF.
@@ -323,10 +331,10 @@ CLASS /cc4a/abap_analyzer IMPLEMENTATION.
         IF analyzer->find_clause_index( tokens = statement-tokens clause = 'INTO TABLE' ) <> 0
         OR analyzer->find_clause_index( tokens = statement-tokens clause = 'ASSIGNING' ) <> 0
         OR analyzer->find_clause_index( tokens = statement-tokens clause = 'REFERENCE INTO' ) <> 0
-        OR analyzer->find_clause_index( tokens = statement-tokens clause = 'INITIAL LINE' )  <> 0.
+        OR analyzer->find_clause_index( tokens = statement-tokens clause = 'INITIAL LINE' )  <> 0
+        OR analyzer->find_clause_index( tokens = statement-tokens clause = 'INDEX' )  <> 0.
           RETURN.
         ENDIF.
-        token_idx = 2 + expect_idx.
         ASSIGN statement-tokens[ token_idx ] TO <token>.
         IF lines( statement-tokens ) = token_idx AND <token>-references IS NOT INITIAL.
           result = abap_true.
@@ -348,24 +356,29 @@ CLASS /cc4a/abap_analyzer IMPLEMENTATION.
           ENDIF.
           result = abap_true.
           token_db = statement-tokens[ token_idx ].
-          IF token_db-lexeme(1) = '('
-          AND statement-tokens[ 3 + expect_idx ]-lexeme = 'FROM'
-          AND statement-tokens[ 3 + expect_idx ]-references IS INITIAL .
+          IF token_db-lexeme(1) = '('.
             check_if_dbtab = abap_false.
           ENDIF.
         ENDIF.
       WHEN 'MODIFY'.
 *       modify dbtab (from...)
-        token_idx = 2 + expect_idx.
         ASSIGN statement-tokens[ token_idx ] TO <token>.
         IF <token>-references IS INITIAL AND <token>-lexeme(1) <> '('.
           RETURN.
         ENDIF.
-        IF lines( statement-tokens ) = token_idx
-        OR analyzer->find_clause_index( tokens = statement-tokens clause = 'VERSION'
-                                        start_index = token_idx + 1 ) <> 0.
+        IF analyzer->find_clause_index( tokens = statement-tokens clause = 'INDEX' ) <> 0
+        OR analyzer->find_clause_index( tokens = statement-tokens clause = 'USING KEY' ) <> 0
+        OR analyzer->find_clause_index( tokens = statement-tokens clause = 'TRANSPORTING' ) <> 0.
+          RETURN.
+        ENDIF.
+        IF lines( statement-tokens ) = token_idx.
           result = abap_true.
-          token_db = <token>.
+          token_db = statement-tokens[ token_idx ].
+        ELSEIF analyzer->find_clause_index( tokens = statement-tokens clause = 'VERSION'
+                                            start_index = token_idx + 1 ) <> 0.
+          result = abap_true.
+          token_db = statement-tokens[ lines( statement-tokens ) ].
+          RETURN.
         ELSE.
           token_idx += 1.
           IF statement-tokens[ token_idx ]-lexeme = 'CONNECTION'
@@ -374,14 +387,11 @@ CLASS /cc4a/abap_analyzer IMPLEMENTATION.
           ENDIF.
           result = abap_true.
           token_db = <token>.
-          IF token_db-lexeme(1) = '('
-          AND statement-tokens[ token_idx ]-lexeme = 'FROM'
-          AND statement-tokens[ token_idx ]-references IS INITIAL .
+          IF token_db-lexeme(1) = '('.
             check_if_dbtab = abap_false.
           ENDIF.
         ENDIF.
       WHEN 'UPDATE'.
-        token_idx = 2 + expect_idx.
         ASSIGN statement-tokens[ token_idx ] TO <token>.
         IF <token>-references IS NOT INITIAL OR <token>-lexeme(1) = '('.
           result = abap_true.
@@ -390,9 +400,7 @@ CLASS /cc4a/abap_analyzer IMPLEMENTATION.
         IF analyzer->find_clause_index(  tokens = statement-tokens clause = 'SET'
                                          start_index = token_idx + 1 ).
           check_if_dbtab = abap_false.
-        ELSEIF token_db-lexeme(1) = '('
-          AND statement-tokens[ 3 + expect_idx ]-lexeme = 'FROM'
-          AND statement-tokens[ 3 + expect_idx ]-references IS INITIAL .
+        ELSEIF token_db-lexeme(1) = '('.
           check_if_dbtab = abap_false.
         ENDIF.
       WHEN 'OPEN'.
@@ -434,43 +442,43 @@ CLASS /cc4a/abap_analyzer IMPLEMENTATION.
           RETURN.
         ENDIF.
       WHEN 'READ' OR 'LOOP'.
+        IF lines( statement-tokens ) = 1.
+          RETURN.
+        ENDIF.
+        IF analyzer->find_clause_index( tokens = statement-tokens clause = 'VERSION' ) <> 0.
+*         name of dbtab is determined in token after VERSION, dynamically: unknown table
+          result = abap_true.
+          CLEAR dbtab.
+          token_idx = 0.
+          RETURN.
+        ENDIF.
         CASE statement-keyword.
           WHEN 'LOOP'.
-            IF lines( statement-tokens ) = 1.
-              RETURN.
-            ENDIF.
             IF statement-tokens[ 2 ]-lexeme <> 'AT'.
               RETURN.
             ENDIF.
-            CASE lines(  statement-tokens ).
-              WHEN 3.
-                IF statement-tokens[ 3 ]-references IS INITIAL.
-                  RETURN.
-                ENDIF.
-              WHEN 4.
-                ASSIGN statement-tokens[ 4 ] TO <token>.
-                IF  <token>-references IS INITIAL
-                AND <token>-lexeme = 'VERSION'.
-                  check_if_dbtab = abap_false.
-                ENDIF.
-              WHEN OTHERS.
-                RETURN.
-            ENDCASE.
-
+            IF lines(  statement-tokens ) <> 3 OR statement-tokens[ 3 ]-references IS INITIAL.
+              RETURN.
+            ENDIF.
           WHEN 'READ'.
             IF statement-tokens[ 2 ]-lexeme <> 'TABLE'.
               RETURN.
             ENDIF.
-            IF analyzer->find_clause_index( tokens = statement-tokens clause = 'VERSION' ) <> 0.
-              check_if_dbtab = abap_false.
-            ELSE.
-              IF analyzer->find_clause_index( tokens = statement-tokens clause = 'BINARY SEARCH' ) <> 0
-              OR analyzer->find_clause_index( tokens = statement-tokens clause = 'INTO' ) <> 0
-              OR analyzer->find_clause_index( tokens = statement-tokens clause = 'ASSIGNING' ) <> 0.
-                RETURN.
-              ELSEIF analyzer->find_clause_index( tokens = statement-tokens clause = 'SEARCH' ) <> 0.
-                check_if_dbtab = abap_false.
-              ENDIF.
+            IF analyzer->find_clause_index( tokens = statement-tokens clause = 'BINARY SEARCH' ) <> 0
+            OR analyzer->find_clause_index( tokens = statement-tokens clause = 'INTO' ) <> 0
+            OR analyzer->find_clause_index( tokens = statement-tokens clause = 'ASSIGNING' ) <> 0.
+              RETURN.
+            ENDIF.
+            token_idx = analyzer->find_clause_index( tokens = statement-tokens clause = 'SEARCH' ).
+            IF token_idx <> 0 AND lines( statement-tokens ) > token_idx.
+              CASE statement-tokens[ token_idx + 1 ]-lexeme.
+                WHEN 'FKEQ' OR 'FKGE' OR 'GKEQ' OR 'GKGE'.
+                  IF statement-tokens[ token_idx + 1 ]-references IS INITIAL.
+                    result = abap_true.
+                  ENDIF.
+                WHEN OTHERS.
+                  RETURN.
+              ENDCASE.
             ENDIF.
         ENDCASE.
         token_db = statement-tokens[ 3 ].
@@ -495,6 +503,9 @@ CLASS /cc4a/abap_analyzer IMPLEMENTATION.
         dbtab = l_name.
         IF dbtab(1) = '*'.
           dbtab = dbtab+1.
+        ENDIF.
+        IF dbtab(1) <> 'T'.
+          dbtab = |T{ dbtab+1 }|.
         ENDIF.
         RETURN.
       WHEN 'IMPORT'.
@@ -535,36 +546,57 @@ CLASS /cc4a/abap_analyzer IMPLEMENTATION.
         result = abap_false.
         RETURN.
     ENDCASE.
-    IF expect_idx <> 0.
-      result = abap_true.
-    ELSEIF check_if_dbtab = abap_true AND token_db IS NOT INITIAL AND result = abap_true.
+    IF check_if_dbtab = abap_true AND token_db IS NOT INITIAL AND result = abap_true.
       result = abap_false.
       IF token_db-lexeme(1) = '@'
       OR ( token_db-references IS INITIAL AND token_db-lexeme(1) <> '(' ).
-        RETURN.
-      ENDIF.
-      IF token_db-lexeme NP '(*)'.
+        result = abap_false.
+      ELSEIF token_db-lexeme NP '(*)'.
         ASSIGN token_db-references[ 1 ] TO FIELD-SYMBOL(<ref1>).
         CASE <ref1>-kind.
           WHEN if_ci_atc_source_code_provider=>compiler_reference_kinds-type.
             IF lines( token_db-references ) > 1.
-              RETURN.
-            ENDIF.
-*         no symbol - so try okay
-            IF <ref1>-full_name(3) = '\' && tag_type.
+              result = abap_false.
+*           no symbol - so try okay
+            ELSEIF <ref1>-full_name(3) = '\' && tag_type.
               result = abap_true.
             ENDIF.
           WHEN if_ci_atc_source_code_provider=>compiler_reference_kinds-data.
-            IF token_db-references[ 1 ]-full_name(3) <> '\' && tag_common_part.
-              RETURN.
+            result = abap_false.
+            IF token_db-references[ 1 ]-full_name(3) = '\' && tag_common_part.
+              SPLIT token_db-references[ 1 ]-full_name+4 AT |\\{ tag_data }:| INTO DATA(l_name1) DATA(l_name2).
+              IF l_name1 = l_name2.
+                result = abap_true.
+              ENDIF.
+            ELSEIF token_db-references[ 1 ]-full_name NP |*\\{ tag_common_part }:*|
+            AND lines( token_db-references ) = 2
+            AND token_db-references[ 2 ]-kind = if_ci_atc_source_code_provider=>compiler_reference_kinds-type
+            AND token_db-references[ 2 ]-full_name+4 NP '*\*'.
+              result = abap_true.
             ENDIF.
-            result = abap_true.
           WHEN OTHERS.
-            RETURN.
+            result = abap_false.
         ENDCASE.
       ENDIF.
     ENDIF.
-    IF result = abap_true AND token_db IS NOT INITIAL.
+    IF result = abap_false.
+      IF include_subqueries = abap_true.
+        DO.
+          token_idx = analyzer->find_clause_index( tokens = statement-tokens clause = 'SELECT' start_index = token_idx ).
+          IF token_idx = 0.
+            RETURN.
+          ELSE.
+            DATA(substatement) = statement.
+            DELETE substatement-tokens TO token_idx - 1.
+            result = analyzer->is_db_statement( EXPORTING statement = substatement include_subqueries = abap_true
+                                                IMPORTING dbtab = dbtab_subquery ).
+            IF result = abap_true.
+              RETURN.
+            ENDIF.
+          ENDIF.
+        ENDDO.
+      ENDIF.
+    ELSEIF token_db IS NOT INITIAL.
       dbtab = token_db-lexeme.
       IF dbtab(1) = '*'.
         dbtab = dbtab+1.

@@ -2,86 +2,86 @@
 "!
 "! Any logic that processes ABAP code information (e.g. parsing a specific assignment) should be located here so it can be accessed
 "! by any check that needs it.
-interface /CC4A/IF_ABAP_ANALYZER
+interface /cc4a/if_abap_analyzer
   public .
 
 
   types:
     begin of enum ty_bracket_type structure bracket_type,
-           no_bracket,
-           opening,
-           closing,
-         end of enum ty_bracket_type structure bracket_type .
+      no_bracket,
+      opening,
+      closing,
+    end of enum ty_bracket_type structure bracket_type .
 
-  methods FIND_KEY_WORDS
+  methods find_key_words
     importing
-      !KEY_WORDS type STRING_TABLE
-      !STATEMENT type IF_CI_ATC_SOURCE_CODE_PROVIDER=>TY_STATEMENT
+      key_words      type string_table
+      statement      type if_ci_atc_source_code_provider=>ty_statement
     returning
-      value(POSITION) type I .
-  methods BREAK_INTO_LINES
+      value(position) type i .
+  methods break_into_lines
     importing
-      !CODE type STRING
+      code             type string
     returning
-      value(CODE_LINES) type IF_CI_ATC_QUICKFIX=>TY_CODE .
-  methods FLATTEN_TOKENS
+      value(code_lines) type if_ci_atc_quickfix=>ty_code .
+  methods flatten_tokens
     importing
-      !TOKENS type IF_CI_ATC_SOURCE_CODE_PROVIDER=>TY_TOKENS
+      tokens               type if_ci_atc_source_code_provider=>ty_tokens
     returning
-      value(FLAT_STATEMENT) type STRING .
-  methods IS_BRACKET
+      value(flat_statement) type string .
+  methods is_bracket
     importing
-      !TOKEN type IF_CI_ATC_SOURCE_CODE_PROVIDER=>TY_TOKEN
+      token              type if_ci_atc_source_code_provider=>ty_token
     returning
-      value(BRACKET_TYPE) type TY_BRACKET_TYPE .
-  methods CALCULATE_BRACKET_END
+      value(bracket_type) type ty_bracket_type .
+  methods calculate_bracket_end
     importing
-      !STATEMENT type IF_CI_ATC_SOURCE_CODE_PROVIDER=>TY_STATEMENT
-      !BRACKET_POSITION type I
+      statement            type if_ci_atc_source_code_provider=>ty_statement
+      bracket_position     type i
     returning
-      value(END_OF_BRACKET) type I
+      value(end_of_bracket) type i
     raising
-      /CC4A/CX_TOKEN_IS_NO_BRACKET .
+      /cc4a/cx_token_is_no_bracket .
   "! The method analyze the given token whether this is an comparison operator or not.
   "! Operators like +, -, * and / does not count as comparison operator.
   "! The following operators are currently supported: is, in, >, gt, <, lt, >=, ge, <=, le, =, eq, <>, ne
-  methods TOKEN_IS_COMPARISON_OPERATOR
+  methods token_is_comparison_operator
     importing
-      !TOKEN type IF_CI_ATC_SOURCE_CODE_PROVIDER=>TY_TOKEN
+      token             type if_ci_atc_source_code_provider=>ty_token
     returning
-      value(IS_OPERATOR) type ABAP_BOOL .
-  methods NEGATE_COMPARISON_OPERATOR
+      value(is_operator) type abap_bool .
+  methods negate_comparison_operator
     importing
-      !COMPARISON_OPERATOR type STRING
+      comparison_operator               type string
     returning
-      value(NEGATED_COMPARISON_OPERATOR) type STRING
+      value(negated_comparison_operator) type string
     raising
-      /CC4A/CX_TOKEN_IS_NO_OPERATOR .
-  methods IS_DB_STATEMENT
+      /cc4a/cx_token_is_no_operator .
+  methods is_db_statement
     importing
-      !STATEMENT type IF_CI_ATC_SOURCE_CODE_PROVIDER=>TY_STATEMENT
-      !INCLUDE_SUBQUERIES type ABAP_BOOL default ABAP_TRUE
+      statement          type if_ci_atc_source_code_provider=>ty_statement
+      include_subqueries type abap_bool default abap_true
     exporting
-      !DBTAB type STRING
-      !DBTAB_SUBQUERY type STRING
+      dbtab              type string
+      dbtab_subquery     type string
     returning
-      value(RESULT) type ABAP_BOOL .
-"! The method checks if clause is contained in tokens
-"! if so it returns the index of the first token of the first occurrence of the clause
-"! otherwise token_index = 0
-  methods FIND_CLAUSE_INDEX
+      value(result)       type abap_bool .
+  "! The method checks if clause is contained in tokens
+  "! if so it returns the index of the first token of the first occurrence of the clause
+  "! otherwise token_index = 0
+  methods find_clause_index
     importing
-      !TOKENS type IF_CI_ATC_SOURCE_CODE_PROVIDER=>TY_TOKENS
-      value(CLAUSE) type STRING
-      !START_INDEX type I default 1
+      tokens            type if_ci_atc_source_code_provider=>ty_tokens
+      value(clause)      type string
+      start_index       type i default 1
     returning
-      value(TOKEN_INDEX) type I
+      value(token_index) type i
     raising
-      /CC4A/CX_CLAUSE_IS_INITIAL .
-  methods IS_TOKEN_KEYWORD
+      /cc4a/cx_clause_is_initial .
+  methods is_token_keyword
     importing
-      !TOKEN type IF_CI_ATC_SOURCE_CODE_PROVIDER=>TY_TOKEN
-      !KEYWORD type STRING
+      token        type if_ci_atc_source_code_provider=>ty_token
+      keyword      type string
     returning
-      value(RESULT) type ABAP_BOOL .
+      value(result) type abap_bool .
 endinterface.

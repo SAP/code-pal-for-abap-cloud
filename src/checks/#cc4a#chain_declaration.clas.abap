@@ -47,11 +47,13 @@ class /cc4a/chain_declaration definition
       importing statements                 type if_ci_atc_source_code_provider=>ty_statements
       returning value(modified_statements) type if_ci_atc_quickfix=>ty_code.
 
-endclass.
+ENDCLASS.
 
 
 
-class /cc4a/chain_declaration implementation.
+CLASS /CC4A/CHAIN_DECLARATION IMPLEMENTATION.
+
+
   method if_ci_atc_check~get_meta_data.
     meta_data = /cc4a/check_meta_data=>create(
                                   value #( checked_types = /cc4a/check_meta_data=>checked_types-abap_programs
@@ -61,6 +63,7 @@ class /cc4a/chain_declaration implementation.
                                      quickfix_codes = value #( ( code = quickfix_code short_text = 'Replace Chain Declaration with Single Declaration'(qsd) ) ) ) ).
   endmethod.
 
+
   method if_ci_atc_check~run.
     code_provider = data_provider->get_code_provider( ).
     data(procedures) = code_provider->get_procedures( code_provider->object_to_comp_unit( object ) ).
@@ -69,13 +72,16 @@ class /cc4a/chain_declaration implementation.
     endloop.
   endmethod.
 
+
   method if_ci_atc_check~set_assistant_factory.
     assistant_factory = factory.
   endmethod.
 
+
   method if_ci_atc_check~verify_prerequisites.
 
   endmethod.
+
 
   method analyze_procedure.
     data nxt_relevant_stmnt_position type i.
@@ -121,6 +127,7 @@ class /cc4a/chain_declaration implementation.
     endloop.
   endmethod.
 
+
   method get_relevant_stmt_information.
     data chaining_statements type if_ci_atc_source_code_provider=>ty_statements.
     data chained_statement_counter type i.
@@ -152,11 +159,13 @@ class /cc4a/chain_declaration implementation.
     relevant_stmt_information-next_relevant_stmt_position = statement_counter.
   endmethod.
 
+
   method create_quickfix_code.
     data(new_statement) = statement.
     data(flat_new_statement) = /cc4a/abap_analyzer=>create( )->flatten_tokens( new_statement-tokens ) && `.`.
     modified_statement = /cc4a/abap_analyzer=>create( )->break_into_lines( flat_new_statement ).
   endmethod.
+
 
   method find_position_end_of_statement.
     position_end_of_statement = start_position.
@@ -186,6 +195,7 @@ class /cc4a/chain_declaration implementation.
     endloop.
   endmethod.
 
+
   method check_stmt_is_begin_of.
     is_begin_of = abap_false.
     loop at statement-tokens transporting no fields where lexeme eq 'BEGIN'.
@@ -195,6 +205,7 @@ class /cc4a/chain_declaration implementation.
       endif.
     endloop.
   endmethod.
+
 
   method create_begin_of_quickfix_code.
     loop at statements assigning field-symbol(<statement>).
@@ -213,5 +224,4 @@ class /cc4a/chain_declaration implementation.
       insert flat_new_statement into table modified_statements.
     endloop.
   endmethod.
-
-endclass.
+ENDCLASS.

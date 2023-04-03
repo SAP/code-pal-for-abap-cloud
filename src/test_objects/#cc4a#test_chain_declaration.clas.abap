@@ -26,11 +26,13 @@ class /cc4a/test_chain_declaration definition
                 p type i.
 
     data: asd type d, fdg type d.
-endclass.
+ENDCLASS.
 
 
 
-class /cc4a/test_chain_declaration implementation.
+CLASS /CC4A/TEST_CHAIN_DECLARATION IMPLEMENTATION.
+
+
   method test_statics.
     statics: third  type i,
              fourth type i.
@@ -42,6 +44,7 @@ class /cc4a/test_chain_declaration implementation.
                watt   type i,
              end of ty_statics.
   endmethod.
+
 
   method without_pseudo_comments.
     data: z type i, k type i, b type i, d type i.
@@ -62,35 +65,36 @@ class /cc4a/test_chain_declaration implementation.
       ty_exemptions type standard table of string with empty key,
       begin of ty_object_with_exemptions,
         begin of key,
-          obj_type type trobjtype,
-          obj_name type crmobjnam,
+          obj_name type c length 40,
+          obj_type type c length 4,
         end of key,
       end of ty_object_with_exemptions,
       begin of current_dlvunit_t,
-        dlvunit type dlvunit,
-        range   type range of dlvunit,
+        dlvunit type ty_types,
+        range   type range of ty_type1,
       end of current_dlvunit_t,
       begin of current_chkid_t,
-        module_id             type satc_d_id,
-        chkid                 type crmchkid,
-        range                 type range of crmchkid,
-        exemption_granularity type satc_ac_chk-xmpt_granularity,
+        module_id             type ty_type11,
+        chkid                 type ty_type3,
+        range                 type range of ty_type1,
+        exemption_granularity type ty_object_with_exemptions-key-obj_type,
         check_is_unknown      type abap_bool,
       end of current_chkid_t,
       begin of current_chkmsgid_t,
-        chkmsgid type crmchkmgid,
-        range    type range of crmchkmgid,
+        chkmsgid type xstring,
+        range    type range of xstring,
       end of current_chkmsgid_t.
 
     constants:
       begin of c_cfg_param2,
-        display_load       type satc_d_name   value 'DISPLAY_LOAD',
-        object_provider_id type satc_d_name   value 'OBJECT_PROVIDER',
-        restart_memento    type satc_d_name   value 'RESTART_MEMENTO',
-        worklist_id        type satc_d_name   value 'WORKLIST_ID',
+        display_load       type ty_object_with_exemptions-key-obj_name   value 'DISPLAY_LOAD',
+        object_provider_id type ty_object_with_exemptions-key-obj_name    value 'OBJECT_PROVIDER',
+        restart_memento    type ty_object_with_exemptions-key-obj_name    value 'RESTART_MEMENTO',
+        worklist_id        type ty_object_with_exemptions-key-obj_name    value 'WORKLIST_ID',
       end of c_cfg_param2,
-      c_module_id2 type satc_d_id value '005056A7004E1EE682F6E8FEE661C090'.
+      c_module_id2 type xstring value '005056A7004E1EE682F6E8FEE661C090'.
   endmethod.
+
 
   method with_pseudo_comments.
     data: q type i,                                "#EC CHAIN_DECL_USAG
@@ -115,33 +119,33 @@ class /cc4a/test_chain_declaration implementation.
 
     types: begin of st_out.
     types: begin of sadasd,
-             sts_chg    type icon_d,
-             lock_exs   type char3,
-             status     type /aif/proc_status,
-             sub_status type /aif/proc_sub_status,
-             msgguid    type /aif/pers_msgguid.
-             include type /aif/ifkeys.
+             sts_chg    type ty_structure,
+             lock_exs   type c length 2,
+             status     type ty_type10,
+             sub_status type ty_type13,
+             msgguid    type ty_type10.
+             include type ty_structure.
   types end of sadasd.
     types:
-      create_date type /aif/create_date,
-      create_time type /aif/create_time.
+      create_date type ty_types,
+      create_time type ty_structure.
     types: end of st_out.
 
     constants:                                     "#EC CHAIN_DECL_USAG
       begin of c_cfg_param,
-        display_load       type satc_d_name   value 'DISPLAY_LOAD',
-        object_provider_id type satc_d_name   value 'OBJECT_PROVIDER',
-        restart_memento    type satc_d_name   value 'RESTART_MEMENTO',
-        worklist_id        type satc_d_name   value 'WORKLIST_ID',
+        display_load       type  c length 40   value 'DISPLAY_LOAD',
+        object_provider_id type  c length 40  value 'OBJECT_PROVIDER',
+        restart_memento    type  c length 40    value 'RESTART_MEMENTO',
+        worklist_id        type c length 40   value 'WORKLIST_ID',
       end of c_cfg_param,
 
       begin of c_set_param,
-        object         type satc_d_name value 'OBJECT',
-        failure        type satc_d_name value 'FAILURE',
-        gen_failure    type satc_d_name value 'GEN_FAILURE',
-        finding        type satc_d_name value 'FINDING',
-        object_context type satc_d_name value 'OBJCTX',
-        dyntest_object type satc_d_name value 'DYNTEST_OBJECT',
+        object         type  c length 40  value 'OBJECT',
+        failure        type  c length 40 value 'FAILURE',
+        gen_failure    type c length 40  value 'GEN_FAILURE',
+        finding        type c length 40   value 'FINDING',
+        object_context type c length 40  value 'OBJCTX',
+        dyntest_object type c length 40  value 'DYNTEST_OBJECT',
       end of c_set_param.
 
     data(asd) = c_cfg_param-display_load.
@@ -150,24 +154,24 @@ class /cc4a/test_chain_declaration implementation.
       ty_exemptions type standard table of string with empty key,
       begin of ty_object_with_exemptions,
         begin of key,
-          obj_type type trobjtype,
-          obj_name type crmobjnam,
+          obj_type type c length 4,
+          obj_name type c length 40,
         end of key,
       end of ty_object_with_exemptions,
       begin of current_dlvunit_t,
-        dlvunit type dlvunit,
-        range   type range of dlvunit,
+        dlvunit type ty_type10,
+        range   type range of ty_type10,
       end of current_dlvunit_t,
       begin of current_chkid_t,
-        module_id             type satc_d_id,
-        chkid                 type crmchkid,
-        range                 type range of crmchkid,
-        exemption_granularity type satc_ac_chk-xmpt_granularity,
+        module_id             type xstring,
+        chkid                 type xstring,
+        range                 type range of ty_type10,
+        exemption_granularity type ty_object_with_exemptions-key,
         check_is_unknown      type abap_bool,
       end of current_chkid_t,
       begin of current_chkmsgid_t,
-        chkmsgid type crmchkmgid,
-        range    type range of crmchkmgid,
+        chkmsgid type xstring,
+        range    type range of xstring,
       end of current_chkmsgid_t.
   endmethod.
-endclass.
+ENDCLASS.

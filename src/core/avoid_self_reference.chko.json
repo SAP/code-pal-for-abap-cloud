@@ -1,0 +1,10 @@
+{
+  "formatVersion": "1",
+  "header": {
+    "description": "Avoid unnecessary self-reference",
+    "originalLanguage": "en"
+  },
+  "category": "/CC4A/CODE_PAL",
+  "implementingClass": "/CC4A/AVOID_SELF_REFERENCE",
+  "checkType": "remoteEnabled"
+}

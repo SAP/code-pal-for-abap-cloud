@@ -11,6 +11,13 @@ class /cc4a/test_avoid_self_ref definition
     data number1 type i.
     data number2 type i.
 
+    types:
+      begin of ty_struct,
+        comp type i,
+      end of ty_struct.
+
+    data struct type ty_struct.
+
     constants number3 type i value 0.
     constants string3 type string value 'abc'.
 
@@ -107,11 +114,22 @@ class /cc4a/test_avoid_self_ref implementation.
   endmethod.
 
   method exporting_parameter.
-
+    data(string) = me->string1.
+    final(second_string) = me->string2.
+    final(string3) = me->string3.
+    data(number1) = me->number1.
+    data(struct) = me->struct-comp.
+    struct = me->struct-comp.
   endmethod.
 
   method importing_parameter.
-
+    data(string1) = me->string1.
+    final(string) = me->string2.
+    final(string3) = me->string3.
+    data(number) = me->number1.
+    data(structure) = me->struct-comp.
+    structure = me->struct-comp.
+    structure = struct-comp.
   endmethod.
 
 endclass.

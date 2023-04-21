@@ -20,21 +20,21 @@ class /cc4a/avoid_self_reference definition
     data code_provider     type ref to if_ci_atc_source_code_provider.
     data assistant_factory type ref to cl_ci_atc_assistant_factory.
 
-    types: begin of ty_method_w_class_and_params,
+    types: begin of ty_method_w_class_and_paras,
              class_name      type string,
              method_name     type string,
              parameter_names type standard table of string with empty key,
-           end of ty_method_w_class_and_params.
+           end of ty_method_w_class_and_paras.
 
-    types ty_class_w_methods_and_params type standard table of ty_method_w_class_and_params with empty key.
+    types ty_classes_w_methods_and_paras type standard table of ty_method_w_class_and_paras with empty key.
     types ty_local_variable_names type standard table of string with empty key.
-    types ty_local_variable_positions type table of i.
+    types ty_local_variable_positions type standard table of i with empty key.
 
-    data classes_w_methods_and_params type ty_class_w_methods_and_params.
+    data classes_w_methods_and_paras type ty_classes_w_methods_and_paras.
 
     methods analyze_procedure
       importing procedure                    type if_ci_atc_source_code_provider=>ty_procedure
-                classes_w_methods_and_params type ty_class_w_methods_and_params
+                classes_w_methods_and_paras type ty_classes_w_methods_and_paras
       returning value(findings)              type if_ci_atc_check=>ty_findings.
 
     methods get_local_variables
@@ -43,12 +43,12 @@ class /cc4a/avoid_self_reference definition
 
     methods remove_self_reference
       importing statement                 type if_ci_atc_source_code_provider=>ty_statement
-                variable_position         type ty_local_variable_positions optional
+                variable_positions        type ty_local_variable_positions optional
       returning value(modified_statement) type if_ci_atc_quickfix=>ty_code.
 
-    methods get_class_w_methods_and_paras
+    methods get_clsses_w_methods_and_paras
       importing procedure                             type if_ci_atc_source_code_provider=>ty_procedure
-      returning value(class_w_methods_and_parameters) type ty_class_w_methods_and_params.
+      returning value(classes_w_methods_and_paras) type ty_classes_w_methods_and_paras.
 
 endclass.
 
@@ -69,10 +69,10 @@ class /cc4a/avoid_self_reference implementation.
     code_provider = data_provider->get_code_provider( ).
     data(procedures) = code_provider->get_procedures( code_provider->object_to_comp_unit( object ) ).
     loop at procedures->* assigning field-symbol(<procedure>).
-      insert lines of get_class_w_methods_and_paras( procedure = <procedure> ) into table classes_w_methods_and_params.
+      insert lines of get_clsses_w_methods_and_paras( procedure = <procedure> ) into table classes_w_methods_and_paras.
     endloop.
     loop at procedures->* assigning <procedure> where id-kind eq if_ci_atc_source_code_provider=>procedure_kinds-method.
-      insert lines of analyze_procedure( procedure = <procedure> classes_w_methods_and_params = classes_w_methods_and_params ) into table findings.
+      insert lines of analyze_procedure( procedure = <procedure> classes_w_methods_and_paras = classes_w_methods_and_paras ) into table findings.
     endloop.
   endmethod.
 
@@ -85,17 +85,16 @@ class /cc4a/avoid_self_reference implementation.
   endmethod.
 
   method analyze_procedure.
-    data reference_variable_names type string_table.
     data(local_variable_names) = get_local_variables( procedure = procedure ).
-
+    data(method_parameters) = classes_w_methods_and_paras[ class_name = substring_before( val = procedure-id-name sub = '=' ) method_name = substring_after( val = procedure-id-name sub = '>' ) ]-parameter_names.
     loop at procedure-statements assigning field-symbol(<statement>).
-      if <statement>-keyword eq 'METHOD'.
-        data(method_parameters) = classes_w_methods_and_params[ class_name = substring_before( val = procedure-id-name sub = '=' ) method_name = <statement>-tokens[ 2 ]-lexeme ]-parameter_names.
-      endif.
       data(statement_index) = sy-tabix.
-      data reference_variable_positions type ty_local_variable_positions.
+      data(reference_variable_positions) = value ty_local_variable_positions( ).
       loop at <statement>-tokens assigning field-symbol(<token>) where lexeme cs 'ME->'.
         data(variable_name) = substring( val = <token>-lexeme off = 4 ).
+        if variable_name cs '-'.
+          variable_name = substring_before( val = variable_name sub = '-' ).
+        endif.
         if not line_exists( local_variable_names[ table_line = variable_name ] ) and not line_exists( method_parameters[ table_line = variable_name ] ).
           insert sy-tabix into table reference_variable_positions.
         endif.
@@ -105,7 +104,7 @@ class /cc4a/avoid_self_reference implementation.
         available_quickfixes = assistant_factory->create_quickfixes( ).
         available_quickfixes->create_quickfix( quickfix_codes-self_reference )->replace(
             context = assistant_factory->create_quickfix_context( value #( procedure_id = procedure-id statements = value #( from = statement_index to = statement_index ) ) )
-            code = remove_self_reference( statement = <statement> variable_position = reference_variable_positions ) ).
+            code = remove_self_reference( statement = <statement> variable_positions = reference_variable_positions ) ).
         insert value #( code = finding_code
             location = code_provider->get_statement_location( <statement> )
             checksum = code_provider->get_statement_checksum( <statement> )
@@ -113,30 +112,35 @@ class /cc4a/avoid_self_reference implementation.
             details = assistant_factory->create_finding_details( )->attach_quickfixes( available_quickfixes )
             ) into table findings.
       endif.
-      clear reference_variable_positions.
     endloop.
   endmethod.
 
   method get_local_variables.
     loop at procedure-statements assigning field-symbol(<statement>).
-      if <statement>-keyword eq 'DATA'.
-        insert <statement>-tokens[ 2 ]-lexeme into table local_variable_names.
-      elseif  <statement>-tokens[ 1 ]-lexeme cs 'DATA('.
-        insert substring( val = <statement>-tokens[ 1 ]-lexeme off = 5 len = strlen( <statement>-tokens[ 1 ]-lexeme ) - 6 ) into table local_variable_names.
-      endif.
+      loop at <statement>-tokens assigning field-symbol(<token>) where references is not initial.
+        if <token>-references[ 1 ]-usage_grade eq if_ci_atc_source_code_provider=>usage_grades-definition and <token>-references[ 1 ]-kind eq if_ci_atc_source_code_provider=>compiler_reference_kinds-data.
+          if <token>-references[ 1 ]-usage_mode eq if_ci_atc_source_code_provider=>usage_modes-definition_with_write.
+            data(variable_name) = substring_after( val = <token>-lexeme sub = '(' ).
+            variable_name = substring_before( val = variable_name sub = ')' ).
+            insert variable_name into table local_variable_names.
+          else.
+            insert <token>-lexeme into table local_variable_names.
+          endif.
+        endif.
+      endloop.
     endloop.
   endmethod.
 
   method remove_self_reference.
     data(new_statement) = statement.
-    loop at variable_position assigning field-symbol(<position>).
+    loop at variable_positions assigning field-symbol(<position>).
       new_statement-tokens[ <position> ]-lexeme = substring( val = new_statement-tokens[ <position> ]-lexeme off = 4 ).
     endloop.
     data(flat_new_statement) = /cc4a/abap_analyzer=>create( )->flatten_tokens( new_statement-tokens ) && `.`.
     modified_statement = /cc4a/abap_analyzer=>create( )->break_into_lines( flat_new_statement ).
   endmethod.
 
-  method get_class_w_methods_and_paras.
+  method get_clsses_w_methods_and_paras.
     data parameter_names type ty_local_variable_names.
     loop at procedure-statements assigning field-symbol(<class_statement>) where keyword eq 'CLASS' ##PRIMKEY[KEYWORD].
       data(statement_index) = sy-tabix.
@@ -167,7 +171,7 @@ class /cc4a/avoid_self_reference implementation.
               endloop.
               insert value #( class_name = class_name
                               method_name = <statement>-tokens[ 2 ]-lexeme
-                              parameter_names = parameter_names ) into table class_w_methods_and_parameters.
+                              parameter_names = parameter_names ) into table classes_w_methods_and_paras.
             endif.
           else.
             if <statement>-keyword eq 'METHODS' or <statement>-keyword eq 'CLASS-METHODS'.
@@ -179,14 +183,14 @@ class /cc4a/avoid_self_reference implementation.
                     insert <statement>-tokens[ sy-tabix - 1 ]-lexeme into table parameter_names.
                   endif.
                 else.
-                  if line_exists( class_w_methods_and_parameters[ class_name = inheriting_class method_name = <statement>-tokens[ 2 ]-lexeme ] ).
-                    parameter_names = class_w_methods_and_parameters[ class_name = inheriting_class method_name = <statement>-tokens[ 2 ]-lexeme ]-parameter_names.
+                  if line_exists( classes_w_methods_and_paras[ class_name = inheriting_class method_name = <statement>-tokens[ 2 ]-lexeme ] ).
+                    parameter_names = classes_w_methods_and_paras[ class_name = inheriting_class method_name = <statement>-tokens[ 2 ]-lexeme ]-parameter_names.
                   endif.
                 endif.
               endloop.
               insert value #( class_name = class_name
                               method_name = <statement>-tokens[ 2 ]-lexeme
-                              parameter_names = parameter_names ) into table class_w_methods_and_parameters.
+                              parameter_names = parameter_names ) into table classes_w_methods_and_paras.
             endif.
           endif.
           clear parameter_names.

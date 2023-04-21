@@ -8,6 +8,8 @@ class test definition final for testing
       begin of test_class_methods,
         without_pseudo_comments type c length 30 value 'WITHOUT_PSEUDO_COMMENTS',
         with_pseudo_comments    type c length 30 value 'WITH_PSEUDO_COMMENTS',
+        exorting_parameter      type c length 30 value 'EXPORTING_PARAMETER',
+        importing_parameter     type c length 30 value 'IMPORTING_PARAMETER',
       end of test_class_methods.
 
     methods execute_test_class for testing raising cx_static_check.
@@ -125,6 +127,26 @@ class test implementation.
     data(with_pseudo_comment_18) = value if_ci_atc_check=>ty_location(
         object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-with_pseudo_comments ) )
         position = value #( line = 31 column = 4 ) ).
+
+    data(define_and_write_finding_1) = value if_ci_atc_check=>ty_location(
+        object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-exorting_parameter ) )
+        position = value #( line = 2 column = 4 ) ).
+    data(define_and_write_finding_2) = value if_ci_atc_check=>ty_location(
+        object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-exorting_parameter ) )
+        position = value #( line = 3 column = 4 ) ).
+    data(define_and_write_finding_3) = value if_ci_atc_check=>ty_location(
+        object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-importing_parameter ) )
+        position = value #( line = 3 column = 4 ) ).
+    data(define_and_write_finding_4) = value if_ci_atc_check=>ty_location(
+        object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-importing_parameter ) )
+        position = value #( line = 5 column = 4 ) ).
+
+    data(structure_finding_1) = value if_ci_atc_check=>ty_location(
+        object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-importing_parameter ) )
+        position = value #( line = 6 column = 4 ) ).
+    data(structure_finding_2) = value if_ci_atc_check=>ty_location(
+        object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-importing_parameter ) )
+        position = value #( line = 7 column = 4 ) ).
 
     data(local_finding_1) = value if_ci_atc_check=>ty_location(
         object   = value #( type = 'PROG' name = '/CC4A/TEST_AVOID_SELF_REF=====CCIMP' )
@@ -417,6 +439,48 @@ class test implementation.
                                             location = without_pseudo_comment_18
                                             code = value #(
                                             ( `WITH_PSEUDO_COMMENTS( NUMBER = NUMBER2 STRING = STRING5 ) .` ) ) ) ) )
+                                        ( code = /cc4a/avoid_self_reference=>finding_code
+                                         location = define_and_write_finding_1
+                                         quickfixes = value #( (
+                                            quickfix_code = /cc4a/avoid_self_reference=>quickfix_codes-self_reference
+                                            location = define_and_write_finding_1
+                                            code = value #(
+                                            ( `DATA(STRING) = STRING1 .` ) ) ) ) )
+                                        ( code = /cc4a/avoid_self_reference=>finding_code
+                                         location = define_and_write_finding_2
+                                         quickfixes = value #( (
+                                            quickfix_code = /cc4a/avoid_self_reference=>quickfix_codes-self_reference
+                                            location = define_and_write_finding_2
+                                            code = value #(
+                                            ( `FINAL(SECOND_STRING) = STRING2 .` ) ) ) ) )
+                                        ( code = /cc4a/avoid_self_reference=>finding_code
+                                         location = define_and_write_finding_3
+                                         quickfixes = value #( (
+                                            quickfix_code = /cc4a/avoid_self_reference=>quickfix_codes-self_reference
+                                            location = define_and_write_finding_3
+                                            code = value #(
+                                            ( `FINAL(STRING) = STRING2 .` ) ) ) ) )
+                                        ( code = /cc4a/avoid_self_reference=>finding_code
+                                         location = define_and_write_finding_4
+                                         quickfixes = value #( (
+                                            quickfix_code = /cc4a/avoid_self_reference=>quickfix_codes-self_reference
+                                            location = define_and_write_finding_4
+                                            code = value #(
+                                            ( `DATA(NUMBER) = NUMBER1 .` ) ) ) ) )
+                                        ( code = /cc4a/avoid_self_reference=>finding_code
+                                         location = structure_finding_1
+                                         quickfixes = value #( (
+                                            quickfix_code = /cc4a/avoid_self_reference=>quickfix_codes-self_reference
+                                            location = structure_finding_1
+                                            code = value #(
+                                            ( `DATA(STRUCTURE) = STRUCT-COMP .` ) ) ) ) )
+                                        ( code = /cc4a/avoid_self_reference=>finding_code
+                                         location = structure_finding_2
+                                         quickfixes = value #( (
+                                            quickfix_code = /cc4a/avoid_self_reference=>quickfix_codes-self_reference
+                                            location = structure_finding_2
+                                            code = value #(
+                                            ( `STRUCTURE = STRUCT-COMP .` ) ) ) ) )
                                         ( code = /cc4a/avoid_self_reference=>finding_code
                                          location = local_finding_1
                                          quickfixes = value #( (

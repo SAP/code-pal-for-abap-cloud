@@ -56,27 +56,18 @@ class /cc4a/test_avoid_self_ref implementation.
 
     number1 = me->number1 + me->number1.
     number1 = me->number1 + me->number2.
-    number4 = me->number1 + me->number3.
     number5 = me->number2 + me->number3.
-    me->number2 = number4 + number5.
-    me->number1 = number1 + me->number3.
-    me->number2 = me->number2 + number5.
+    me->number2 = number4 + number5..
 
     string1 = me->string1 + me->string1.
     string1 = me->string1 + me->string2.
-    string4 = me->string1 + me->string3.
     string5 = me->string2 + me->string3.
     me->string2 = string4 + string5.
-    me->string1 = string1 + me->string3.
-    me->string2 = me->string2 + string5.
 
     me->without_pseudo_comments( number = me->number3 string = me->string3 ).
     me->with_pseudo_comments( number = me->number1 string = me->string3 ).
-    me->without_pseudo_comments( number = me->number3 string = me->string1 ).
     me->with_pseudo_comments( number = number4 string = string4 ).
-    me->without_pseudo_comments( number = number5 string = me->string1 ).
     me->with_pseudo_comments( number = number2 string = string5 ).
-
   endmethod.
 
   method with_pseudo_comments.
@@ -90,25 +81,17 @@ class /cc4a/test_avoid_self_ref implementation.
 
     number1 = me->number1 + me->number1.
     number1 = me->number1 + me->number2.                  "#EC SELF_REF
-    number4 = me->number1 + me->number3.                  "#EC SELF_REF
     number5 = me->number2 + me->number3.                  "#EC SELF_REF
     me->number2 = number4 + number5.                      "#EC SELF_REF
-    me->number1 = number1 + me->number3.                  "#EC SELF_REF
-    me->number2 = me->number2 + number5.                  "#EC SELF_REF
 
     string1 = me->string1 + me->string1.
     string1 = me->string1 + me->string2.                  "#EC SELF_REF
-    string4 = me->string1 + me->string3.                  "#EC SELF_REF
     string5 = me->string2 + me->string3.                  "#EC SELF_REF
     me->string2 = string4 + string5.                      "#EC SELF_REF
-    me->string1 = string1 + me->string3.                  "#EC SELF_REF
-    me->string2 = me->string2 + string5.                  "#EC SELF_REF
 
     me->without_pseudo_comments( number = me->number3 string = me->string3 ). "#EC SELF_REF
-    me->with_pseudo_comments( number = me->number1 string = me->string3 ). "#EC SELF_REF
-    me->without_pseudo_comments( number = me->number3 string = me->string1 ). "#EC SELF_REF
+    me->with_pseudo_comments( number = me->number1 string = me->string3 ). "#EC SELF_RE
     me->with_pseudo_comments( number = number4 string = string4 ). "#EC SELF_REF
-    me->without_pseudo_comments( number = number5 string = me->string1 ). "#EC SELF_REF
     me->with_pseudo_comments( number = number2 string = string5 ). "#EC SELF_REF
 
   endmethod.
@@ -130,6 +113,8 @@ class /cc4a/test_avoid_self_ref implementation.
     data(structure) = me->struct-comp.
     structure = me->struct-comp.
     structure = struct-comp.
+    assign me->(string4) to field-symbol(<test>).
+    assign me->(string5) to field-symbol(<test2>).
   endmethod.
 
 endclass.

@@ -33,9 +33,9 @@ class /cc4a/avoid_self_reference definition
     data classes_w_methods_and_paras type ty_classes_w_methods_and_paras.
 
     methods analyze_procedure
-      importing procedure                    type if_ci_atc_source_code_provider=>ty_procedure
+      importing procedure                   type if_ci_atc_source_code_provider=>ty_procedure
                 classes_w_methods_and_paras type ty_classes_w_methods_and_paras
-      returning value(findings)              type if_ci_atc_check=>ty_findings.
+      returning value(findings)             type if_ci_atc_check=>ty_findings.
 
     methods get_local_variables
       importing procedure                   type if_ci_atc_source_code_provider=>ty_procedure
@@ -47,7 +47,7 @@ class /cc4a/avoid_self_reference definition
       returning value(modified_statement) type if_ci_atc_quickfix=>ty_code.
 
     methods get_clsses_w_methods_and_paras
-      importing procedure                             type if_ci_atc_source_code_provider=>ty_procedure
+      importing procedure                          type if_ci_atc_source_code_provider=>ty_procedure
       returning value(classes_w_methods_and_paras) type ty_classes_w_methods_and_paras.
 
 endclass.
@@ -92,11 +92,13 @@ class /cc4a/avoid_self_reference implementation.
       data(reference_variable_positions) = value ty_local_variable_positions( ).
       loop at <statement>-tokens assigning field-symbol(<token>) where lexeme cs 'ME->'.
         data(variable_name) = substring( val = <token>-lexeme off = 4 ).
-        if variable_name cs '-'.
-          variable_name = substring_before( val = variable_name sub = '-' ).
-        endif.
-        if not line_exists( local_variable_names[ table_line = variable_name ] ) and not line_exists( method_parameters[ table_line = variable_name ] ).
-          insert sy-tabix into table reference_variable_positions.
+        if not ( variable_name cs '(' and variable_name cs ')' ).
+          if variable_name cs '-'.
+            variable_name = substring_before( val = variable_name sub = '-' ).
+          endif.
+          if not line_exists( local_variable_names[ table_line = variable_name ] ) and not line_exists( method_parameters[ table_line = variable_name ] ).
+            insert sy-tabix into table reference_variable_positions.
+          endif.
         endif.
       endloop.
       if reference_variable_positions is not initial.

@@ -16,6 +16,8 @@ class /cc4a/abap_analyzer definition
       end of ty_negation.
 
     class-data negations type table of ty_negation.
+
+    aliases is_bracket for /cc4a/if_abap_analyzer~is_bracket.
 ENDCLASS.
 
 
@@ -36,24 +38,28 @@ CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
 
 
   method /cc4a/if_abap_analyzer~calculate_bracket_end.
-    if /cc4a/abap_analyzer=>create( )->is_bracket( token = statement-tokens[ bracket_position ] ) ne /cc4a/if_abap_analyzer=>bracket_type-opening and
-       /cc4a/abap_analyzer=>create( )->is_bracket( token = statement-tokens[ bracket_position ] ) ne /cc4a/if_abap_analyzer=>bracket_type-closing.
+    if is_bracket( token = statement-tokens[ bracket_position ] ) ne /cc4a/if_abap_analyzer=>bracket_type-opening and
+       is_bracket( token = statement-tokens[ bracket_position ] ) ne /cc4a/if_abap_analyzer=>bracket_type-closing.
       raise exception type /cc4a/cx_token_is_no_bracket.
     endif.
 
     data(bracket_counter) = 1.
     loop at statement-tokens assigning field-symbol(<token>) from bracket_position.
       data(next_token) = value #( statement-tokens[ sy-tabix + 1 ] optional ).
-      if /cc4a/abap_analyzer=>create( )->is_bracket( token = next_token ) = /cc4a/if_abap_analyzer=>bracket_type-opening.
-        bracket_counter = bracket_counter + 1.
-      elseif /cc4a/abap_analyzer=>create( )->is_bracket( token = next_token ) = /cc4a/if_abap_analyzer=>bracket_type-closing.
-        if bracket_counter eq 1.
-          end_of_bracket = sy-tabix + 1.
-          exit.
-        else.
-          bracket_counter = bracket_counter - 1.
-        endif.
-      endif.
+      data(next_token_bracket_type) = is_bracket( token = next_token ).
+      case next_token_bracket_type.
+        when /cc4a/if_abap_analyzer=>bracket_type-opening.
+          bracket_counter += 1.
+        when /cc4a/if_abap_analyzer=>bracket_type-closing or /cc4a/if_abap_analyzer=>bracket_type-clopening.
+          if bracket_counter eq 1.
+            end_of_bracket = sy-tabix + 1.
+            exit.
+          else.
+            if next_token_bracket_type = /cc4a/if_abap_analyzer=>bracket_type-closing.
+              bracket_counter = bracket_counter - 1.
+            endif.
+          endif.
+      endcase.
     endloop.
     if end_of_bracket is initial.
       end_of_bracket = -1.
@@ -88,18 +94,19 @@ CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
 
 
   method /cc4a/if_abap_analyzer~is_bracket.
-    case token-lexeme.
-      when '(' or 'XSDBOOL('.
-        bracket_type = /cc4a/if_abap_analyzer=>bracket_type-opening.
-      when ')'.
-        bracket_type = /cc4a/if_abap_analyzer=>bracket_type-closing.
-      when others.
-        if token is not initial and substring( val = token-lexeme off = strlen( token-lexeme ) - 1 len = 1 ) eq '('.
-          bracket_type = /cc4a/if_abap_analyzer=>bracket_type-opening.
-        elseif token is not initial and substring( val = token-lexeme len = 1 ) eq ')'.
-          bracket_type = /cc4a/if_abap_analyzer=>bracket_type-closing.
-        endif.
-    endcase.
+    data(first_char) = token-lexeme(1).
+    data(offset_for_last_char) = strlen( token-lexeme ) - 1.
+    data(last_char) = cond #( when offset_for_last_char > 0 then token-lexeme+offset_for_last_char(1) else first_char ).
+    bracket_type = switch #(
+      last_char
+        when ')' then /cc4a/if_abap_analyzer=>bracket_type-closing
+        when '(' then switch #(
+          first_char
+            when ')' then /cc4a/if_abap_analyzer=>bracket_type-clopening
+            else /cc4a/if_abap_analyzer=>bracket_type-opening
+        )
+        else /cc4a/if_abap_analyzer=>bracket_type-no_bracket
+    ).
   endmethod.
 
 

@@ -80,3 +80,79 @@ class key_words implementation.
   endmethod.
 
 endclass.
+
+class bracket_matching definition final for testing
+  duration short
+  risk level harmless.
+
+  private section.
+    methods bracket_ends for testing raising cx_static_check.
+
+    methods tokenize
+      importing code type string
+      returning value(statement) type if_ci_atc_source_code_provider=>ty_statement.
+endclass.
+
+
+class bracket_matching implementation.
+
+  method bracket_ends.
+    data(analyzer) = /cc4a/abap_analyzer=>create( ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = analyzer->calculate_bracket_end(
+        statement = tokenize( `call( )` )
+        bracket_position = 1
+      )
+      exp = 2
+    ).
+    cl_abap_unit_assert=>assert_equals(
+      act = analyzer->calculate_bracket_end(
+        statement = tokenize( `if ( a = b ) and ( c = d )` )
+        bracket_position = 2
+      )
+      exp = 6
+    ).
+    cl_abap_unit_assert=>assert_equals(
+      act = analyzer->calculate_bracket_end(
+        statement = tokenize( `if ( a = b ) and ( c = d )` )
+        bracket_position = 8
+      )
+      exp = 12
+    ).
+    cl_abap_unit_assert=>assert_equals(
+      act = analyzer->calculate_bracket_end(
+        statement = tokenize( `if ( a = b and ( c = d ) )` )
+        bracket_position = 2
+      )
+      exp = 12
+    ).
+    cl_abap_unit_assert=>assert_equals(
+      act = analyzer->calculate_bracket_end(
+        statement = tokenize( `if ( a = b and ( c = d ) )` )
+        bracket_position = 7
+      )
+      exp = 11
+    ).
+    cl_abap_unit_assert=>assert_equals(
+      act = analyzer->calculate_bracket_end(
+        statement = tokenize( `obj->call( )` )
+        bracket_position = 1
+      )
+      exp = 2
+    ).
+    cl_abap_unit_assert=>assert_equals(
+      act = analyzer->calculate_bracket_end(
+        statement = tokenize( `obj->call( )->second_call( )` )
+        bracket_position = 1
+      )
+      exp = 2
+    ).
+  endmethod.
+
+  method tokenize.
+    split code at space into table data(tokens).
+    statement = value #( tokens = value #( for <tok> in tokens ( lexeme = <tok> ) ) ).
+  endmethod.
+
+endclass.

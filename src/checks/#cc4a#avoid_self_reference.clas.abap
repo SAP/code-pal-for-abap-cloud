@@ -58,9 +58,9 @@ class /cc4a/avoid_self_reference implementation.
   method if_ci_atc_check~get_meta_data.
     meta_data = /cc4a/check_meta_data=>create(
             value #( checked_types = /cc4a/check_meta_data=>checked_types-abap_programs
-               description = 'Avoid unnecessary self-reference'(des)
+               description = 'Find unnecessary self-references'(des)
                remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
-               finding_codes = value #( ( code = finding_code pseudo_comment = pseudo_comment text = 'Usage of unnecessary self-reference'(dus) ) )
+               finding_codes = value #( ( code = finding_code pseudo_comment = pseudo_comment text = 'Unnecessary self-reference'(dus) ) )
                quickfix_codes = value #( ( code = quickfix_codes-self_reference short_text = 'Remove self-reference'(qrs) ) )
              ) ).
   endmethod.

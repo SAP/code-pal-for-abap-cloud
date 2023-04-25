@@ -1,7 +1,7 @@
 {
   "formatVersion": "1",
   "header": {
-    "description": "Avoid unnecessary self-reference",
+    "description": "Find unnecessary self-reference",
     "originalLanguage": "en"
   },
   "category": "/CC4A/CODE_PAL",

@@ -16,13 +16,13 @@
     <item>
      <ID>I</ID>
      <KEY>DES</KEY>
-     <ENTRY>Avoid unnecessary self-reference</ENTRY>
+     <ENTRY>Find unnecessary self-references</ENTRY>
      <LENGTH>88</LENGTH>
     </item>
     <item>
      <ID>I</ID>
      <KEY>DUS</KEY>
-     <ENTRY>Usage of unnecessary self-reference</ENTRY>
+     <ENTRY>Unnecessary self-reference</ENTRY>
      <LENGTH>88</LENGTH>
     </item>
     <item>

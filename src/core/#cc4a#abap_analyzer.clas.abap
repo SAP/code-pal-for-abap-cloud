@@ -16,43 +16,12 @@ class /cc4a/abap_analyzer definition
       end of ty_negation.
 
     class-data negations type table of ty_negation.
-endclass.
+ENDCLASS.
 
 
 
-class /cc4a/abap_analyzer implementation.
+CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
 
-  method create.
-    instance = new /cc4a/abap_analyzer( ).
-
-    negations = value #( ( operator = '>' negated = '<=' )
-                         ( operator = 'GT' negated = 'LE' )
-                         ( operator = '<' negated = '>=' )
-                         ( operator = 'LT' negated = 'GE' )
-                         ( operator = '=' negated = '<>' )
-                         ( operator = 'EQ' negated = 'NE' )
-                         ( operator = '<>' negated = '=' )
-                         ( operator = 'NE' negated = 'EQ' )
-                         ( operator = '<=' negated = '>' )
-                         ( operator = 'LE' negated = 'GT' )
-                         ( operator = '>=' negated = '<' )
-                         ( operator = 'GE' negated = 'LT' ) ).
-  endmethod.
-
-  method /cc4a/if_abap_analyzer~find_key_words.
-    position = -1.
-    loop at statement-tokens assigning field-symbol(<token>) where lexeme eq key_words[ 1 ] and references is initial.
-      data(token_index) = sy-tabix.
-      loop at key_words assigning field-symbol(<key_word>) from 2.
-        data(next_token) = value #( statement-tokens[ token_index + sy-tabix - 1 ] optional ).
-        if next_token-lexeme ne <key_word>.
-          exit.
-        elseif sy-tabix eq lines( key_words ).
-          position = token_index.
-        endif.
-      endloop.
-    endloop.
-  endmethod.
 
   method /cc4a/if_abap_analyzer~break_into_lines.
     constants allowed_line_length type i value 255.
@@ -65,24 +34,6 @@ class /cc4a/abap_analyzer implementation.
     endwhile.
   endmethod.
 
-  method /cc4a/if_abap_analyzer~flatten_tokens.
-    flat_statement = reduce #( init str = `` for tok in tokens next str = |{ str }{ tok-lexeme } | ).
-  endmethod.
-
-  method /cc4a/if_abap_analyzer~is_bracket.
-    case token-lexeme.
-      when '(' or 'XSDBOOL('.
-        bracket_type = /cc4a/if_abap_analyzer=>bracket_type-opening.
-      when ')'.
-        bracket_type = /cc4a/if_abap_analyzer=>bracket_type-closing.
-      when others.
-        if token is not initial and substring( val = token-lexeme off = strlen( token-lexeme ) - 1 len = 1 ) eq '('.
-          bracket_type = /cc4a/if_abap_analyzer=>bracket_type-opening.
-        elseif token is not initial and substring( val = token-lexeme len = 1 ) eq ')'.
-          bracket_type = /cc4a/if_abap_analyzer=>bracket_type-closing.
-        endif.
-    endcase.
-  endmethod.
 
   method /cc4a/if_abap_analyzer~calculate_bracket_end.
     if /cc4a/abap_analyzer=>create( )->is_bracket( token = statement-tokens[ bracket_position ] ) ne /cc4a/if_abap_analyzer=>bracket_type-opening and
@@ -109,6 +60,57 @@ class /cc4a/abap_analyzer implementation.
     endif.
   endmethod.
 
+
+  method /cc4a/if_abap_analyzer~find_key_words.
+    position = -1.
+    loop at statement-tokens assigning field-symbol(<token>) where lexeme eq key_words[ 1 ] and references is initial.
+      data(token_index) = sy-tabix.
+      if lines( key_words ) eq 1.
+        position = token_index.
+        return.
+      else.
+        loop at key_words assigning field-symbol(<key_word>) from 2.
+          data(next_token) = value #( statement-tokens[ token_index + sy-tabix - 1 ] optional ).
+          if next_token-references is not initial or next_token-lexeme ne <key_word>.
+            exit.
+          elseif sy-tabix eq lines( key_words ).
+            position = token_index.
+          endif.
+        endloop.
+      endif.
+    endloop.
+  endmethod.
+
+
+  method /cc4a/if_abap_analyzer~flatten_tokens.
+    flat_statement = reduce #( init str = `` for tok in tokens next str = |{ str }{ tok-lexeme } | ).
+  endmethod.
+
+
+  method /cc4a/if_abap_analyzer~is_bracket.
+    case token-lexeme.
+      when '(' or 'XSDBOOL('.
+        bracket_type = /cc4a/if_abap_analyzer=>bracket_type-opening.
+      when ')'.
+        bracket_type = /cc4a/if_abap_analyzer=>bracket_type-closing.
+      when others.
+        if token is not initial and substring( val = token-lexeme off = strlen( token-lexeme ) - 1 len = 1 ) eq '('.
+          bracket_type = /cc4a/if_abap_analyzer=>bracket_type-opening.
+        elseif token is not initial and substring( val = token-lexeme len = 1 ) eq ')'.
+          bracket_type = /cc4a/if_abap_analyzer=>bracket_type-closing.
+        endif.
+    endcase.
+  endmethod.
+
+
+  method /cc4a/if_abap_analyzer~negate_comparison_operator.
+    if not /cc4a/if_abap_analyzer~token_is_comparison_operator( token = value #( lexeme = comparison_operator ) ).
+      raise exception type /cc4a/cx_token_is_no_operator.
+    endif.
+    negated_comparison_operator = negations[ operator = comparison_operator ]-negated.
+  endmethod.
+
+
   method /cc4a/if_abap_analyzer~token_is_comparison_operator.
     case token-lexeme.
       when 'IS' or 'IN' or '>' or 'GT' or '<' or 'LT' or '>=' or 'GE' or '<=' or 'LE' or '=' or 'EQ' or '<>' or 'NE'.
@@ -118,11 +120,21 @@ class /cc4a/abap_analyzer implementation.
     endcase.
   endmethod.
 
-  method /cc4a/if_abap_analyzer~negate_comparison_operator.
-    if not /cc4a/if_abap_analyzer~token_is_comparison_operator( token = value #( lexeme = comparison_operator ) ).
-      raise exception type /cc4a/cx_token_is_no_operator.
-    endif.
-    negated_comparison_operator = negations[ operator = comparison_operator ]-negated.
-  endmethod.
 
-endclass.
+  method create.
+    instance = new /cc4a/abap_analyzer( ).
+
+    negations = value #( ( operator = '>' negated = '<=' )
+                         ( operator = 'GT' negated = 'LE' )
+                         ( operator = '<' negated = '>=' )
+                         ( operator = 'LT' negated = 'GE' )
+                         ( operator = '=' negated = '<>' )
+                         ( operator = 'EQ' negated = 'NE' )
+                         ( operator = '<>' negated = '=' )
+                         ( operator = 'NE' negated = 'EQ' )
+                         ( operator = '<=' negated = '>' )
+                         ( operator = 'LE' negated = 'GT' )
+                         ( operator = '>=' negated = '<' )
+                         ( operator = 'GE' negated = 'LT' ) ).
+  endmethod.
+ENDCLASS.

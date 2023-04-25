@@ -1,55 +1,82 @@
-class test definition final for testing
+class key_words definition final for testing
   duration short
   risk level harmless.
 
   private section.
-    methods test_find_key_words for testing.
+    methods statement_is_all_keywords for testing raising cx_static_check.
+    methods identifiers_like_keywords for testing raising cx_static_check.
 endclass.
 
-class test implementation.
+class key_words implementation.
 
-  method test_find_key_words.
-    data test_key_words type string_table.
-    data test_statement type if_ci_atc_source_code_provider=>ty_statement.
+  method statement_is_all_keywords.
+    data(test_statement) = value if_ci_atc_source_code_provider=>ty_statement(
+      tokens = value #( for i = 1 then i + 1 until i >= 10 ( lexeme = |{ i }| ) )
+    ).
+    data(analyzer) = /cc4a/abap_analyzer=>create( ).
 
-    test_statement = value #( tokens = value #( ( lexeme = '1' )
-                                                ( lexeme = '2' )
-                                                ( lexeme = '3' )
-                                                ( lexeme = '4' )
-                                                ( lexeme = '5' )
-                                                ( lexeme = '6' )
-                                                ( lexeme = '7' )
-                                                ( lexeme = '8' )
-                                                ( lexeme = '9' )
-                                                ( lexeme = '10' ) ) ).
-
-    test_key_words = value #( ( |3| ) ( |4| ) ( |5| ) ).
-    data(found) = /cc4a/abap_analyzer=>create(  )->find_key_words( key_words = test_key_words statement = test_statement ).
-    cl_abap_unit_assert=>assert_equals( act = found exp = abap_true ).
-
-    test_key_words = value #( ( |1| ) ( |5| ) ).
-    found = /cc4a/abap_analyzer=>create(  )->find_key_words( key_words = test_key_words statement = test_statement ).
-    cl_abap_unit_assert=>assert_equals( act = found exp = abap_false ).
-
-    test_key_words = value #( ( |8| ) ( |9| ) ).
-    found = /cc4a/abap_analyzer=>create(  )->find_key_words( key_words = test_key_words statement = test_statement ).
-    cl_abap_unit_assert=>assert_equals( act = found exp = abap_true ).
-
-    test_key_words = value #( ( |6| ) ( |8| ) ( |9| ) ).
-    found = /cc4a/abap_analyzer=>create(  )->find_key_words( key_words = test_key_words statement = test_statement ).
-    cl_abap_unit_assert=>assert_equals( act = found exp = abap_false ).
-
-    test_key_words = value #( ( |5| ) ( |3| ) ( |4| ) ).
-    found = /cc4a/abap_analyzer=>create(  )->find_key_words( key_words = test_key_words statement = test_statement ).
-    cl_abap_unit_assert=>assert_equals( act = found exp = abap_false ).
-
-    test_key_words = value #( ( |1| ) ( |2| ) ( |3| ) ( |4| ) ).
-    found = /cc4a/abap_analyzer=>create(  )->find_key_words( key_words = test_key_words statement = test_statement ).
-    cl_abap_unit_assert=>assert_equals( act = found exp = abap_true ).
-
-    test_key_words = value #( ( |5| ) ( |3| ) ( |4| ) ( |1| ) ).
-    found = /cc4a/abap_analyzer=>create(  )->find_key_words( key_words = test_key_words statement = test_statement ).
-    cl_abap_unit_assert=>assert_equals( act = found exp = abap_false ).
+    cl_abap_unit_assert=>assert_equals(
+      act = analyzer->find_key_words( key_words = value #( ( `3` ) ) statement = test_statement )
+      exp = 3
+    ).
+    cl_abap_unit_assert=>assert_equals(
+      act = analyzer->find_key_words( key_words = value #( ( `3` ) ( `4` ) ( `5` ) ) statement = test_statement )
+      exp = 3
+    ).
+    cl_abap_unit_assert=>assert_equals(
+      act = analyzer->find_key_words( key_words = value #( ( `1` ) ( `5` ) ) statement = test_statement )
+      exp = -1
+    ).
+    cl_abap_unit_assert=>assert_equals(
+      act = analyzer->find_key_words( key_words = value #( ( `8` ) ( `9` ) ) statement = test_statement )
+      exp = 8
+    ).
+    cl_abap_unit_assert=>assert_equals(
+      act = analyzer->find_key_words( key_words = value #( ( `6` ) ( `8` ) ( `9` ) ) statement = test_statement )
+      exp = -1
+    ).
+    cl_abap_unit_assert=>assert_equals(
+      act = analyzer->find_key_words( key_words = value #( ( `5` ) ( `3` ) ( `4` ) ) statement = test_statement )
+      exp = -1
+    ).
+    cl_abap_unit_assert=>assert_equals(
+      act = analyzer->find_key_words( key_words = value #( ( `1` ) ( `2` ) ( `3` ) ( `4` ) ) statement = test_statement )
+      exp = 1
+    ).
 
   endmethod.
+
+  method identifiers_like_keywords.
+    data(test_statement) = value if_ci_atc_source_code_provider=>ty_statement(
+      tokens = value #(
+        ( lexeme = `1` )
+        ( lexeme = `2` )
+        ( lexeme = `3` references = value #( ( full_name = `FOO` ) ) )
+        ( lexeme = `4`)
+      )
+    ).
+    data(analyzer) = /cc4a/abap_analyzer=>create( ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = analyzer->find_key_words( key_words = value #( ( `2` ) ) statement = test_statement )
+      exp = 2
+    ).
+    cl_abap_unit_assert=>assert_equals(
+      act = analyzer->find_key_words( key_words = value #( ( `3` ) ) statement = test_statement )
+      exp = -1
+    ).
+    cl_abap_unit_assert=>assert_equals(
+      act = analyzer->find_key_words( key_words = value #( ( `2` ) ( `3` ) ) statement = test_statement )
+      exp = -1
+    ).
+    cl_abap_unit_assert=>assert_equals(
+      act = analyzer->find_key_words( key_words = value #( ( `2` ) ( `3` ) ( `4` ) ) statement = test_statement )
+      exp = -1
+    ).
+    cl_abap_unit_assert=>assert_equals(
+      act = analyzer->find_key_words( key_words = value #( ( `1` ) ( `2` ) ) statement = test_statement )
+      exp = 1
+    ).
+  endmethod.
+
 endclass.

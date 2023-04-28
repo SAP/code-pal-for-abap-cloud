@@ -86,11 +86,13 @@ class /cc4a/avoid_self_reference implementation.
 
   method analyze_procedure.
     data(local_variable_names) = get_local_variables( procedure = procedure ).
-    data(method_parameters) = classes_w_methods_and_paras[ class_name = substring_before( val = procedure-id-name sub = '=' ) method_name = substring_after( val = procedure-id-name sub = '>' ) ]-parameter_names.
+    if line_exists( classes_w_methods_and_paras[ class_name = substring_before( val = procedure-id-name sub = '=' ) method_name = substring_after( val = procedure-id-name sub = '>' ) ] ).
+      data(method_parameters) = classes_w_methods_and_paras[ class_name = substring_before( val = procedure-id-name sub = '=' ) method_name = substring_after( val = procedure-id-name sub = '>' ) ]-parameter_names.
+    endif.
     loop at procedure-statements assigning field-symbol(<statement>).
       data(statement_index) = sy-tabix.
       data(reference_variable_positions) = value ty_local_variable_positions( ).
-      loop at <statement>-tokens assigning field-symbol(<token>) where lexeme cs 'ME->'.
+      loop at <statement>-tokens assigning field-symbol(<token>) where lexeme cs 'ME->' and references is not initial.
         data(variable_name) = substring( val = <token>-lexeme off = 4 ).
         if not ( variable_name cs '(' and variable_name cs ')' ).
           if variable_name cs '-'.

@@ -75,7 +75,55 @@ CLASS /cc4a/abap_analyzer IMPLEMENTATION.
 
 
   METHOD /cc4a/if_abap_analyzer~flatten_tokens.
-    flat_statement = REDUCE #( INIT str = `` FOR tok IN tokens NEXT str = |{ str }{ tok-lexeme } | ).
+    IF line_exists( tokens[ lexeme = '|' ] ).
+      DATA new_tokens LIKE tokens.
+      DATA template_token LIKE LINE OF tokens.
+      DATA inside_template TYPE abap_bool.
+      LOOP AT tokens ASSIGNING FIELD-SYMBOL(<token>).
+        IF inside_template = abap_false.
+          CASE <token>-lexeme.
+            WHEN '|'.
+              inside_template = abap_true.
+              template_token-lexeme = <token>-lexeme.
+              CONTINUE.
+            WHEN OTHERS.
+              APPEND <token> TO new_tokens.
+          ENDCASE.
+        ELSE.
+          CASE <token>-lexeme.
+            WHEN '|'.
+              template_token-lexeme &&= '|'.
+              APPEND template_token TO new_tokens.
+              inside_template = abap_false.
+              EXIT.
+            WHEN '`\`'.
+              template_token-lexeme &&= '\\'.
+            WHEN '`|`'.
+              template_token-lexeme &&= '\|'.
+            WHEN '`{`'.
+              template_token-lexeme &&= '\{'.
+            WHEN '`}`'.
+              template_token-lexeme &&= '\}'.
+            WHEN '``'.
+              CONTINUE.
+            WHEN '{'.
+              template_token-lexeme &&= `{ `.
+            WHEN '}'.
+              template_token-lexeme &&= ` }`.
+            WHEN OTHERS.
+              IF <token>-lexeme CP '`*`'.
+                DATA(len) = strlen( <token>-lexeme ) - 2.
+                template_token-lexeme &&= <token>-lexeme+1(len).
+              ELSE.
+                template_token-lexeme &&= <token>-lexeme.
+              ENDIF.
+          ENDCASE.
+        ENDIF.
+      ENDLOOP.
+      flat_statement = REDUCE #( INIT str = `` FOR tok IN new_tokens NEXT str = |{ str }{ tok-lexeme } | ).
+    ELSE.
+      flat_statement = REDUCE #( INIT str = `` FOR tok IN tokens NEXT str = |{ str }{ tok-lexeme } | ).
+    ENDIF.
   ENDMETHOD.
 
 
@@ -176,73 +224,39 @@ CLASS /cc4a/abap_analyzer IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD is_db_statement.
-    DATA token_idx TYPE i.
+  method is_db_statement.
+    data token_idx type i.
 
-    CASE statement-keyword.
-      WHEN 'SELECT' OR 'WITH' OR 'DELETE' OR 'UPDATE' OR 'INSERT' OR 'MODIFY' OR 'READ' OR 'LOOP'
-      OR 'IMPORT' OR 'EXPORT' OR 'FETCH' OR 'OPEN' OR 'EXEC'.
-        IF ( find_clause_index( tokens = statement-tokens clause = 'CONNECTION' ) <> 0
-             AND (    statement-keyword = 'DELETE'
-                   OR statement-keyword = 'UPDATE'
-                   OR statement-keyword = 'INSERT'
-                   OR statement-keyword = 'MODIFY' ) ).
+    case statement-keyword.
+      when 'SELECT' or 'WITH' or 'DELETE' or 'UPDATE' or 'INSERT' or 'MODIFY' or 'READ' or 'LOOP'
+      or 'IMPORT' or 'EXPORT' or 'FETCH' or 'OPEN' or 'EXEC'.
+        if ( find_clause_index( tokens = statement-tokens clause = 'CONNECTION' ) <> 0
+             and (    statement-keyword = 'DELETE'
+                   or statement-keyword = 'UPDATE'
+                   or statement-keyword = 'INSERT'
+                   or statement-keyword = 'MODIFY' ) ).
           result-is_db = abap_true.
           "check_dbtab = abap_false.
-          IF get_dbtab_name = abap_false.
-            RETURN.
-          ENDIF.
-        ENDIF.
-      WHEN OTHERS.
-        RETURN.
-    ENDCASE.
+          if get_dbtab_name = abap_false.
+            return.
+          endif.
+        endif.
+      when others.
+        return.
+    endcase.
     token_idx = 2.
-    WHILE lines( statement-tokens ) > token_idx AND statement-tokens[ token_idx ]-lexeme CP '%_*('
-    AND statement-tokens[ token_idx ]-references IS INITIAL.
+    while lines( statement-tokens ) > token_idx and statement-tokens[ token_idx ]-lexeme cp '%_*('
+    and statement-tokens[ token_idx ]-references is initial.
       token_idx += 3.
-    ENDWHILE.
-    DATA(analyzer) = NEW lcl_analyze_db_statement(
+    endwhile.
+    data(analyzer) = new lcl_analyze_db_statement(
        statement = statement
        start_idx = token_idx
        analyzer = me
        include_subqueries = include_subqueries ).
+    result = analyzer->analyze(  ).
 
-    CASE statement-keyword.
-      WHEN 'SELECT'.
-        analyzer->analyze_select( ).
-      WHEN 'WITH'.
-        analyzer->analyze_with( ).
-      WHEN 'DELETE'.
-        analyzer->analyze_delete( ).
-      WHEN 'INSERT'.
-        analyzer->analyze_insert( ).
-      WHEN 'MODIFY'.
-        analyzer->analyze_modify( ).
-      WHEN 'UPDATE'.
-        analyzer->analyze_update( ).
-      WHEN 'OPEN'.
-        analyzer->analyze_open_cursor( ).
-      WHEN 'READ' OR 'LOOP'.
-        analyzer->analyze_read_loop(  ).
-      WHEN 'IMPORT'.
-        analyzer->analyze_import(  ).
-      WHEN 'EXPORT'.
-        analyzer->analyze_export(  ).
-      WHEN 'FETCH'.
-        IF find_clause_index(  tokens = statement-tokens clause = 'NEXT CURSOR' ) <> 0.
-          result-is_db = abap_true.
-        ENDIF.
-        RETURN.
-      WHEN 'EXEC'.
-        result-is_db = abap_true.
-        RETURN.
-      WHEN OTHERS.
-        result-is_db = abap_false.
-        RETURN.
-    ENDCASE.
-    result = analyzer->get_result(  ).
-
-  ENDMETHOD.
+  endmethod.
 
 
 ENDCLASS.

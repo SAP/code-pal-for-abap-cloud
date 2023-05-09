@@ -12,7 +12,11 @@ CLASS lcl_analyze_db_statement DEFINITION FINAL.
         start_idx          TYPE i
         analyzer           TYPE REF TO /cc4a/abap_analyzer
         include_subqueries TYPE abap_bool.
+    METHODS analyze
+      RETURNING VALUE(result) TYPE /cc4a/if_abap_analyzer=>ty_db_statement.
 
+
+  PRIVATE SECTION.
     METHODS get_result
       RETURNING VALUE(result) TYPE /cc4a/if_abap_analyzer=>ty_db_statement.
     METHODS analyze_select.
@@ -25,7 +29,6 @@ CLASS lcl_analyze_db_statement DEFINITION FINAL.
     METHODS analyze_read_loop.
     METHODS analyze_import.
     METHODS analyze_export.
-  PRIVATE SECTION.
     CLASS-METHODS check_dbtab
       IMPORTING token_db      TYPE if_ci_atc_source_code_provider=>ty_token
       RETURNING VALUE(result) TYPE /cc4a/if_abap_analyzer=>ty_db_statement.
@@ -35,15 +38,14 @@ CLASS lcl_analyze_db_statement DEFINITION FINAL.
                               VALUE if_ci_atc_source_code_provider=>compiler_reference_kinds-data ##TYPE.
     CONSTANTS tag_type        TYPE if_ci_atc_source_code_provider=>ty_compiler_reference_tag
                               VALUE if_ci_atc_source_code_provider=>compiler_reference_kinds-type ##TYPE.
-    DATA:
-      statement          TYPE if_ci_atc_source_code_provider=>ty_statement,
-      start_idx          TYPE i,
-      analyzer           TYPE REF TO /cc4a/abap_analyzer,
-      token_idx          TYPE i,
-      check_if_dbtab     TYPE abap_bool,
-      is_db              TYPE abap_bool,
-      dbtab_name         TYPE string,
-      include_subqueries TYPE abap_bool.
+    DATA statement            TYPE if_ci_atc_source_code_provider=>ty_statement.
+    DATA start_idx            TYPE i.
+    DATA analyzer             TYPE REF TO /cc4a/abap_analyzer.
+    DATA token_idx            TYPE i.
+    DATA check_if_dbtab       TYPE abap_bool.
+    DATA is_db                TYPE abap_bool.
+    DATA dbtab_name           TYPE string.
+    DATA include_subqueries   TYPE abap_bool.
 ENDCLASS.
 CLASS lcl_analyze_db_statement IMPLEMENTATION.
 
@@ -55,13 +57,50 @@ CLASS lcl_analyze_db_statement IMPLEMENTATION.
     me->check_if_dbtab = abap_true.
     me->include_subqueries = include_subqueries.
   ENDMETHOD.
+
+  METHOD analyze.
+    CASE statement-keyword.
+      WHEN 'SELECT'.
+        analyze_select( ).
+      WHEN 'WITH'.
+        analyze_with( ).
+      WHEN 'DELETE'.
+        analyze_delete( ).
+      WHEN 'INSERT'.
+        analyze_insert( ).
+      WHEN 'MODIFY'.
+        analyze_modify( ).
+      WHEN 'UPDATE'.
+        analyze_update( ).
+      WHEN 'OPEN'.
+        analyze_open_cursor( ).
+      WHEN 'READ' OR 'LOOP'.
+       analyze_read_loop(  ).
+      WHEN 'IMPORT'.
+        analyze_import(  ).
+      WHEN 'EXPORT'.
+        analyze_export(  ).
+      WHEN 'FETCH'.
+        IF analyzer->find_clause_index(  tokens = statement-tokens clause = 'NEXT CURSOR' ) <> 0.
+          result-is_db = abap_true.
+        ENDIF.
+        RETURN.
+      WHEN 'EXEC'.
+        result-is_db = abap_true.
+        RETURN.
+      WHEN OTHERS.
+        result-is_db = abap_false.
+        RETURN.
+    ENDCASE.
+    result = get_result(  ).
+
+  ENDMETHOD.
   METHOD get_result.
 
     result-is_db = me->is_db.
 
 *   special case for obsolete READ and LOOP statements
     IF dbtab_name IS NOT INITIAL AND check_if_dbtab = abap_false.
-      ASSERT result-is_db = abap_true.
       result-dbtab = dbtab_name.
       result-is_db = is_db.
       RETURN.
@@ -372,76 +411,75 @@ CLASS lcl_analyze_db_statement IMPLEMENTATION.
     ENDIF.
   ENDMETHOD.
 
-  METHOD analyze_read_loop.
+  method analyze_read_loop.
     check_if_dbtab = abap_false.
-    IF lines( statement-tokens ) = 1.
-      RETURN.
-    ENDIF.
-    IF analyzer->find_clause_index( tokens = statement-tokens clause = 'VERSION' ) <> 0.
+    if lines( statement-tokens ) = 1.
+      return.
+    endif.
+    if analyzer->find_clause_index( tokens = statement-tokens clause = 'VERSION' ) <> 0.
 *     name of dbtab is determined in token after VERSION, dynamically: unknown table
       is_db = abap_true.
-      CLEAR dbtab_name.
+      clear dbtab_name.
       token_idx = 0.
-      RETURN.
-    ENDIF.
-    CASE statement-keyword.
-      WHEN 'LOOP'.
-        IF statement-tokens[ 2 ]-lexeme <> 'AT'.
-          RETURN.
-        ENDIF.
-        IF lines(  statement-tokens ) <> 3 OR statement-tokens[ 3 ]-references IS INITIAL.
-          RETURN.
-        ENDIF.
-      WHEN 'READ'.
-        IF statement-tokens[ 2 ]-lexeme <> 'TABLE'.
-          RETURN.
-        ENDIF.
-        IF analyzer->find_clause_index( tokens = statement-tokens clause = 'BINARY SEARCH' ) <> 0
-        OR analyzer->find_clause_index( tokens = statement-tokens clause = 'INTO' ) <> 0
-        OR analyzer->find_clause_index( tokens = statement-tokens clause = 'ASSIGNING' ) <> 0.
-          RETURN.
-        ENDIF.
+      return.
+    endif.
+    case statement-keyword.
+      when 'LOOP'.
+        if statement-tokens[ 2 ]-lexeme <> 'AT'.
+          return.
+        endif.
+        if lines(  statement-tokens ) <> 3 or statement-tokens[ 3 ]-references is initial.
+          return.
+        endif.
+      when 'READ'.
+        if statement-tokens[ 2 ]-lexeme <> 'TABLE'.
+          return.
+        endif.
+        if analyzer->find_clause_index( tokens = statement-tokens clause = 'BINARY SEARCH' ) <> 0
+        or analyzer->find_clause_index( tokens = statement-tokens clause = 'INTO' ) <> 0
+        or analyzer->find_clause_index( tokens = statement-tokens clause = 'ASSIGNING' ) <> 0.
+          return.
+        endif.
         token_idx = analyzer->find_clause_index( tokens = statement-tokens clause = 'SEARCH' ).
-        IF token_idx <> 0 AND lines( statement-tokens ) > token_idx.
-          CASE statement-tokens[ token_idx + 1 ]-lexeme.
-            WHEN 'FKEQ' OR 'FKGE' OR 'GKEQ' OR 'GKGE'.
-              IF statement-tokens[ token_idx + 1 ]-references IS INITIAL.
+        if token_idx <> 0 and lines( statement-tokens ) > token_idx.
+          case statement-tokens[ token_idx + 1 ]-lexeme.
+            when 'FKEQ' or 'FKGE' or 'GKEQ' or 'GKGE'.
+              if statement-tokens[ token_idx + 1 ]-references is initial.
                 is_db = abap_true.
-              ENDIF.
-            WHEN OTHERS.
-              RETURN.
-          ENDCASE.
-        ENDIF.
-    ENDCASE.
+              endif.
+            when others.
+              return.
+          endcase.
+        endif.
+    endcase.
     token_idx = 0.
-    DATA(token_db) = statement-tokens[ 3 ].
-    ASSERT token_db IS NOT INITIAL.
-    DATA(l_name) = token_db-lexeme.
-    IF l_name(1) = '*'.
+    data(token_db) = statement-tokens[ 3 ].
+    data(l_name) = token_db-lexeme.
+    if l_name(1) = '*'.
       l_name = l_name+1.
-    ENDIF.
-    IF strlen( l_name ) > 5.
-      RETURN.
-    ENDIF.
+    endif.
+    if strlen( l_name ) > 5.
+      return.
+    endif.
 *   must be common part if dbtab loop or read
-    READ TABLE token_db-references INDEX 1 INTO DATA(l_reference).
-    IF sy-subrc <> 0.
-      RETURN.
-    ENDIF.
-    DATA(l_full_name) = |\\{ tag_common_part }:{ token_db-lexeme }\\{ tag_data }:{ token_db-lexeme }|.
-    IF l_reference-full_name <> l_full_name.
-      RETURN.
-    ENDIF.
+    read table token_db-references index 1 into data(l_reference).
+    if sy-subrc <> 0.
+      return.
+    endif.
+    data(l_full_name) = |\\{ tag_common_part }:{ token_db-lexeme }\\{ tag_data }:{ token_db-lexeme }|.
+    if l_reference-full_name <> l_full_name.
+      return.
+    endif.
     is_db = abap_true.
     dbtab_name = l_name.
-    IF dbtab_name(1) = '*'.
+    if dbtab_name(1) = '*'.
       dbtab_name = dbtab_name+1.
-    ENDIF.
-    IF dbtab_name(1) <> 'T'.
+    endif.
+    if dbtab_name(1) <> 'T'.
       dbtab_name = |T{ dbtab_name+1 }|.
-    ENDIF.
+    endif.
     check_if_dbtab = abap_false.
-  ENDMETHOD.
+  endmethod.
 
   METHOD analyze_import.
 *   import... from database dbtab id ...

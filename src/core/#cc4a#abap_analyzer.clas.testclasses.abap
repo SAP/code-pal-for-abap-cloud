@@ -194,7 +194,7 @@ CLASS lcl_test_db_stmt IMPLEMENTATION.
        ( code = 'WITH' parameters = VALUE #( param_1 = 'SCI_TEST_SFLIGHT' ) location = VALUE #( object = mixed position = VALUE #( line = 46 column = 4 ) ) )
       )
       asserter_config   = VALUE #(
-        quickfixes = abap_false
-        message_parameters = if_ci_atc_unit_asserter=>message_parameter_policy-assert_when_filled ) ).
+        quickfixes = abap_false ) ).
+     "   message_parameters = if_ci_atc_unit_asserter=>message_parameter_policy-assert_when_filled ) ).
   ENDMETHOD.
 ENDCLASS.

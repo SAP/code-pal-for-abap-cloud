@@ -1,0 +1,25 @@
+{
+  "formatVersion": "1",
+  "header": {
+    "description": "All CodePal checks",
+    "originalLanguage": "en",
+    "abapLanguageVersion": "cloudDevelopment"
+  },
+  "selectedChecks": [
+    {
+      "checkName": "/CC4A/PREFER_IS_NOT"
+    },
+    {
+      "checkName": "/CC4A/ASSIGNMENT_CHAINING"
+    },
+    {
+      "checkName": "/CC4A/CHAIN_DECLARATIONS"
+    },
+    {
+      "checkName": "/CC4A/CONSTANTS_INTERFACE"
+    },
+    {
+      "checkName": "/CC4A/AVOID_DEFAULT_KEY"
+    }
+  ]
+}

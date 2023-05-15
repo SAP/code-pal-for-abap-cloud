@@ -5,13 +5,16 @@
 interface /cc4a/if_abap_analyzer
   public .
 
+  types: begin of enum ty_bracket_type structure bracket_type,
+           no_bracket,
+           opening,
+           closing,
+           "! Closed and opening. Due to quirks in the ABAP tokenizer, a chained method call like
+           "! obj->method_1( )->method_2( ) produces a single token `)->method_2(` that is both a closing and an
+           "! opening bracket.
+           clopening,
+         end of enum ty_bracket_type structure bracket_type.
 
-  types:
-    begin of enum ty_bracket_type structure bracket_type,
-      no_bracket,
-      opening,
-      closing,
-    end of enum ty_bracket_type structure bracket_type .
   types:
     begin of ty_db_statement,
       is_db          type abap_bool,

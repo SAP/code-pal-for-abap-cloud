@@ -68,11 +68,11 @@ class /cc4a/prefer_is_not definition
                 token_index                         type i
                 start_position                      type i
       returning value(next_relevant_token_position) type i.
-endclass.
+ENDCLASS.
 
 
 
-class /cc4a/prefer_is_not implementation.
+CLASS /CC4A/PREFER_IS_NOT IMPLEMENTATION.
 
 
   method if_ci_atc_check~get_meta_data.
@@ -140,11 +140,13 @@ class /cc4a/prefer_is_not implementation.
     endloop.
   endmethod.
 
+
   method find_key_word_positions.
     loop at statement-tokens assigning field-symbol(<token>) where lexeme eq key_word and references is initial.
       insert sy-tabix into table key_word_positions.
     endloop.
   endmethod.
+
 
   method determine_finding.
     data(current_index) = start_position + 1.
@@ -178,6 +180,7 @@ class /cc4a/prefer_is_not implementation.
     endwhile.
   endmethod.
 
+
   method create_quickfix_code.
     data(new_statement) = statement.
     data(analyzer) = /cc4a/abap_analyzer=>create( ).
@@ -204,6 +207,7 @@ class /cc4a/prefer_is_not implementation.
     modified_statement = analyzer->break_into_lines( flat_new_statement ).
   endmethod.
 
+
   method create_new_statement.
     data(new_statement) = statement.
     loop at new_statement-tokens assigning field-symbol(<token>) from key_word_position to operator_position.
@@ -213,6 +217,7 @@ class /cc4a/prefer_is_not implementation.
     delete new_statement-tokens index operator_position + 1.
     changed_new_statement = new_statement.
   endmethod.
+
 
   method determine_next_relevant_token.
     data(analyzer) = /cc4a/abap_analyzer=>create( ).
@@ -227,5 +232,4 @@ class /cc4a/prefer_is_not implementation.
       next_relevant_token_position = analyzer->calculate_bracket_end( statement = statement bracket_position = token_index ).
     endif.
   endmethod.
-
-endclass.
+ENDCLASS.

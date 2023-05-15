@@ -20,8 +20,6 @@ class /cc4a/abap_analyzer definition
         negated  type string,
       end of ty_negation.
     class-data negations type table of ty_negation.
-
-    aliases is_bracket for /cc4a/if_abap_analyzer~is_bracket.
 ENDCLASS.
 
 
@@ -242,10 +240,7 @@ CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
     result = analyzer->analyze(  ).
 
   endmethod.
-
-
-endclass.
-
+  
   method create.
     instance = new /cc4a/abap_analyzer( ).
 

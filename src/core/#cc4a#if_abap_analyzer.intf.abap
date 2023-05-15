@@ -9,6 +9,10 @@ interface /cc4a/if_abap_analyzer
            no_bracket,
            opening,
            closing,
+           "! Closed and opening. Due to quirks in the ABAP tokenizer, a chained method call like
+           "! obj->method_1( )->method_2( ) produces a single token `)->method_2(` that is both a closing and an
+           "! opening bracket.
+           clopening,
          end of enum ty_bracket_type structure bracket_type.
 
   methods find_key_words

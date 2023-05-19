@@ -23,10 +23,9 @@ CLASS ltcl_ IMPLEMENTATION.
   METHOD run_test_global_intf.
 
     " Location of expected findings
-    DATA(finding_1_loc) = VALUE if_ci_atc_check=>ty_location( object   = VALUE #( name = '/CC4A/TEST_CHECK_CONSTANT_IF2=IU'
-                                                                                  type = 'PROG' )
-                                                              position = VALUE #( line   = 1
-                                                                                  column = 0 ) ).
+    DATA(finding_1_loc) = VALUE if_ci_atc_check=>ty_location(
+      object   = VALUE #( name = '/CC4A/TEST_CHECK_CONSTANT_IF2=IU' type = 'PROG' )
+      position = VALUE #( line   = 1 column = 0 ) ).
 
     cl_ci_atc_unit_driver=>create_asserter( )->check_and_assert(
       check             = NEW /cc4a/check_constant_interface( )
@@ -43,14 +42,12 @@ CLASS ltcl_ IMPLEMENTATION.
   METHOD run_test_local_intf.
 
     " Location of expected findings
-    DATA(finding_1_loc) = VALUE if_ci_atc_check=>ty_location( object   = VALUE #( name = '/CC4A/TEST_CHECK_CONSTANT_IF1=CCIMP'
-                                                                                  type = 'PROG' )
-                                                              position = VALUE #( line   = 4
-                                                                                  column = 0 ) ).
-    DATA(finding_2_loc) = VALUE if_ci_atc_check=>ty_location( object   = VALUE #( name = '/CC4A/TEST_CHECK_CONSTANT_IF1=CCIMP'
-                                                                                  type = 'PROG' )
-                                                              position = VALUE #( line   = 17
-                                                                                  column = 0 ) ).
+    DATA(finding_1_loc) = VALUE if_ci_atc_check=>ty_location(
+      object = VALUE #( name = '/CC4A/TEST_CHECK_CONSTANT_IF1=CCIMP' type = 'PROG' )
+      position = VALUE #( line = 4 column = 0 ) ).
+    DATA(finding_2_loc) = VALUE if_ci_atc_check=>ty_location(
+      object = VALUE #( name = '/CC4A/TEST_CHECK_CONSTANT_IF1=CCIMP' type = 'PROG' )
+      position = VALUE #( line = 17 column = 0 ) ).
     " Finding 3 should not appear due to the pseudo comment
 
     cl_ci_atc_unit_driver=>create_asserter( )->check_and_assert(

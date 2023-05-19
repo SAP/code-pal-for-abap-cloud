@@ -18,6 +18,7 @@ class /cc4a/prefer_is_not definition
         operator          type string,
         operator_position type i,
       end of ty_finding_information.
+    types ty_finding_infos type standard table of ty_finding_information with empty key.
 
     types ty_starting_positions type standard table of i with empty key.
 
@@ -76,18 +77,15 @@ CLASS /CC4A/PREFER_IS_NOT IMPLEMENTATION.
 
 
   method analyze_procedure.
-    data starting_positions type ty_starting_positions.
-    data finding_information type standard table of ty_finding_information with empty key.
     loop at procedure-statements assigning field-symbol(<statement>).
       data(statement_index) = sy-tabix.
-      clear starting_positions.
-      clear finding_information.
+      data(starting_positions) = value ty_starting_positions( ).
+      data(finding_information) = value ty_finding_infos( ).
       if <statement>-keyword eq 'IF' or <statement>-keyword = 'ELSEIF' or <statement>-keyword = 'LOOP'.
         starting_positions = find_key_word_positions( statement = <statement> key_word = 'NOT' ).
-      else.
-        loop at <statement>-tokens assigning field-symbol(<token>) where lexeme eq 'XSDBOOL(' or lexeme eq 'ASSERT'.
-          starting_positions = find_key_word_positions( statement = <statement> key_word = 'NOT' ).
-        endloop.
+      elseif line_exists( <statement>-tokens[ lexeme = 'XSDBOOL(' ] )
+          or line_exists( <statement>-tokens[ lexeme = 'ASSERT' ] ).
+        starting_positions = find_key_word_positions( statement = <statement> key_word = 'NOT' ).
       endif.
       loop at starting_positions assigning field-symbol(<position>).
         data(finding) = determine_finding( statement = <statement> start_position = <position> ).

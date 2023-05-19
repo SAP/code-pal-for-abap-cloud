@@ -47,20 +47,21 @@ CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
     endif.
 
     data(bracket_counter) = 1.
-    loop at statement-tokens assigning field-symbol(<token>) from bracket_position.
-      data(next_token) = value #( statement-tokens[ sy-tabix + 1 ] optional ).
-      data(next_token_bracket_type) = is_bracket( next_token ).
-      case next_token_bracket_type.
+    loop at statement-tokens assigning field-symbol(<token>) from bracket_position + 1.
+      data(idx) = sy-tabix.
+      case is_bracket( <token> ).
         when /cc4a/if_abap_analyzer=>bracket_type-opening.
           bracket_counter += 1.
-        when /cc4a/if_abap_analyzer=>bracket_type-closing or /cc4a/if_abap_analyzer=>bracket_type-clopening.
+
+        when /cc4a/if_abap_analyzer=>bracket_type-closing.
           if bracket_counter eq 1.
-            end_of_bracket = sy-tabix + 1.
-            exit.
-          else.
-            if next_token_bracket_type = /cc4a/if_abap_analyzer=>bracket_type-closing.
-              bracket_counter = bracket_counter - 1.
-            endif.
+            return idx.
+          endif.
+          bracket_counter -= 1.
+
+        when /cc4a/if_abap_analyzer=>bracket_type-clopening.
+          if bracket_counter eq 1.
+            return idx.
           endif.
       endcase.
     endloop.

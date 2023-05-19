@@ -130,7 +130,7 @@ class test implementation.
     cl_ci_atc_unit_driver=>create_asserter( )->check_and_assert(
               check             = new /cc4a/chain_declaration( )
               object            = value #( type = 'CLAS' name = test_class )
-              expected_findings = value #( 
+              expected_findings = value #(
                 ( code = /cc4a/chain_declaration=>finding_code
                     location = section_finding_1
                     quickfixes = value #( (

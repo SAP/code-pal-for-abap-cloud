@@ -75,37 +75,6 @@ ENDCLASS.
 CLASS /CC4A/PREFER_IS_NOT IMPLEMENTATION.
 
 
-  method if_ci_atc_check~get_meta_data.
-    meta_data = /cc4a/check_meta_data=>create(
-      value #( checked_types = /cc4a/check_meta_data=>checked_types-abap_programs
-          description = 'Prefer IS NOT to NOT IS'(des)
-          remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
-          finding_codes = value #(
-            ( code = finding_code pseudo_comment = pseudo_comment text = 'Usage of NOT IS condition'(nic) ) )
-          quickfix_codes = value #(
-            ( code = quickfix_code short_text = 'Replace NOT IS condition with IS NOT'(qin) ) ) ) ).
-  endmethod.
-
-
-  method if_ci_atc_check~run.
-    code_provider = data_provider->get_code_provider( ).
-    data(procedures) = code_provider->get_procedures( code_provider->object_to_comp_unit( object ) ).
-    loop at procedures->* assigning field-symbol(<procedure>).
-      insert lines of analyze_procedure( <procedure> ) into table findings.
-    endloop.
-  endmethod.
-
-
-  method if_ci_atc_check~set_assistant_factory.
-    assistant_factory = factory.
-  endmethod.
-
-
-  method if_ci_atc_check~verify_prerequisites.
-
-  endmethod.
-
-
   method analyze_procedure.
     data starting_positions type ty_starting_positions.
     data finding_information type standard table of ty_finding_information with empty key.
@@ -147,11 +116,46 @@ CLASS /CC4A/PREFER_IS_NOT IMPLEMENTATION.
   endmethod.
 
 
-  method find_key_word_positions.
-    loop at statement-tokens transporting no fields
-        where lexeme eq key_word and references is initial.
-      insert sy-tabix into table key_word_positions.
+  method create_new_statement.
+    data(new_statement) = statement.
+    loop at new_statement-tokens assigning field-symbol(<token>) from key_word_position to operator_position.
+      <token> = new_statement-tokens[ sy-tabix + 1 ].
     endloop.
+    new_statement-tokens[ operator_position - 1 ]-lexeme = new_operator.
+    delete new_statement-tokens index operator_position + 1.
+    changed_new_statement = new_statement.
+  endmethod.
+
+
+  method create_quickfix_code.
+    data(new_statement) = statement.
+    data(analyzer) = /cc4a/abap_analyzer=>create( ).
+
+    case finding_information-operator.
+      when 'IS'.
+        loop at new_statement-tokens assigning field-symbol(<token>)
+            from finding_information-key_word_position
+            to finding_information-operator_position - 1.
+          <token> = new_statement-tokens[ sy-tabix + 1 ].
+        endloop.
+        new_statement-tokens[ finding_information-operator_position ]-lexeme = 'NOT'.
+      when 'IN'.
+        loop at new_statement-tokens assigning <token>
+            from finding_information-key_word_position
+            to finding_information-operator_position - 2.
+          <token> = new_statement-tokens[ sy-tabix + 1 ].
+        endloop.
+        new_statement-tokens[ finding_information-operator_position - 1 ]-lexeme = 'NOT'.
+      when others.
+        new_statement = create_new_statement(
+          statement = statement
+          new_operator = analyzer->negate_comparison_operator( finding_information-operator )
+          key_word_position = finding_information-key_word_position
+          operator_position = finding_information-operator_position ).
+    endcase.
+
+    data(flat_new_statement) = analyzer->flatten_tokens( new_statement-tokens ) && `.`.
+    modified_statement = analyzer->break_into_lines( flat_new_statement ).
   endmethod.
 
 
@@ -196,49 +200,6 @@ CLASS /CC4A/PREFER_IS_NOT IMPLEMENTATION.
   endmethod.
 
 
-  method create_quickfix_code.
-    data(new_statement) = statement.
-    data(analyzer) = /cc4a/abap_analyzer=>create( ).
-
-    case finding_information-operator.
-      when 'IS'.
-        loop at new_statement-tokens assigning field-symbol(<token>)
-            from finding_information-key_word_position
-            to finding_information-operator_position - 1.
-          <token> = new_statement-tokens[ sy-tabix + 1 ].
-        endloop.
-        new_statement-tokens[ finding_information-operator_position ]-lexeme = 'NOT'.
-      when 'IN'.
-        loop at new_statement-tokens assigning <token>
-            from finding_information-key_word_position
-            to finding_information-operator_position - 2.
-          <token> = new_statement-tokens[ sy-tabix + 1 ].
-        endloop.
-        new_statement-tokens[ finding_information-operator_position - 1 ]-lexeme = 'NOT'.
-      when others.
-        new_statement = create_new_statement(
-          statement = statement
-          new_operator = analyzer->negate_comparison_operator( finding_information-operator )
-          key_word_position = finding_information-key_word_position
-          operator_position = finding_information-operator_position ).
-    endcase.
-
-    data(flat_new_statement) = analyzer->flatten_tokens( new_statement-tokens ) && `.`.
-    modified_statement = analyzer->break_into_lines( flat_new_statement ).
-  endmethod.
-
-
-  method create_new_statement.
-    data(new_statement) = statement.
-    loop at new_statement-tokens assigning field-symbol(<token>) from key_word_position to operator_position.
-      <token> = new_statement-tokens[ sy-tabix + 1 ].
-    endloop.
-    new_statement-tokens[ operator_position - 1 ]-lexeme = new_operator.
-    delete new_statement-tokens index operator_position + 1.
-    changed_new_statement = new_statement.
-  endmethod.
-
-
   method determine_next_relevant_token.
     data(analyzer) = /cc4a/abap_analyzer=>create( ).
     if token-lexeme eq '(' and token_index eq start_position + 1.
@@ -258,5 +219,44 @@ CLASS /CC4A/PREFER_IS_NOT IMPLEMENTATION.
       next_relevant_token_position =
         analyzer->calculate_bracket_end( statement = statement bracket_position = token_index ).
     endif.
+  endmethod.
+
+
+  method find_key_word_positions.
+    loop at statement-tokens transporting no fields
+        where lexeme eq key_word and references is initial.
+      insert sy-tabix into table key_word_positions.
+    endloop.
+  endmethod.
+
+
+  method if_ci_atc_check~get_meta_data.
+    meta_data = /cc4a/check_meta_data=>create(
+      value #( checked_types = /cc4a/check_meta_data=>checked_types-abap_programs
+          description = 'Prefer IS NOT to NOT IS'(des)
+          remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
+          finding_codes = value #(
+            ( code = finding_code pseudo_comment = pseudo_comment text = 'Usage of NOT IS condition'(nic) ) )
+          quickfix_codes = value #(
+            ( code = quickfix_code short_text = 'Replace NOT IS condition with IS NOT'(qin) ) ) ) ).
+  endmethod.
+
+
+  method if_ci_atc_check~run.
+    code_provider = data_provider->get_code_provider( ).
+    data(procedures) = code_provider->get_procedures( code_provider->object_to_comp_unit( object ) ).
+    loop at procedures->* assigning field-symbol(<procedure>).
+      insert lines of analyze_procedure( <procedure> ) into table findings.
+    endloop.
+  endmethod.
+
+
+  method if_ci_atc_check~set_assistant_factory.
+    assistant_factory = factory.
+  endmethod.
+
+
+  method if_ci_atc_check~verify_prerequisites.
+
   endmethod.
 ENDCLASS.

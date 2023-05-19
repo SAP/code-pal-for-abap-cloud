@@ -540,7 +540,7 @@
       "nesting": {
         "exclude": [],
         "severity": "Error",
-        "depth": 5
+        "depth": 10
       },
       "newline_between_methods": {
         "exclude": [],

@@ -37,21 +37,26 @@ CLASS /CC4A/AVOID_DEFAULT_KEY IMPLEMENTATION.
 
   method analyze_procedure.
     loop at procedure-statements assigning field-symbol(<statement>)
-          where keyword = 'DATA' or keyword = 'TYPES' or keyword = 'CLASS-DATA' or keyword = 'CONSTANTS' or keyword = 'STATICS'.
+          where keyword = 'DATA' or keyword = 'TYPES'
+              or keyword = 'CLASS-DATA' or keyword = 'CONSTANTS' or keyword = 'STATICS'.
 
-      data(found_at_position) = /cc4a/abap_analyzer=>create( )->find_key_words( key_words = value #( ( |WITH| ) ( |DEFAULT| ) ( |KEY| ) ) statement = <statement> ).
+      data(found_at_position) = /cc4a/abap_analyzer=>create( )->find_key_words(
+        key_words = value #( ( `WITH` ) ( `DEFAULT` ) ( `KEY` ) )
+        statement = <statement> ).
 
       if found_at_position > 0.
         data(available_quickfixes) = assistant_factory->create_quickfixes( ).
         available_quickfixes->create_quickfix( quickfix_codes-empty_key )->replace(
-                  context = assistant_factory->create_quickfix_context( value #( procedure_id = procedure-id statements = value #( from = sy-tabix to = sy-tabix ) ) )
-                  code = replace_empty_key( statement = <statement> key_word_position = found_at_position ) ).
-        insert value #( code = finding_code
-                        location = code_provider->get_statement_location( <statement> )
-                        checksum = code_provider->get_statement_checksum( <statement> )
-                        has_pseudo_comment = xsdbool( line_exists( <statement>-pseudo_comments[ table_line = pseudo_comment ] ) )
-                        details = assistant_factory->create_finding_details( )->attach_quickfixes( available_quickfixes )
-                        ) into table findings.
+          context = assistant_factory->create_quickfix_context(
+            value #( procedure_id = procedure-id statements = value #( from = sy-tabix to = sy-tabix ) ) )
+          code = replace_empty_key( statement = <statement> key_word_position = found_at_position ) ).
+        insert value #(
+          code = finding_code
+          location = code_provider->get_statement_location( <statement> )
+          checksum = code_provider->get_statement_checksum( <statement> )
+          has_pseudo_comment = xsdbool( line_exists( <statement>-pseudo_comments[ table_line = pseudo_comment ] ) )
+          details = assistant_factory->create_finding_details( )->attach_quickfixes( available_quickfixes )
+        ) into table findings.
       endif.
     endloop.
 
@@ -60,12 +65,14 @@ CLASS /CC4A/AVOID_DEFAULT_KEY IMPLEMENTATION.
 
   method if_ci_atc_check~get_meta_data.
     meta_data = /cc4a/check_meta_data=>create(
-            value #( checked_types = /cc4a/check_meta_data=>checked_types-abap_programs
-               description = 'Avoid default keys'(des)
-               remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
-               finding_codes = value #( ( code = finding_code pseudo_comment = pseudo_comment text = 'Usage of default table key'(dtk) ) )
-               quickfix_codes = value #( ( code = quickfix_codes-empty_key short_text = 'Replace WITH DEFAULT KEY with WITH EMPTY KEY'(qek) ) )
-             ) ).
+      value #( checked_types = /cc4a/check_meta_data=>checked_types-abap_programs
+          description = 'Avoid default keys'(des)
+          remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
+          finding_codes = value #(
+          ( code = finding_code pseudo_comment = pseudo_comment text = 'Usage of default table key'(dtk) ) )
+          quickfix_codes = value #(
+          ( code = quickfix_codes-empty_key short_text = 'Replace WITH DEFAULT KEY with WITH EMPTY KEY'(qek) ) )
+        ) ).
   endmethod.
 
 

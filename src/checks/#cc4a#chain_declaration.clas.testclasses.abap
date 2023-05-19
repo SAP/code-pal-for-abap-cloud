@@ -170,7 +170,7 @@ class test implementation.
                     location = quickfix_location_stf_2
                     code = value #(
                     ( `STATICS DSGZ TYPE I .` )
-                    ( `STATICS ASG TYPE I .`) ) ) ) )
+                    ( `STATICS ASG TYPE I .` ) ) ) ) )
                 ( code = /cc4a/chain_declaration=>finding_code
                     location = without_pseudo_comment_1
                     quickfixes = value #( (

@@ -15,7 +15,7 @@ class /cc4a/check_constant_interface definition
         cons_intf type string value 'CONS_INTF',
       end of   pseudo_comments.
 
-protected section.
+  protected section.
   private section.
     data code_provider     type ref to if_ci_atc_source_code_provider.
 
@@ -43,7 +43,7 @@ class /cc4a/check_constant_interface implementation.
   method if_ci_atc_check~run.
 
     code_provider = data_provider->get_code_provider( ).
-    data(procedures) = code_provider->get_procedures( compilation_unit = code_provider->object_to_comp_unit( object = object ) ).
+    data(procedures) = code_provider->get_procedures( code_provider->object_to_comp_unit( object = object ) ).
 
     loop at procedures->* assigning field-symbol(<procedure>).
 

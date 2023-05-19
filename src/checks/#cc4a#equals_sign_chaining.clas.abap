@@ -19,7 +19,7 @@ class /cc4a/equals_sign_chaining definition
         break_chain type cl_ci_atc_quickfixes=>ty_quickfix_code value 'BRK_CHAIN',
       end of   quickfix_codes.
 
-protected section.
+  protected section.
   private section.
     types:
       begin of ty_qf_data,

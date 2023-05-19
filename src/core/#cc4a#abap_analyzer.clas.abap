@@ -55,13 +55,15 @@ CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
 
         when /cc4a/if_abap_analyzer=>bracket_type-closing.
           if bracket_counter eq 1.
-            return idx.
+            end_of_bracket = idx.
+            exit.
           endif.
           bracket_counter -= 1.
 
         when /cc4a/if_abap_analyzer=>bracket_type-clopening.
           if bracket_counter eq 1.
-            return idx.
+            end_of_bracket = idx.
+            exit.
           endif.
       endcase.
     endloop.

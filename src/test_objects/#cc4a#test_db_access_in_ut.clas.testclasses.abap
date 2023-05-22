@@ -10,7 +10,7 @@ class test_without implementation.
     data wa type /cc4a/test_db.
     wa = value #( user_id = 'Y' ).
 
-    select * from /cc4a/test_db into @data(x) where first_name = ''. endselect.
+    select * from /cc4a/test_db where first_name = '' into @data(x). endselect.
     insert /cc4a/test_db from @wa.
     update /cc4a/test_db from @( value #( user_id = 'X' ) ).
     modify /cc4a/test_db from table @(
@@ -46,7 +46,7 @@ class test_harmless implementation.
     data wa type /cc4a/test_db.
     wa = value #( user_id = 'Y' ).
 
-    select * from /cc4a/test_db into @data(x) where first_name = ''. endselect.
+    select * from /cc4a/test_db where first_name = '' into @data(x). endselect.
     insert /cc4a/test_db from @wa.
     update /cc4a/test_db from @( value #( user_id = 'X' ) ).
     modify /cc4a/test_db from table @(
@@ -82,7 +82,7 @@ class test_dangerous implementation.
     data wa type /cc4a/test_db.
     wa = value #( user_id = 'Y' ).
 
-    select * from /cc4a/test_db into @data(x) where first_name = ''. endselect.
+    select * from /cc4a/test_db where first_name = '' into @data(x). endselect.
     insert /cc4a/test_db from @wa.
     update /cc4a/test_db from @( value #( user_id = 'X' ) ).
     modify /cc4a/test_db from table @(
@@ -118,7 +118,7 @@ class test_critical implementation.
     data wa type /cc4a/test_db.
     wa = value #( user_id = 'Y' ).
 
-    select * from /cc4a/test_db into @data(x) where first_name = ''. endselect.
+    select * from /cc4a/test_db where first_name = '' into @data(x). endselect.
     insert /cc4a/test_db from @wa.
     update /cc4a/test_db from @( value #( user_id = 'X' ) ).
     modify /cc4a/test_db from table @(
@@ -155,7 +155,7 @@ class test_environment_in_definition implementation.
     data wa type /cc4a/test_db.
     wa = value #( user_id = 'Y' ).
 
-    select * from /cc4a/test_db into @data(x) where first_name = ''. endselect.
+    select * from /cc4a/test_db where first_name = '' into @data(x). endselect.
     insert /cc4a/test_db from @wa.
     update /cc4a/test_db from @( value #( user_id = 'X' ) ).
     modify /cc4a/test_db from table @(
@@ -193,7 +193,7 @@ class test_environment_in_method implementation.
     data wa type /cc4a/test_db.
     wa = value #( user_id = 'Y' ).
 
-    select * from /cc4a/test_db into @data(x) where first_name = ''. endselect.
+    select * from /cc4a/test_db where first_name = '' into @data(x). endselect.
     insert /cc4a/test_db from @wa.
     update /cc4a/test_db from @( value #( user_id = 'X' ) ).
     modify /cc4a/test_db from table @(
@@ -230,7 +230,7 @@ class test_pseudo_comments implementation.
     data wa type /cc4a/test_db.
     wa = value #( user_id = 'Y' ).
 
-    select * from /cc4a/test_db into @data(x) where first_name = ''. "#EC DB_ACCESS_UT
+    select * from /cc4a/test_db where first_name = '' into @data(x). "#EC DB_ACCESS_UT
     endselect.
     insert /cc4a/test_db from @wa.                    "#EC DB_ACCESS_UT
     update /cc4a/test_db from @( value #( user_id = 'X' ) ). "#EC DB_ACCESS_UT

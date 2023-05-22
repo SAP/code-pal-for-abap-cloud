@@ -45,7 +45,7 @@ class key_words implementation.
       exp = 1
     ).
   endmethod.
-  
+
   method identifiers_like_keywords.
     data(test_statement) = value if_ci_atc_source_code_provider=>ty_statement(
       tokens = value #(
@@ -78,7 +78,7 @@ class key_words implementation.
       exp = 1
     ).
   endmethod.
-  
+
   method test_find_clause_index.
     data test_tokens type if_ci_atc_source_code_provider=>ty_tokens.
     data test_clause type string.
@@ -197,25 +197,25 @@ class lcl_test_db_stmt implementation.
        ( code = 'DELETE' location = value #( object = dyn position = value #( line = 24 column = 4 ) ) )
        ( code = 'DELETE' location = value #( object = dyn position = value #( line = 26 column = 4 ) ) )
 
-       ( code = 'OPEN' location = value #( object = mixed position = value #( line = 5 column = 4 ) ) )
-       ( code = 'OPEN' location = value #( object = mixed position = value #( line = 6 column = 4 ) ) )
-       ( code = 'SELECT' parameters = value #( param_1 = 'SCI_HANA_TEST1' ) location = value #( object = mixed position = value #( line = 8 column = 4 ) ) )
-       ( code = 'SELECT' parameters = value #( param_1 = 'SCI_HANA_TEST1' ) location = value #( object = mixed position = value #( line = 9 column = 4 ) ) )
-       ( code = 'DELETE' parameters = value #( param_1 = 'SCI_HANA_TEST1' ) location = value #( object = mixed position = value #( line = 13 column = 4 ) ) )
-       ( code = 'DELETE' parameters = value #( param_1 = 'SCI_HANA_TEST2' param_2 = 'SCI_HANA_TEST1' ) location = value #( object = mixed position = value #( line = 14 column = 4 ) ) )
-       ( code = 'DELETE' parameters = value #( param_1 = 'SCI_HANA_TEST1' ) location = value #( object = mixed position = value #( line = 15 column = 4 ) ) )
-       ( code = 'DELETE' parameters = value #( param_1 = 'SCI_HANA_TEST1' ) location = value #( object = mixed position = value #( line = 17 column = 4 ) ) )
-       ( code = 'DELETE' parameters = value #( param_1 = 'SCI_HANA_TEST1' ) location = value #( object = mixed position = value #( line = 18 column = 4 ) ) )
-       ( code = 'DELETE' parameters = value #( param_1 = 'SCI_HANA_TEST1' ) location = value #( object = mixed position = value #( line = 20 column = 4 ) ) )
-       ( code = 'DELETE' parameters = value #( param_1 = 'DEMO_INDX_BLOB' ) location = value #( object = mixed position = value #( line = 21 column = 4 ) ) )
-       ( code = 'INSERT' parameters = value #( param_1 = 'SCI_HANA_TEST2' param_2 = 'SCI_HANA_TEST1' ) location = value #( object = mixed position = value #( line = 23 column = 4 ) ) )
-       ( code = 'UPDATE' parameters = value #( param_1 = 'SCI_HANA_TEST2' param_2 = 'SCI_HANA_TEST1' ) location = value #( object = mixed position = value #( line = 29 column = 4 ) ) )
-       ( code = 'UPDATE' parameters = value #( param_1 = 'SCI_HANA_TEST1' ) location = value #( object = mixed position = value #( line = 30 column = 4 ) ) )
-       ( code = 'UPDATE' parameters = value #( param_1 = 'SCI_HANA_TEST1' ) location = value #( object = mixed position = value #( line = 31 column = 4 ) ) )
-       ( code = 'MODIFY' parameters = value #( param_1 = 'SCI_HANA_TEST1' ) location = value #( object = mixed position = value #( line = 33 column = 4 ) ) )
-       ( code = 'EXPORT' parameters = value #( param_1 = 'DEMO_INDX_BLOB' ) location = value #( object = mixed position = value #( line = 35 column = 4 ) ) )
-       ( code = 'IMPORT' parameters = value #( param_1 = 'DEMO_INDX_BLOB' ) location = value #( object = mixed position = value #( line = 36 column = 4 ) ) )
-       ( code = 'EXEC' location = value #( object = mixed position = value #( line = 38 column = 4 ) ) )
+*       ( code = 'OPEN' location = value #( object = mixed position = value #( line = 5 column = 4 ) ) )
+*       ( code = 'OPEN' location = value #( object = mixed position = value #( line = 6 column = 4 ) ) )
+       ( code = 'SELECT' parameters = value #( param_1 = '/CC4A/DB_TEST1' ) location = value #( object = mixed position = value #( line = 8 column = 4 ) ) )
+       ( code = 'SELECT' parameters = value #( param_1 = '/CC4A/DB_TEST1' ) location = value #( object = mixed position = value #( line = 9 column = 4 ) ) )
+       ( code = 'DELETE' parameters = value #( param_1 = '/CC4A/DB_TEST1' ) location = value #( object = mixed position = value #( line = 13 column = 4 ) ) )
+       ( code = 'DELETE' parameters = value #( param_1 = '/CC4A/DB_TEST2' param_2 = '/CC4A/DB_TEST1' ) location = value #( object = mixed position = value #( line = 14 column = 4 ) ) )
+       ( code = 'DELETE' parameters = value #( param_1 = '/CC4A/DB_TEST1' ) location = value #( object = mixed position = value #( line = 15 column = 4 ) ) )
+       ( code = 'DELETE' parameters = value #( param_1 = '/CC4A/DB_TEST1' ) location = value #( object = mixed position = value #( line = 17 column = 4 ) ) )
+       ( code = 'DELETE' parameters = value #( param_1 = '/CC4A/DB_TEST1' ) location = value #( object = mixed position = value #( line = 18 column = 4 ) ) )
+*       ( code = 'DELETE' parameters = value #( param_1 = '/CC4A/DB_TEST1' ) location = value #( object = mixed position = value #( line = 20 column = 4 ) ) )
+*       ( code = 'DELETE' parameters = value #( param_1 = 'DEMO_INDX_BLOB' ) location = value #( object = mixed position = value #( line = 21 column = 4 ) ) )
+       ( code = 'INSERT' parameters = value #( param_1 = '/CC4A/DB_TEST2' param_2 = '/CC4A/DB_TEST1' ) location = value #( object = mixed position = value #( line = 23 column = 4 ) ) )
+       ( code = 'UPDATE' parameters = value #( param_1 = '/CC4A/DB_TEST2' param_2 = '/CC4A/DB_TEST1' ) location = value #( object = mixed position = value #( line = 29 column = 4 ) ) )
+       ( code = 'UPDATE' parameters = value #( param_1 = '/CC4A/DB_TEST1' ) location = value #( object = mixed position = value #( line = 30 column = 4 ) ) )
+       ( code = 'UPDATE' parameters = value #( param_1 = '/CC4A/DB_TEST1' ) location = value #( object = mixed position = value #( line = 31 column = 4 ) ) )
+       ( code = 'MODIFY' parameters = value #( param_1 = '/CC4A/DB_TEST1' ) location = value #( object = mixed position = value #( line = 33 column = 4 ) ) )
+*       ( code = 'EXPORT' parameters = value #( param_1 = 'DEMO_INDX_BLOB' ) location = value #( object = mixed position = value #( line = 35 column = 4 ) ) )
+*       ( code = 'IMPORT' parameters = value #( param_1 = 'DEMO_INDX_BLOB' ) location = value #( object = mixed position = value #( line = 36 column = 4 ) ) )
+*       ( code = 'EXEC' location = value #( object = mixed position = value #( line = 38 column = 4 ) ) )
        ( code = 'WITH' parameters = value #( param_1 = 'SCI_TEST_SFLIGHT' ) location = value #( object = mixed position = value #( line = 46 column = 4 ) ) )
       )
       asserter_config   = value #(

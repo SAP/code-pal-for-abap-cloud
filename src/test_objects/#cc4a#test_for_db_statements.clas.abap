@@ -13,27 +13,29 @@ ENDCLASS.
 
 
 
-CLASS /cc4a/test_for_db_statements IMPLEMENTATION.
+CLASS /CC4A/TEST_FOR_DB_STATEMENTS IMPLEMENTATION.
+
+
   METHOD no_db.
-    DATA: itab    TYPE TABLE OF sci_hana_test1,
-          entry   TYPE sci_hana_test1,
+    DATA: itab    TYPE TABLE OF /cc4a/db_test1,
+          entry   TYPE /cc4a/db_test1,
           include TYPE TABLE OF string,
-          texts   TYPE TABLE OF textpool,
-          report  TYPE t100,
+*          texts   TYPE TABLE OF textpool,
+*          report  TYPE t100,
           where   TYPE string,
-          itab2   TYPE TABLE OF tadir.
+          itab2   TYPE TABLE OF /cc4a/db_test1.
 
     INSERT entry INTO TABLE itab.
     LOOP AT itab INTO entry.
       INSERT entry INTO itab.
     ENDLOOP.
     DELETE itab INDEX 1.
-    MODIFY CURRENT LINE.
-    INSERT REPORT sy-repid FROM include.
-    DELETE REPORT sy-repid.
+*    MODIFY CURRENT LINE.
+*    INSERT REPORT sy-repid FROM include.
+*    DELETE REPORT sy-repid.
     DELETE ADJACENT DUPLICATES FROM itab.
-    INSERT TEXTPOOL sy-repid LANGUAGE sy-langu FROM texts.
-    DELETE TEXTPOOL sy-repid LANGUAGE sy-langu.
+*    INSERT TEXTPOOL sy-repid LANGUAGE sy-langu FROM texts.
+*    DELETE TEXTPOOL sy-repid LANGUAGE sy-langu.
     DELETE TABLE itab FROM entry.
     DELETE itab FROM 5.
     DELETE itab TO 7.
@@ -43,88 +45,91 @@ CLASS /cc4a/test_for_db_statements IMPLEMENTATION.
     INSERT entry INTO itab INDEX 5.
   ENDMETHOD.
 
+
   METHOD dyn.
-    CONSTANTS c_name TYPE tabname VALUE 'SCI_HANA_TEST2'.
+    CONSTANTS c_name TYPE tabname VALUE '/CC4A/DB_TEST2'.
     DATA: itab   TYPE TABLE OF i,
           entry  TYPE i,
-          single TYPE sci_hana_test1.
-    DELETE FROM (`SCI_HANA_TEST1`)
+          single TYPE /cc4a/db_test1.
+    DELETE FROM (`/CC4A/DB_TEST1`)
       WHERE obj_name = 'BLABLA'.
     LOOP AT itab INTO entry.
-      SELECT SINGLE * FROM ('SCI_HANA_TEST2') INTO entry.
+      SELECT SINGLE * FROM ('/CC4A/DB_TEST2') INTO @entry.
     ENDLOOP.
     DO.
-      SELECT SINGLE * FROM (c_name) INTO entry.
+      SELECT SINGLE * FROM (c_name) INTO @entry.
     ENDDO.
-    SELECT SINGLE * FROM ('SCI_HANA_TEST1') INTO entry.
-    SELECT * FROM ('SCI_HANA_TEST1') INTO entry.
+    SELECT SINGLE * FROM ('/CC4A/DB_TEST1') INTO @entry.
+    SELECT * FROM ('/CC4A/DB_TEST1') INTO @entry.
     ENDSELECT.
-    SELECT * FROM ('SCI_HANA_TEST1') INTO TABLE itab.
-    INSERT ('SCI_HANA_TEST1') FROM entry.
-    INSERT INTO ('SCI_HANA_TEST1') VALUES entry.
-    UPDATE ('SCI_HANA_TEST1') FROM entry.
-    UPDATE ('SCI_HANA_TEST1') SET pgmid = 'BLAB'.
-    MODIFY ('SCI_HANA_TEST1') FROM entry.
-    DELETE FROM ('SCI_HANA_TEST1').                     "
-    DELETE FROM ('SCI_HANA_TEST1')
+    SELECT * FROM ('/CC4A/DB_TEST1') INTO TABLE @itab.
+    INSERT ('/CC4A/DB_TEST1') FROM @entry.
+    INSERT INTO ('/CC4A/DB_TEST1') VALUES @entry.
+    UPDATE ('/CC4A/DB_TEST1') FROM @entry.
+    UPDATE ('/CC4A/DB_TEST1') SET pgmid = 'BLAB'.
+    MODIFY ('/CC4A/DB_TEST1') FROM @entry.
+    DELETE FROM ('/CC4A/DB_TEST1').                     "
+    DELETE FROM ('/CC4A/DB_TEST1')
       WHERE pgmid = 'BLAB'.
-    DELETE ('SCI_HANA_TEST1') FROM entry.
+    DELETE ('/CC4A/DB_TEST1') FROM @entry.
   ENDMETHOD.
-  METHOD mixed.
-    DATA: dbcur  TYPE cursor,
-          entry  TYPE sci_hana_test1,
-          itab   TYPE TABLE OF sci_hana_test1.
-    OPEN CURSOR dbcur FOR SELECT * FROM sci_hana_test1.
-    OPEN CURSOR  WITH HOLD dbcur FOR SELECT * FROM sci_hana_test1.
 
-    SELECT SINGLE * FROM sci_hana_test1 INTO entry.
-    SELECT FROM sci_hana_test1 INNER JOIN sci_hana_test2 ON sci_hana_test2~object = sci_hana_test1~object
+
+  METHOD mixed.
+    DATA: dbcur TYPE cursor,
+          entry TYPE /cc4a/db_test1,
+          itab  TYPE TABLE OF /cc4a/db_test1.
+*    OPEN CURSOR dbcur FOR SELECT * FROM /cc4a/db_test1.
+*    OPEN CURSOR  WITH HOLD dbcur FOR SELECT * FROM /cc4a/db_test1.
+
+    SELECT SINGLE * FROM /cc4a/db_test1 INTO @entry.
+    SELECT FROM /cc4a/db_test1 INNER JOIN /cc4a/db_test2 ON /cc4a/db_test2~object = /cc4a/db_test1~object
       FIELDS * INTO @DATA(dummy).
     ENDSELECT.
 
-    DELETE FROM sci_hana_test1.
-    DELETE FROM sci_hana_test2 WHERE object NOT IN ( SELECT object FROM sci_hana_test1 WHERE pgmid = 'R3TR' ).
-    DELETE FROM sci_hana_test1
+    DELETE FROM /cc4a/db_test1.
+    DELETE FROM /cc4a/db_test2 WHERE object NOT IN ( SELECT object FROM /cc4a/db_test1 WHERE pgmid = 'R3TR' ).
+    DELETE FROM /cc4a/db_test1
       WHERE obj_name = 'BLABLA'.
-    DELETE FROM sci_hana_test1.
-    DELETE FROM sci_hana_test1
+    DELETE FROM /cc4a/db_test1.
+    DELETE FROM /cc4a/db_test1
       WHERE pgmid = 'BLAB'.
-    DELETE sci_hana_test1 FROM entry.
-    DELETE FROM DATABASE demo_indx_blob(sc) ID 'DEMO'.
+*    DELETE /cc4a/db_test1 FROM entry.
+*    DELETE FROM DATABASE demo_indx_blob(sc) ID 'DEMO'.
 
-    INSERT sci_hana_test2 FROM ( SELECT * FROM sci_hana_test1 ) ##LOGGING_VERSUS_FROM_SELECT[SCI_HANA_TEST2].
+    INSERT /cc4a/db_test2 FROM ( SELECT * FROM /cc4a/db_test1 ) ##LOGGING_VERSUS_FROM_SELECT[/CC4A/DB_TEST2].
     INSERT entry INTO TABLE itab. "no db
     LOOP AT itab INTO entry.
       INSERT entry INTO itab. "no db
     ENDLOOP.
 
-    UPDATE sci_hana_test2 SET object = '1' WHERE object NOT IN ( SELECT object FROM sci_hana_test1 WHERE pgmid = 'R3TR' ).
-    UPDATE sci_hana_test1 FROM entry.
-    UPDATE sci_hana_test1 SET pgmid = 'BLAB'.
+    UPDATE /cc4a/db_test2 SET object = '1' WHERE object NOT IN ( SELECT object FROM /cc4a/db_test1 WHERE pgmid = 'R3TR' ).
+    UPDATE /cc4a/db_test1 FROM @entry.
+    UPDATE /cc4a/db_test1 SET pgmid = 'BLAB'.
 
-    MODIFY sci_hana_test1 FROM entry.
+    MODIFY /cc4a/db_test1 FROM @entry.
 
-    EXPORT scarr = itab TO DATABASE demo_indx_blob(sc) ID 'DEMO'.
-    IMPORT scarr = itab FROM DATABASE demo_indx_blob(sc) ID 'DEMO'.
+*    EXPORT scarr = itab TO DATABASE demo_indx_blob(sc) ID 'DEMO'.
+*    IMPORT scarr = itab FROM DATABASE demo_indx_blob(sc) ID 'DEMO'.
 
-    EXEC
-      SQL
-      .
-      COMMIT WORK.
-    ENDEXEC.
+*    EXEC
+*      SQL
+*      .
+*      COMMIT WORK.
+*    ENDEXEC.
 
-    DATA from_id TYPE sci_test_sflight-carrid VALUE 'AA'.
-    DATA to_id TYPE sci_test_sflight-carrid VALUE 'UA'.
+    DATA from_id TYPE /cc4a/testflight-carrid VALUE 'AA'.
+    DATA to_id TYPE /cc4a/testflight-carrid VALUE 'UA'.
     WITH
       +connections AS (
-        SELECT sci_test_sflight~carrid, sci_test_sflight~planetype, sci_tst_sflight1~connid
-               FROM sci_test_sflight
-               INNER JOIN sci_tst_sflight1
-                 ON sci_tst_sflight1~carrid = sci_test_sflight~carrid
-               WHERE sci_test_sflight~carrid BETWEEN @from_id AND @to_id ),
+        SELECT /cc4a/testflight~carrid, /cc4a/testflight~planetype, /cc4a/tstflight1~connid
+               FROM /cc4a/testflight
+               INNER JOIN /cc4a/tstflight1
+                 ON /cc4a/tstflight1~carrid = /cc4a/testflight~carrid
+               WHERE /cc4a/testflight~carrid BETWEEN @from_id AND @to_id ),
       +sum_seats AS (
         SELECT carrid, connid, SUM( quantity ) AS sum_seats
-               FROM sci_tst_sflight1
+               FROM /cc4a/tstflight1
                WHERE carrid BETWEEN @from_id AND @to_id
                GROUP BY carrid, connid ),
       +result( name, connection, departure ) AS (
@@ -140,4 +145,3 @@ CLASS /cc4a/test_for_db_statements IMPLEMENTATION.
 
   ENDMETHOD.
 ENDCLASS.
-

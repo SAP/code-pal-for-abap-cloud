@@ -20,7 +20,7 @@
       }
     ],
     "syntax": {
-      "version": "v757",
+      "version": "Cloud",
       "errorNamespace": "^(Z|Y|LCL_|TY_|LIF_)",
       "globalConstants": [],
       "globalMacros": []
@@ -146,7 +146,7 @@
         "severity": "Error"
       },
       "cloud_types": {
-        "exclude": [],
+        "exclude": ["./src/#cc4a#.nspc.xml"],
         "severity": "Error"
       },
       "colon_missing_space": {
@@ -423,10 +423,7 @@
         "severity": "Error"
       },
       "if_in_if": false,
-      "implement_methods": {
-        "exclude": [],
-        "severity": "Error"
-      },
+      "implement_methods": false,
       "in_statement_indentation": false,
       "indentation": {
         "exclude": [],

@@ -15,39 +15,80 @@ interface /cc4a/if_abap_analyzer
            clopening,
          end of enum ty_bracket_type structure bracket_type.
 
+  types:
+    begin of ty_db_statement,
+      is_db          type abap_bool,
+      dbtab          type string,
+      dbtab_subquery type string,
+    end of ty_db_statement.
   methods find_key_words
-    importing key_words       type string_table
-              statement       type if_ci_atc_source_code_provider=>ty_statement
-    returning value(position) type i.
-
+    importing
+      key_words       type string_table
+      statement       type if_ci_atc_source_code_provider=>ty_statement
+    returning
+      value(position) type i .
   methods break_into_lines
-    importing code              type string
-    returning value(code_lines) type if_ci_atc_quickfix=>ty_code.
-
+    importing
+      code              type string
+    returning
+      value(code_lines) type if_ci_atc_quickfix=>ty_code .
   methods flatten_tokens
-    importing tokens                type if_ci_atc_source_code_provider=>ty_tokens
-    returning value(flat_statement) type string.
-
+    importing
+      tokens                type if_ci_atc_source_code_provider=>ty_tokens
+    returning
+      value(flat_statement) type string .
   methods is_bracket
-    importing token               type if_ci_atc_source_code_provider=>ty_token
-    returning value(bracket_type) type ty_bracket_type.
-
+    importing
+      token               type if_ci_atc_source_code_provider=>ty_token
+    returning
+      value(bracket_type) type ty_bracket_type .
   methods calculate_bracket_end
-    importing statement             type if_ci_atc_source_code_provider=>ty_statement
-              bracket_position      type i
-    returning value(end_of_bracket) type i
-    raising   /cc4a/cx_token_is_no_bracket.
-
+    importing
+      statement             type if_ci_atc_source_code_provider=>ty_statement
+      bracket_position      type i
+    returning
+      value(end_of_bracket) type i
+    raising
+      /cc4a/cx_token_is_no_bracket .
   "! The method analyze the given token whether this is an comparison operator or not.
   "! Operators like +, -, * and / does not count as comparison operator.
   "! The following operators are currently supported: is, in, >, gt, <, lt, >=, ge, <=, le, =, eq, <>, ne
   methods token_is_comparison_operator
-    importing token              type if_ci_atc_source_code_provider=>ty_token
-    returning value(is_operator) type abap_bool.
-
+    importing
+      token              type if_ci_atc_source_code_provider=>ty_token
+    returning
+      value(is_operator) type abap_bool .
   methods negate_comparison_operator
-    importing comparison_operator                type string
-    returning value(negated_comparison_operator) type string
-    raising   /cc4a/cx_token_is_no_operator.
+    importing
+      comparison_operator                type string
+    returning
+      value(negated_comparison_operator) type string
+    raising
+      /cc4a/cx_token_is_no_operator .
+  methods is_db_statement
+    importing
+      statement          type if_ci_atc_source_code_provider=>ty_statement
+      get_dbtab_name     type abap_bool default abap_false
+      include_subqueries type abap_bool default abap_true
+    returning
+      value(result)      type ty_db_statement.
 
+  "! The method checks if clause is contained in tokens
+  "! if so it returns the index of the first token of the first occurrence of the clause
+  "! otherwise token_index = 0
+  methods find_clause_index
+    importing
+      tokens             type if_ci_atc_source_code_provider=>ty_tokens
+      clause             type string
+      start_index        type i default 1
+    returning
+      value(token_index) type i
+    raising
+      /cc4a/cx_clause_is_initial .
+  methods is_token_keyword
+    importing
+      token         type if_ci_atc_source_code_provider=>ty_token
+      keyword       type string
+    returning
+      value(result) type abap_bool .
 endinterface.

@@ -10,7 +10,7 @@ class /cc4a/abap_analyzer definition
     aliases find_clause_index for /cc4a/if_abap_analyzer~find_clause_index.
     aliases is_token_keyword for /cc4a/if_abap_analyzer~is_token_keyword.
     aliases is_db_statement for /cc4a/if_abap_analyzer~is_db_statement.
-    aliases is_bracket      for  /cc4a/if_abap_analyzer~is_bracket.
+    aliases is_bracket for /cc4a/if_abap_analyzer~is_bracket.
   protected section.
   private section.
 
@@ -180,7 +180,7 @@ CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
     if clauses is initial or clauses[ 1 ] is initial.
       raise exception type /cc4a/cx_clause_is_initial.
     endif.
-    loop at tokens assigning field-symbol(<token>) from start_index
+    loop at tokens transporting no fields from start_index
       where references is initial
       and lexeme = clauses[ 1 ].
       token_index = sy-tabix.
@@ -212,8 +212,6 @@ CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
 
 
   method is_db_statement.
-    data token_idx type i.
-
     case statement-keyword.
       when 'SELECT' or 'WITH' or 'DELETE' or 'UPDATE' or 'INSERT' or 'MODIFY' or 'READ' or 'LOOP'
       or 'IMPORT' or 'EXPORT' or 'FETCH' or 'OPEN' or 'EXEC'.
@@ -223,7 +221,6 @@ CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
                    or statement-keyword = 'INSERT'
                    or statement-keyword = 'MODIFY' ) ).
           result-is_db = abap_true.
-          "check_dbtab = abap_false.
           if get_dbtab_name = abap_false.
             return.
           endif.
@@ -231,7 +228,7 @@ CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
       when others.
         return.
     endcase.
-    token_idx = 2.
+    data(token_idx) = 2.
     while lines( statement-tokens ) > token_idx and statement-tokens[ token_idx ]-lexeme cp '%_*('
     and statement-tokens[ token_idx ]-references is initial.
       token_idx += 3.
@@ -241,10 +238,10 @@ CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
        start_idx = token_idx
        analyzer = me
        include_subqueries = include_subqueries ).
-    result = analyzer->analyze(  ).
+    result = analyzer->analyze( ).
 
   endmethod.
-  
+
   method create.
     instance = new /cc4a/abap_analyzer( ).
 

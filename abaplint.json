@@ -125,7 +125,7 @@
         "insertDatabase": true,
         "modifyDatabase": true,
         "readTable": true,
-        "assign": true,
+        "assign": false,
         "find": true
       },
       "check_syntax": {
@@ -483,10 +483,7 @@
         "exclude": [],
         "severity": "Error"
       },
-      "many_parentheses": {
-        "exclude": [],
-        "severity": "Error"
-      },
+      "many_parentheses": false,
       "max_one_method_parameter_per_line": {
         "exclude": [],
         "severity": "Error"

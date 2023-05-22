@@ -73,18 +73,19 @@ class /cc4a/db_access_in_ut implementation.
 
   method if_ci_atc_check~get_meta_data.
     meta_data = /cc4a/check_meta_data=>create(
-                                  value #( checked_types = /cc4a/check_meta_data=>checked_types-abap_programs
-                                     description = 'Avoid data base access in unit-tests'(des)
-                                     remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
-                                     finding_codes = value #( ( code = finding_code pseudo_comment = pseudo_comment text = 'Database access in unit-test'(dau) ) )
-                                     ) ).
+      value #( checked_types = /cc4a/check_meta_data=>checked_types-abap_programs
+        description = 'Avoid data base access in unit-tests'(des)
+        remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
+        finding_codes = value #(
+          ( code = finding_code pseudo_comment = pseudo_comment text = 'Database access in unit-test'(dau) ) )
+        ) ).
   endmethod.
 
 
   method if_ci_atc_check~run.
     code_provider = data_provider->get_code_provider( ).
     data(procedures) = code_provider->get_procedures( code_provider->object_to_comp_unit( object ) ).
-    data(classes_with_risk_level) = get_relevant_class_information( procedures = procedures ).
+    data(classes_with_risk_level) = get_relevant_class_information( procedures ).
 
     loop at procedures->* assigning field-symbol(<procedure>).
       if line_exists( classes_with_risk_level[ class_name = substring_before( val = <procedure>-id-name sub = '=>' ) ] )
@@ -98,19 +99,23 @@ class /cc4a/db_access_in_ut implementation.
   method get_relevant_class_information.
     data classes_with_test_environment type ty_classes_with_test_envrnment.
     loop at procedures->* assigning field-symbol(<procedure>).
-      data(class_with_risk_level) = determine_classes_risk_level( procedure = <procedure> ).
+      data(class_with_risk_level) = determine_classes_risk_level( <procedure> ).
       if class_with_risk_level is not initial.
         insert lines of class_with_risk_level into table classes_with_risk_level.
       endif.
       if line_exists( classes_with_risk_level[ class_name = substring_before( val = <procedure>-id-name sub = '=>' ) ] )
          or line_exists( classes_with_risk_level[ class_id = <procedure>-id-name ] ).
-        data(class_with_test_environment) = find_test_environment( procedure = <procedure> classes_with_risk_level = classes_with_risk_level ).
+        data(class_with_test_environment) =
+          find_test_environment( procedure = <procedure> classes_with_risk_level = classes_with_risk_level ).
         if class_with_test_environment is not initial.
           insert class_with_test_environment into table classes_with_test_environment.
         endif.
       endif.
     endloop.
-    classes_with_risk_level = get_relevant_classes( classes_with_risk_level = classes_with_risk_level classes_with_test_environment = classes_with_test_environment ).
+    classes_with_risk_level =
+      get_relevant_classes(
+        classes_with_risk_level = classes_with_risk_level
+        classes_with_test_environment = classes_with_test_environment ).
   endmethod.
 
   method get_relevant_classes.
@@ -133,7 +138,9 @@ class /cc4a/db_access_in_ut implementation.
     loop at procedure-statements assigning field-symbol(<statement>) using key keyword where keyword eq 'CLASS'.
       loop at <statement>-tokens transporting no fields where lexeme eq 'FOR'.
         if <statement>-tokens[ sy-tabix + 1 ]-lexeme eq 'TESTING'.
-          insert get_class_name_and_risk_level( statement = <statement> procedure_id = procedure-id-name ) into table class_names_with_risk_level.
+          insert
+            get_class_name_and_risk_level( statement = <statement> procedure_id = procedure-id-name )
+          into table class_names_with_risk_level.
         endif.
       endloop.
     endloop.
@@ -168,22 +175,28 @@ class /cc4a/db_access_in_ut implementation.
 
   method analyze_procedure.
     types ty_key_word_range type range of string.
-    data(relevant_keywords) = value ty_key_word_range( sign = cl_abap_range=>sign-including option = cl_abap_range=>option-equal ( low = 'UPDATE' ) ( low = 'MODIFY' ) ( low = 'DELETE' ) ( low = 'ALTER' ) ).
+    data(relevant_keywords) = value ty_key_word_range(
+        sign = cl_abap_range=>sign-including option = cl_abap_range=>option-equal
+      ( low = 'UPDATE' ) ( low = 'MODIFY' ) ( low = 'DELETE' ) ( low = 'ALTER' ) ).
 
     if procedure-id-name cs '=>'.
-      data(risk_level) = classes_with_risk_level[ class_name = substring_before( val = procedure-id-name sub = '=>' ) ]-risk_level.
+      data(risk_level) =
+        classes_with_risk_level[ class_name = substring_before( val = procedure-id-name sub = '=>' ) ]-risk_level.
     else.
       risk_level = classes_with_risk_level[ class_id = procedure-id-name ]-risk_level.
     endif.
 
     if risk_level = risk_levels-harmless or risk_level = risk_levels-without.
-      data(key_words_harmless_without) = value ty_key_word_range( sign = cl_abap_range=>sign-including option = cl_abap_range=>option-equal ( low = 'SELECT' ) ( low = 'INSERT' ) ( low = 'COMMIT' ) ( low = 'ROLLBACK' ) ).
+      data(key_words_harmless_without) =
+        value ty_key_word_range(
+            sign = cl_abap_range=>sign-including option = cl_abap_range=>option-equal
+          ( low = 'SELECT' ) ( low = 'INSERT' ) ( low = 'COMMIT' ) ( low = 'ROLLBACK' ) ).
       insert lines of key_words_harmless_without into table relevant_keywords.
     endif.
 
     data(abap_analyzer) = /cc4a/abap_analyzer=>create( ).
     loop at procedure-statements assigning field-symbol(<statement>) where keyword in relevant_keywords.
-      if abap_analyzer->is_db_statement( statement = <statement> )-is_db = abap_true.
+      if abap_analyzer->is_db_statement( <statement> )-is_db = abap_true.
         insert value #( code = finding_code
           location = value #( object = code_provider->get_statement_location( <statement> )-object
                               position = code_provider->get_statement_location( <statement> )-position )

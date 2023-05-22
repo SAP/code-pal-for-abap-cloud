@@ -75,13 +75,13 @@ class lcl_analyze_db_statement implementation.
       when 'OPEN'.
         analyze_open_cursor( ).
       when 'READ' or 'LOOP'.
-        analyze_read_loop(  ).
+        analyze_read_loop( ).
       when 'IMPORT'.
-        analyze_import(  ).
+        analyze_import( ).
       when 'EXPORT'.
-        analyze_export(  ).
+        analyze_export( ).
       when 'FETCH'.
-        if analyzer->find_clause_index(  tokens = statement-tokens clause = 'NEXT CURSOR' ) <> 0.
+        if analyzer->find_clause_index( tokens = statement-tokens clause = 'NEXT CURSOR' ) <> 0.
           result-is_db = abap_true.
         endif.
         return.
@@ -92,9 +92,10 @@ class lcl_analyze_db_statement implementation.
         result-is_db = abap_false.
         return.
     endcase.
-    result = get_result(  ).
+    result = get_result( ).
 
   endmethod.
+
   method get_result.
 
     result-is_db = me->is_db.
@@ -135,7 +136,7 @@ class lcl_analyze_db_statement implementation.
           data(substatement) = statement.
           substatement-keyword = 'SELECT'.
           delete substatement-tokens to sub_idx - 1.
-          data(result_sub) = me->analyzer->is_db_statement(
+          data(result_sub) = analyzer->is_db_statement(
                 statement = substatement
                 include_subqueries = abap_true
                 get_dbtab_name = abap_true ).
@@ -187,6 +188,7 @@ class lcl_analyze_db_statement implementation.
       result-dbtab = token_db-lexeme.
     endif.
   endmethod.
+
   method analyze_select.
     is_db = abap_false.
     check_if_dbtab = abap_false.
@@ -230,6 +232,7 @@ class lcl_analyze_db_statement implementation.
       is_db = abap_true.
     endif.
   endmethod.
+
   method analyze_with.
     check_if_dbtab = abap_false.
     is_db = abap_false.
@@ -244,7 +247,8 @@ class lcl_analyze_db_statement implementation.
         return.
       endif.
       token_idx += 1.
-      while statement-tokens[ token_idx ]-lexeme cp 'HIERARCHY*(' and statement-tokens[ token_idx ]-references is initial.
+      while statement-tokens[ token_idx ]-lexeme cp 'HIERARCHY*('
+          and statement-tokens[ token_idx ]-references is initial.
         if analyzer->is_token_keyword( token = statement-tokens[ token_idx + 1 ] keyword = 'SOURCE' ).
           token_idx += 2.
         else.
@@ -260,6 +264,7 @@ class lcl_analyze_db_statement implementation.
       endif.
     enddo.
   endmethod.
+
   method analyze_delete.
     check_if_dbtab = abap_true.
     if analyzer->find_clause_index( tokens = statement-tokens clause = 'CONNECTION' ) <> 0.
@@ -299,6 +304,7 @@ class lcl_analyze_db_statement implementation.
       check_if_dbtab = abap_false.
     endif.
   endmethod.
+
   method analyze_insert.
     check_if_dbtab = abap_true.
     if analyzer->find_clause_index( tokens = statement-tokens clause = 'INTO TABLE' ) <> 0
@@ -314,7 +320,7 @@ class lcl_analyze_db_statement implementation.
       is_db = abap_true.
     endif.
     if <token>-references is initial and <token>-lexeme(1) <> '('.
-      case  <token>-lexeme.
+      case <token>-lexeme.
         when 'REPORT' or 'TEXTPOOL' or 'INITIAL' or 'LINES'.
           return.
         when 'INTO'.
@@ -333,6 +339,7 @@ class lcl_analyze_db_statement implementation.
       endif.
     endif.
   endmethod.
+
   method analyze_modify.
 *   modify dbtab (from...)
     token_idx = start_idx.
@@ -364,7 +371,7 @@ class lcl_analyze_db_statement implementation.
     if <token>-references is not initial or <token>-lexeme(1) = '('.
       is_db = abap_true.
     endif.
-    if analyzer->find_clause_index(  tokens = statement-tokens clause = 'SET'
+    if analyzer->find_clause_index( tokens = statement-tokens clause = 'SET'
                                      start_index = token_idx + 1 ).
       check_if_dbtab = abap_false.
     elseif <token>-lexeme(1) = '('.
@@ -373,8 +380,7 @@ class lcl_analyze_db_statement implementation.
   endmethod.
 
   method analyze_open_cursor.
-    data found type i.
-    found = 0.
+    data(found) = 0.
     loop at statement-tokens assigning field-symbol(<token>)
      where references is initial.
       token_idx = sy-tabix.
@@ -428,7 +434,7 @@ class lcl_analyze_db_statement implementation.
         if statement-tokens[ 2 ]-lexeme <> 'AT'.
           return.
         endif.
-        if lines(  statement-tokens ) <> 3 or statement-tokens[ 3 ]-references is initial.
+        if lines( statement-tokens ) <> 3 or statement-tokens[ 3 ]-references is initial.
           return.
         endif.
       when 'READ'.
@@ -488,7 +494,6 @@ class lcl_analyze_db_statement implementation.
       return.
     endif.
     token_idx += 2.
-    assign statement-tokens[ token_idx ] to field-symbol(<token>).
     if analyzer->find_clause_index( tokens = statement-tokens start_index = token_idx + 1 clause = 'ID' ) = 0.
       return.
     endif.

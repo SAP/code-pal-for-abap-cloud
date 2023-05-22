@@ -67,23 +67,22 @@ class key_words implementation.
   endmethod.
 
   method test_find_clause_index.
-    data test_tokens type if_ci_atc_source_code_provider=>ty_tokens.
-    data test_clause type string.
-    test_tokens = value #( ( lexeme = '1' ) ( lexeme = '2' ) ( lexeme = '3' )
-                           ( lexeme = '4' ) ( lexeme = '5' ) ( lexeme = '6' )
-                           ( lexeme = '7' ) ( lexeme = '8' ) ( lexeme = '9' ) ( lexeme = '10' ) ).
-    test_clause = '5 6 7'.
-    data(index) = /cc4a/abap_analyzer=>create(  )->find_clause_index( tokens = test_tokens clause = test_clause ).
+    data(test_tokens) = value if_ci_atc_source_code_provider=>ty_tokens(
+      ( lexeme = '1' ) ( lexeme = '2' ) ( lexeme = '3' )
+      ( lexeme = '4' ) ( lexeme = '5' ) ( lexeme = '6' )
+      ( lexeme = '7' ) ( lexeme = '8' ) ( lexeme = '9' ) ( lexeme = '10' ) ).
+    data(test_clause) = '5 6 7'.
+    data(index) = /cc4a/abap_analyzer=>create( )->find_clause_index( tokens = test_tokens clause = test_clause ).
     cl_abap_unit_assert=>assert_equals( act = index exp = 5 ).
 
     test_tokens = value #( ( lexeme = 'A' ) ( lexeme = 'B' ) ( lexeme = '3' )
                            ( lexeme = 'A' ) ( lexeme = 'B' ) ( lexeme = 'C' )
                            ( lexeme = 'A' ) ( lexeme = 'B' ) ( lexeme = 'C' ) ( lexeme = 'D' ) ).
-    index = /cc4a/abap_analyzer=>create(  )->find_clause_index( tokens = test_tokens clause = `A B C D` ).
+    index = /cc4a/abap_analyzer=>create( )->find_clause_index( tokens = test_tokens clause = `A B C D` ).
     cl_abap_unit_assert=>assert_equals( act = index exp = 7 ).
     try.
-        index = /cc4a/abap_analyzer=>create(  )->find_clause_index( tokens = test_tokens clause = `   ` ).
-        cl_abap_unit_assert=>fail(  ).
+        index = /cc4a/abap_analyzer=>create( )->find_clause_index( tokens = test_tokens clause = `   ` ).
+        cl_abap_unit_assert=>fail( ).
       catch /cc4a/cx_clause_is_initial.
     endtry.
 
@@ -111,7 +110,7 @@ class lcl_atc_check_db_stmt implementation.
        value #( checked_types = /cc4a/check_meta_data=>checked_types-abap_programs
                 remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
                 finding_codes = value #( ( code = 'SELECT' ) ( code = 'WITH' ) ( code = 'INSERT' )
-              ( code = 'DELETE' ) ( code = 'UPDATE'  ) ( code = 'MODIFY' ) ( code = 'OPEN' ) (  code = 'EXEC' )
+              ( code = 'DELETE' ) ( code = 'UPDATE' ) ( code = 'MODIFY' ) ( code = 'OPEN' ) (  code = 'EXEC' )
               ( code = 'LOOP' ) ( code = 'READ' ) ( code = 'IMPORT' ) ( code = 'EXPORT' ) ) ) ).
   endmethod.
 
@@ -143,7 +142,7 @@ class lcl_atc_check_db_stmt implementation.
           code = <statement>-keyword
           parameters = value #( param_1 = result-dbtab param_2 = result-dbtab_subquery )
           location = value #( object = code_provider->get_statement_location( <statement> )-object
-                              position = code_provider->get_statement_location( <statement> )-position  )
+                              position = code_provider->get_statement_location( <statement> )-position )
           checksum = code_provider->get_statement_checksum( <statement> ) ) into table findings.
       endif.
     endloop.
@@ -183,31 +182,35 @@ class lcl_test_db_stmt implementation.
        ( code = 'DELETE' location = value #( object = dyn position = value #( line = 23 column = 4 ) ) )
        ( code = 'DELETE' location = value #( object = dyn position = value #( line = 24 column = 4 ) ) )
        ( code = 'DELETE' location = value #( object = dyn position = value #( line = 26 column = 4 ) ) )
-
-*       ( code = 'OPEN' location = value #( object = mixed position = value #( line = 5 column = 4 ) ) )
-*       ( code = 'OPEN' location = value #( object = mixed position = value #( line = 6 column = 4 ) ) )
-       ( code = 'SELECT' parameters = value #( param_1 = '/CC4A/DB_TEST1' ) location = value #( object = mixed position = value #( line = 8 column = 4 ) ) )
-       ( code = 'SELECT' parameters = value #( param_1 = '/CC4A/DB_TEST1' ) location = value #( object = mixed position = value #( line = 9 column = 4 ) ) )
-       ( code = 'DELETE' parameters = value #( param_1 = '/CC4A/DB_TEST1' ) location = value #( object = mixed position = value #( line = 13 column = 4 ) ) )
-       ( code = 'DELETE' parameters = value #( param_1 = '/CC4A/DB_TEST2' param_2 = '/CC4A/DB_TEST1' ) location = value #( object = mixed position = value #( line = 14 column = 4 ) ) )
-       ( code = 'DELETE' parameters = value #( param_1 = '/CC4A/DB_TEST1' ) location = value #( object = mixed position = value #( line = 15 column = 4 ) ) )
-       ( code = 'DELETE' parameters = value #( param_1 = '/CC4A/DB_TEST1' ) location = value #( object = mixed position = value #( line = 17 column = 4 ) ) )
-       ( code = 'DELETE' parameters = value #( param_1 = '/CC4A/DB_TEST1' ) location = value #( object = mixed position = value #( line = 18 column = 4 ) ) )
-*       ( code = 'DELETE' parameters = value #( param_1 = '/CC4A/DB_TEST1' ) location = value #( object = mixed position = value #( line = 20 column = 4 ) ) )
-*       ( code = 'DELETE' parameters = value #( param_1 = 'DEMO_INDX_BLOB' ) location = value #( object = mixed position = value #( line = 21 column = 4 ) ) )
-       ( code = 'INSERT' parameters = value #( param_1 = '/CC4A/DB_TEST2' param_2 = '/CC4A/DB_TEST1' ) location = value #( object = mixed position = value #( line = 23 column = 4 ) ) )
-       ( code = 'UPDATE' parameters = value #( param_1 = '/CC4A/DB_TEST2' param_2 = '/CC4A/DB_TEST1' ) location = value #( object = mixed position = value #( line = 29 column = 4 ) ) )
-       ( code = 'UPDATE' parameters = value #( param_1 = '/CC4A/DB_TEST1' ) location = value #( object = mixed position = value #( line = 30 column = 4 ) ) )
-       ( code = 'UPDATE' parameters = value #( param_1 = '/CC4A/DB_TEST1' ) location = value #( object = mixed position = value #( line = 31 column = 4 ) ) )
-       ( code = 'MODIFY' parameters = value #( param_1 = '/CC4A/DB_TEST1' ) location = value #( object = mixed position = value #( line = 33 column = 4 ) ) )
-*       ( code = 'EXPORT' parameters = value #( param_1 = 'DEMO_INDX_BLOB' ) location = value #( object = mixed position = value #( line = 35 column = 4 ) ) )
-*       ( code = 'IMPORT' parameters = value #( param_1 = 'DEMO_INDX_BLOB' ) location = value #( object = mixed position = value #( line = 36 column = 4 ) ) )
-*       ( code = 'EXEC' location = value #( object = mixed position = value #( line = 38 column = 4 ) ) )
-       ( code = 'WITH' parameters = value #( param_1 = 'SCI_TEST_SFLIGHT' ) location = value #( object = mixed position = value #( line = 46 column = 4 ) ) )
+       ( code = 'SELECT' parameters = value #( param_1 = '/CC4A/DB_TEST1' )
+         location = value #( object = mixed position = value #( line = 8 column = 4 ) ) )
+       ( code = 'SELECT' parameters = value #( param_1 = '/CC4A/DB_TEST1' )
+         location = value #( object = mixed position = value #( line = 9 column = 4 ) ) )
+       ( code = 'DELETE' parameters = value #( param_1 = '/CC4A/DB_TEST1' )
+         location = value #( object = mixed position = value #( line = 13 column = 4 ) ) )
+       ( code = 'DELETE' parameters = value #( param_1 = '/CC4A/DB_TEST2' param_2 = '/CC4A/DB_TEST1' )
+         location = value #( object = mixed position = value #( line = 14 column = 4 ) ) )
+       ( code = 'DELETE' parameters = value #( param_1 = '/CC4A/DB_TEST1' )
+         location = value #( object = mixed position = value #( line = 15 column = 4 ) ) )
+       ( code = 'DELETE' parameters = value #( param_1 = '/CC4A/DB_TEST1' )
+         location = value #( object = mixed position = value #( line = 17 column = 4 ) ) )
+       ( code = 'DELETE' parameters = value #( param_1 = '/CC4A/DB_TEST1' )
+         location = value #( object = mixed position = value #( line = 18 column = 4 ) ) )
+       ( code = 'INSERT' parameters = value #( param_1 = '/CC4A/DB_TEST2' param_2 = '/CC4A/DB_TEST1' )
+         location = value #( object = mixed position = value #( line = 23 column = 4 ) ) )
+       ( code = 'UPDATE' parameters = value #( param_1 = '/CC4A/DB_TEST2' param_2 = '/CC4A/DB_TEST1' )
+         location = value #( object = mixed position = value #( line = 29 column = 4 ) ) )
+       ( code = 'UPDATE' parameters = value #( param_1 = '/CC4A/DB_TEST1' )
+         location = value #( object = mixed position = value #( line = 30 column = 4 ) ) )
+       ( code = 'UPDATE' parameters = value #( param_1 = '/CC4A/DB_TEST1' )
+         location = value #( object = mixed position = value #( line = 31 column = 4 ) ) )
+       ( code = 'MODIFY' parameters = value #( param_1 = '/CC4A/DB_TEST1' )
+         location = value #( object = mixed position = value #( line = 33 column = 4 ) ) )
+       ( code = 'WITH' parameters = value #( param_1 = 'SCI_TEST_SFLIGHT' )
+         location = value #( object = mixed position = value #( line = 46 column = 4 ) ) )
       )
       asserter_config   = value #(
         quickfixes = abap_false ) ).
-    "   message_parameters = if_ci_atc_unit_asserter=>message_parameter_policy-assert_when_filled ) ).
 
   endmethod.
 endclass.

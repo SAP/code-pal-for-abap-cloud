@@ -2,9 +2,9 @@
   "formatVersion": "1",
   "header": {
     "description": "Assignment Chaining",
-    "originalLanguage": "en"
+    "originalLanguage": "en",
+    "abapLanguageVersion": "cloudDevelopment"
   },
   "category": "/CC4A/CODE_PAL",
-  "implementingClass": "/CC4A/EQUALS_SIGN_CHAINING",
-  "checkType": "remoteEnabled"
+  "implementingClass": "/CC4A/EQUALS_SIGN_CHAINING"
 }

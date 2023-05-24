@@ -19,123 +19,162 @@ class test implementation.
   method execute_test_class.
 
     data(without_brackets_1) = value if_ci_atc_check=>ty_location(
-          object = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-without_brackets )  )
+          object = cl_ci_atc_unit_driver=>get_method_object(
+            value #( class = test_class method = test_class_methods-without_brackets ) )
           position = value #( line = 3 column = 5 ) ).
     data(without_brackets_2) = value if_ci_atc_check=>ty_location(
-        object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-without_brackets ) )
+        object   = cl_ci_atc_unit_driver=>get_method_object(
+          value #( class = test_class method = test_class_methods-without_brackets ) )
         position = value #( line = 5 column = 4 ) ).
     data(without_brackets_3) = value if_ci_atc_check=>ty_location(
-        object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-without_brackets ) )
+        object   = cl_ci_atc_unit_driver=>get_method_object(
+          value #( class = test_class method = test_class_methods-without_brackets ) )
         position = value #( line = 8 column = 4 ) ).
     data(without_brackets_4) = value if_ci_atc_check=>ty_location(
-        object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-without_brackets ) )
+        object   = cl_ci_atc_unit_driver=>get_method_object(
+          value #( class = test_class method = test_class_methods-without_brackets ) )
         position = value #( line = 9 column = 4 ) ).
     data(without_brackets_5) = value if_ci_atc_check=>ty_location(
-        object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-without_brackets ) )
+        object   = cl_ci_atc_unit_driver=>get_method_object(
+          value #( class = test_class method = test_class_methods-without_brackets ) )
         position = value #( line = 12 column = 4 ) ).
     data(without_brackets_6) = value if_ci_atc_check=>ty_location(
-        object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-without_brackets ) )
+        object   = cl_ci_atc_unit_driver=>get_method_object(
+          value #( class = test_class method = test_class_methods-without_brackets ) )
         position = value #( line = 15 column = 4 ) ).
     data(without_brackets_7) = value if_ci_atc_check=>ty_location(
-        object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-without_brackets ) )
+        object   = cl_ci_atc_unit_driver=>get_method_object(
+          value #( class = test_class method = test_class_methods-without_brackets ) )
         position = value #( line = 16 column = 4 ) ).
     data(without_brackets_8) = value if_ci_atc_check=>ty_location(
-        object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-without_brackets ) )
+        object   = cl_ci_atc_unit_driver=>get_method_object(
+          value #( class = test_class method = test_class_methods-without_brackets ) )
         position = value #( line = 19 column = 4 ) ).
     data(without_brackets_9) = value if_ci_atc_check=>ty_location(
-        object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-without_brackets ) )
+        object   = cl_ci_atc_unit_driver=>get_method_object(
+          value #( class = test_class method = test_class_methods-without_brackets ) )
         position = value #( line = 22 column = 4 ) ).
     data(without_brackets_10) = value if_ci_atc_check=>ty_location(
-        object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-without_brackets ) )
+        object   = cl_ci_atc_unit_driver=>get_method_object(
+          value #( class = test_class method = test_class_methods-without_brackets ) )
         position = value #( line = 25 column = 4 ) ).
     data(without_brackets_11) = value if_ci_atc_check=>ty_location(
-        object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-without_brackets ) )
+        object   = cl_ci_atc_unit_driver=>get_method_object(
+          value #( class = test_class method = test_class_methods-without_brackets ) )
         position = value #( line = 25 column = 9 ) ).
     data(without_brackets_12) = value if_ci_atc_check=>ty_location(
-        object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-without_brackets ) )
+        object   = cl_ci_atc_unit_driver=>get_method_object(
+          value #( class = test_class method = test_class_methods-without_brackets ) )
         position = value #( line = 28 column = 4 ) ).
     data(without_brackets_13) = value if_ci_atc_check=>ty_location(
-        object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-without_brackets ) )
+        object   = cl_ci_atc_unit_driver=>get_method_object(
+          value #( class = test_class method = test_class_methods-without_brackets ) )
         position = value #( line = 28 column = 9 ) ).
     data(without_brackets_14) = value if_ci_atc_check=>ty_location(
-        object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-without_brackets ) )
+        object   = cl_ci_atc_unit_driver=>get_method_object(
+          value #( class = test_class method = test_class_methods-without_brackets ) )
         position = value #( line = 31 column = 4 ) ).
 
     data(with_brackets_1) = value if_ci_atc_check=>ty_location(
-        object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-with_brackets ) )
+        object   = cl_ci_atc_unit_driver=>get_method_object(
+          value #( class = test_class method = test_class_methods-with_brackets ) )
         position = value #( line = 3 column = 6 ) ).
     data(with_brackets_2) = value if_ci_atc_check=>ty_location(
-        object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-with_brackets ) )
+        object   = cl_ci_atc_unit_driver=>get_method_object(
+          value #( class = test_class method = test_class_methods-with_brackets ) )
         position = value #( line = 5 column = 5 ) ).
     data(with_brackets_3) = value if_ci_atc_check=>ty_location(
-        object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-with_brackets ) )
+        object   = cl_ci_atc_unit_driver=>get_method_object(
+          value #( class = test_class method = test_class_methods-with_brackets ) )
         position = value #( line = 8 column = 5 ) ).
     data(with_brackets_4) = value if_ci_atc_check=>ty_location(
-        object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-with_brackets ) )
+        object   = cl_ci_atc_unit_driver=>get_method_object(
+          value #( class = test_class method = test_class_methods-with_brackets ) )
         position = value #( line = 9 column = 5 ) ).
     data(with_brackets_5) = value if_ci_atc_check=>ty_location(
-        object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-with_brackets ) )
+        object   = cl_ci_atc_unit_driver=>get_method_object(
+          value #( class = test_class method = test_class_methods-with_brackets ) )
         position = value #( line = 12 column = 5 ) ).
     data(with_brackets_6) = value if_ci_atc_check=>ty_location(
-        object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-with_brackets ) )
+        object   = cl_ci_atc_unit_driver=>get_method_object(
+          value #( class = test_class method = test_class_methods-with_brackets ) )
         position = value #( line = 15 column = 5 ) ).
     data(with_brackets_7) = value if_ci_atc_check=>ty_location(
-        object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-with_brackets ) )
+        object   = cl_ci_atc_unit_driver=>get_method_object(
+          value #( class = test_class method = test_class_methods-with_brackets ) )
         position = value #( line = 16 column = 5 ) ).
     data(with_brackets_8) = value if_ci_atc_check=>ty_location(
-        object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-with_brackets ) )
+        object   = cl_ci_atc_unit_driver=>get_method_object(
+          value #( class = test_class method = test_class_methods-with_brackets ) )
         position = value #( line = 19 column = 5 ) ).
     data(with_brackets_9) = value if_ci_atc_check=>ty_location(
-        object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-with_brackets ) )
+        object   = cl_ci_atc_unit_driver=>get_method_object(
+          value #( class = test_class method = test_class_methods-with_brackets ) )
         position = value #( line = 22 column = 5 ) ).
     data(with_brackets_10) = value if_ci_atc_check=>ty_location(
-        object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-with_brackets ) )
+        object   = cl_ci_atc_unit_driver=>get_method_object(
+          value #( class = test_class method = test_class_methods-with_brackets ) )
         position = value #( line = 28 column = 10 ) ).
     data(with_brackets_11) = value if_ci_atc_check=>ty_location(
-        object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-with_brackets ) )
+        object   = cl_ci_atc_unit_driver=>get_method_object(
+          value #( class = test_class method = test_class_methods-with_brackets ) )
         position = value #( line = 31 column = 5 ) ).
     data(with_brackets_12) = value if_ci_atc_check=>ty_location(
-        object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-with_brackets ) )
+        object   = cl_ci_atc_unit_driver=>get_method_object(
+          value #( class = test_class method = test_class_methods-with_brackets ) )
         position = value #( line = 33 column = 9 ) ).
     data(with_brackets_13) = value if_ci_atc_check=>ty_location(
-        object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-with_brackets ) )
+        object   = cl_ci_atc_unit_driver=>get_method_object(
+          value #( class = test_class method = test_class_methods-with_brackets ) )
         position = value #( line = 36 column = 11 ) ).
     data(with_brackets_14) = value if_ci_atc_check=>ty_location(
-        object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-with_brackets ) )
+        object   = cl_ci_atc_unit_driver=>get_method_object(
+          value #( class = test_class method = test_class_methods-with_brackets ) )
         position = value #( line = 39 column = 15 ) ).
 
     data(with_pseudo_commets_1) = value if_ci_atc_check=>ty_location(
-        object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-with_pseudo_comments ) )
+        object   = cl_ci_atc_unit_driver=>get_method_object(
+          value #( class = test_class method = test_class_methods-with_pseudo_comments ) )
         position = value #( line = 3 column = 5 ) ).
     data(with_pseudo_commets_2) = value if_ci_atc_check=>ty_location(
-        object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-with_pseudo_comments ) )
+        object   = cl_ci_atc_unit_driver=>get_method_object(
+          value #( class = test_class method = test_class_methods-with_pseudo_comments ) )
         position = value #( line = 5 column = 4 ) ).
     data(with_pseudo_commets_3) = value if_ci_atc_check=>ty_location(
-        object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-with_pseudo_comments ) )
+        object   = cl_ci_atc_unit_driver=>get_method_object(
+          value #( class = test_class method = test_class_methods-with_pseudo_comments ) )
         position = value #( line = 8 column = 4 ) ).
     data(with_pseudo_commets_4) = value if_ci_atc_check=>ty_location(
-        object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-with_pseudo_comments ) )
+        object   = cl_ci_atc_unit_driver=>get_method_object(
+          value #( class = test_class method = test_class_methods-with_pseudo_comments ) )
         position = value #( line = 9 column = 4 ) ).
     data(with_pseudo_commets_5) = value if_ci_atc_check=>ty_location(
-        object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-with_pseudo_comments ) )
+        object   = cl_ci_atc_unit_driver=>get_method_object(
+          value #( class = test_class method = test_class_methods-with_pseudo_comments ) )
         position = value #( line = 12 column = 4 ) ).
     data(with_pseudo_commets_6) = value if_ci_atc_check=>ty_location(
-        object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-with_pseudo_comments ) )
+        object   = cl_ci_atc_unit_driver=>get_method_object(
+          value #( class = test_class method = test_class_methods-with_pseudo_comments ) )
         position = value #( line = 15 column = 4 ) ).
     data(with_pseudo_commets_7) = value if_ci_atc_check=>ty_location(
-        object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-with_pseudo_comments ) )
+        object   = cl_ci_atc_unit_driver=>get_method_object(
+          value #( class = test_class method = test_class_methods-with_pseudo_comments ) )
         position = value #( line = 16 column = 4 ) ).
     data(with_pseudo_commets_8) = value if_ci_atc_check=>ty_location(
-        object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-with_pseudo_comments ) )
+        object   = cl_ci_atc_unit_driver=>get_method_object(
+          value #( class = test_class method = test_class_methods-with_pseudo_comments ) )
         position = value #( line = 19 column = 5 ) ).
     data(with_pseudo_commets_9) = value if_ci_atc_check=>ty_location(
-        object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-with_pseudo_comments ) )
+        object   = cl_ci_atc_unit_driver=>get_method_object(
+          value #( class = test_class method = test_class_methods-with_pseudo_comments ) )
         position = value #( line = 22 column = 5 ) ).
     data(with_pseudo_commets_10) = value if_ci_atc_check=>ty_location(
-        object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-with_pseudo_comments ) )
+        object   = cl_ci_atc_unit_driver=>get_method_object(
+          value #( class = test_class method = test_class_methods-with_pseudo_comments ) )
         position = value #( line = 28 column = 10 ) ).
     data(with_pseudo_commets_11) = value if_ci_atc_check=>ty_location(
-        object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-with_pseudo_comments ) )
+        object   = cl_ci_atc_unit_driver=>get_method_object(
+          value #( class = test_class method = test_class_methods-with_pseudo_comments ) )
         position = value #( line = 31 column = 5 ) ).
 
     cl_ci_atc_unit_driver=>create_asserter( )->check_and_assert(

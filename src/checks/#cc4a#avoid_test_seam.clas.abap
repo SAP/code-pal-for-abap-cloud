@@ -26,18 +26,19 @@ class /cc4a/avoid_test_seam implementation.
 
   method if_ci_atc_check~get_meta_data.
     meta_data = /cc4a/check_meta_data=>create(
-            value #( checked_types = /cc4a/check_meta_data=>checked_types-abap_programs
-               description = 'Find usage of TEST-SEAM'(des)
-               remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
-               finding_codes = value #( ( code = finding_code pseudo_comment = pseudo_comment text = 'Usage of TEST-SEAM'(uot) ) )
-             ) ).
+      value #( checked_types = /cc4a/check_meta_data=>checked_types-abap_programs
+          description = 'Find usage of TEST-SEAM'(des)
+          remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
+          finding_codes = value #(
+            ( code = finding_code pseudo_comment = pseudo_comment text = 'Usage of TEST-SEAM'(uot) ) )
+        ) ).
   endmethod.
 
   method if_ci_atc_check~run.
     code_provider = data_provider->get_code_provider( ).
     data(procedures) = code_provider->get_procedures( code_provider->object_to_comp_unit( object ) ).
     loop at procedures->* assigning field-symbol(<procedure>).
-      insert lines of analyze_procedure( procedure = <procedure> ) into table findings.
+      insert lines of analyze_procedure( <procedure> ) into table findings.
     endloop.
   endmethod.
 

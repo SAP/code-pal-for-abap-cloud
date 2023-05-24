@@ -10,7 +10,7 @@ class /cc4a/abap_analyzer definition
     aliases find_clause_index for /cc4a/if_abap_analyzer~find_clause_index.
     aliases is_token_keyword for /cc4a/if_abap_analyzer~is_token_keyword.
     aliases is_db_statement for /cc4a/if_abap_analyzer~is_db_statement.
-    aliases is_bracket      for  /cc4a/if_abap_analyzer~is_bracket.
+    aliases is_bracket for /cc4a/if_abap_analyzer~is_bracket.
   protected section.
   private section.
 
@@ -30,7 +30,10 @@ CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
     data(remaining_chunk) = strlen( code ).
     while remaining_chunk > 0.
       data(already_chopped_chars) = lines( code_lines ) * allowed_line_length.
-      data(chars_to_chop) = cond #( when remaining_chunk > allowed_line_length then allowed_line_length else remaining_chunk ).
+      data(chars_to_chop) = cond #(
+        when remaining_chunk > allowed_line_length
+          then allowed_line_length
+          else remaining_chunk ).
       insert code+already_chopped_chars(chars_to_chop) into table code_lines.
       remaining_chunk -= chars_to_chop.
     endwhile.
@@ -89,26 +92,29 @@ CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
   endmethod.
 
   method /cc4a/if_abap_analyzer~calculate_bracket_end.
-    if is_bracket( token = statement-tokens[ bracket_position ] ) ne /cc4a/if_abap_analyzer=>bracket_type-opening and
-       is_bracket( token = statement-tokens[ bracket_position ] ) ne /cc4a/if_abap_analyzer=>bracket_type-closing.
-      raise exception type /cc4a/cx_token_is_no_bracket.
+    if is_bracket( statement-tokens[ bracket_position ] ) ne /cc4a/if_abap_analyzer=>bracket_type-opening and
+       is_bracket( statement-tokens[ bracket_position ] ) ne /cc4a/if_abap_analyzer=>bracket_type-closing.
+      raise exception new /cc4a/cx_token_is_no_bracket( ).
     endif.
 
     data(bracket_counter) = 1.
-    loop at statement-tokens assigning field-symbol(<token>) from bracket_position.
-      data(next_token) = value #( statement-tokens[ sy-tabix + 1 ] optional ).
-      data(next_token_bracket_type) = is_bracket( token = next_token ).
-      case next_token_bracket_type.
+    loop at statement-tokens assigning field-symbol(<token>) from bracket_position + 1.
+      data(idx) = sy-tabix.
+      case is_bracket( <token> ).
         when /cc4a/if_abap_analyzer=>bracket_type-opening.
           bracket_counter += 1.
-        when /cc4a/if_abap_analyzer=>bracket_type-closing or /cc4a/if_abap_analyzer=>bracket_type-clopening.
+
+        when /cc4a/if_abap_analyzer=>bracket_type-closing.
           if bracket_counter eq 1.
-            end_of_bracket = sy-tabix + 1.
+            end_of_bracket = idx.
             exit.
-          else.
-            if next_token_bracket_type = /cc4a/if_abap_analyzer=>bracket_type-closing.
-              bracket_counter = bracket_counter - 1.
-            endif.
+          endif.
+          bracket_counter -= 1.
+
+        when /cc4a/if_abap_analyzer=>bracket_type-clopening.
+          if bracket_counter eq 1.
+            end_of_bracket = idx.
+            exit.
           endif.
       endcase.
     endloop.
@@ -119,7 +125,7 @@ CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
 
   method /cc4a/if_abap_analyzer~find_key_words.
     position = -1.
-    loop at statement-tokens assigning field-symbol(<token>) where lexeme eq key_words[ 1 ] and references is initial.
+    loop at statement-tokens transporting no fields where lexeme eq key_words[ 1 ] and references is initial.
       data(token_index) = sy-tabix.
       if lines( key_words ) eq 1.
         position = token_index.
@@ -147,16 +153,14 @@ CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
         when '(' then switch #(
           first_char
             when ')' then /cc4a/if_abap_analyzer=>bracket_type-clopening
-            else /cc4a/if_abap_analyzer=>bracket_type-opening
-        )
-        else /cc4a/if_abap_analyzer=>bracket_type-no_bracket
-    ).
+            else /cc4a/if_abap_analyzer=>bracket_type-opening )
+        else /cc4a/if_abap_analyzer=>bracket_type-no_bracket ).
   endmethod.
 
 
   method /cc4a/if_abap_analyzer~negate_comparison_operator.
-    if not /cc4a/if_abap_analyzer~token_is_comparison_operator( token = value #( lexeme = comparison_operator ) ).
-      raise exception type /cc4a/cx_token_is_no_operator.
+    if not /cc4a/if_abap_analyzer~token_is_comparison_operator( value #( lexeme = comparison_operator ) ).
+      raise exception new /cc4a/cx_token_is_no_operator( ).
     endif.
     negated_comparison_operator = negations[ operator = comparison_operator ]-negated.
   endmethod.
@@ -176,7 +180,7 @@ CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
     if clauses is initial or clauses[ 1 ] is initial.
       raise exception type /cc4a/cx_clause_is_initial.
     endif.
-    loop at tokens assigning field-symbol(<token>) from start_index
+    loop at tokens transporting no fields from start_index
       where references is initial
       and lexeme = clauses[ 1 ].
       token_index = sy-tabix.
@@ -208,8 +212,6 @@ CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
 
 
   method is_db_statement.
-    data token_idx type i.
-
     case statement-keyword.
       when 'SELECT' or 'WITH' or 'DELETE' or 'UPDATE' or 'INSERT' or 'MODIFY' or 'READ' or 'LOOP'
       or 'IMPORT' or 'EXPORT' or 'FETCH' or 'OPEN' or 'EXEC'.
@@ -219,7 +221,6 @@ CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
                    or statement-keyword = 'INSERT'
                    or statement-keyword = 'MODIFY' ) ).
           result-is_db = abap_true.
-          "check_dbtab = abap_false.
           if get_dbtab_name = abap_false.
             return.
           endif.
@@ -227,7 +228,7 @@ CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
       when others.
         return.
     endcase.
-    token_idx = 2.
+    data(token_idx) = 2.
     while lines( statement-tokens ) > token_idx and statement-tokens[ token_idx ]-lexeme cp '%_*('
     and statement-tokens[ token_idx ]-references is initial.
       token_idx += 3.
@@ -237,10 +238,10 @@ CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
        start_idx = token_idx
        analyzer = me
        include_subqueries = include_subqueries ).
-    result = analyzer->analyze(  ).
+    result = analyzer->analyze( ).
 
   endmethod.
-  
+
   method create.
     instance = new /cc4a/abap_analyzer( ).
 

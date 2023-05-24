@@ -31,11 +31,32 @@ class /cc4a/test_prefer_is_not definition
     data x type i.
     data obj type ref to object.
     data int_tab type range of i.
-endclass.
+ENDCLASS.
 
 
 
-class /cc4a/test_prefer_is_not implementation.
+CLASS /CC4A/TEST_PREFER_IS_NOT IMPLEMENTATION.
+
+
+  method chained_method_call.
+    if not get_tester( )->check( 2 ).
+    endif.
+  endmethod.
+
+
+  method getbool.
+
+  endmethod.
+
+
+  method getint.
+
+  endmethod.
+
+
+  method get_tester.
+
+  endmethod.
 
 
   method without_brackets.
@@ -155,23 +176,4 @@ class /cc4a/test_prefer_is_not implementation.
     assert not ( 1 <> 2 ).                           "#EC PREFER_IS_NOT
 
   endmethod.
-
-  method chained_method_call.
-    if not get_tester( )->check( 2 ).
-    endif.
-  endmethod.
-
-  method getint.
-
-  endmethod.
-
-
-  method getbool.
-
-  endmethod.
-  method get_tester.
-
-  endmethod.
-
-
-endclass.
+ENDCLASS.

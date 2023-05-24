@@ -39,11 +39,35 @@ class /cc4a/test_avoid_self_ref definition
       exporting number4        type i
                 string4        type string
       returning value(string5) type string.
-endclass.
+ENDCLASS.
 
 
 
-class /cc4a/test_avoid_self_ref implementation.
+CLASS /CC4A/TEST_AVOID_SELF_REF IMPLEMENTATION.
+
+
+  method exporting_parameter.
+    data(string) = me->string1.
+    final(second_string) = me->string2.
+    final(string3) = me->string3.
+    data(number1) = me->number1.
+    data(struct) = me->struct-comp.
+    struct = me->struct-comp.
+  endmethod.
+
+
+  method importing_parameter.
+    data(string1) = me->string1.
+    final(string) = me->string2.
+    final(string3) = me->string3.
+    data(number) = me->number1.
+    data(structure) = me->struct-comp.
+    structure = me->struct-comp.
+    structure = struct-comp.
+    assign me->(string4) to field-symbol(<test>).
+    assign me->(string5) to field-symbol(<test2>).
+  endmethod.
+
 
   method without_pseudo_comments.
     data number1 type i.
@@ -70,6 +94,7 @@ class /cc4a/test_avoid_self_ref implementation.
     me->with_pseudo_comments( number = number2 string = string5 ).
   endmethod.
 
+
   method with_pseudo_comments.
     data number1 type i.
     data number4 type i.
@@ -95,26 +120,4 @@ class /cc4a/test_avoid_self_ref implementation.
     me->with_pseudo_comments( number = number2 string = string5 ). "#EC SELF_REF
 
   endmethod.
-
-  method exporting_parameter.
-    data(string) = me->string1.
-    final(second_string) = me->string2.
-    final(string3) = me->string3.
-    data(number1) = me->number1.
-    data(struct) = me->struct-comp.
-    struct = me->struct-comp.
-  endmethod.
-
-  method importing_parameter.
-    data(string1) = me->string1.
-    final(string) = me->string2.
-    final(string3) = me->string3.
-    data(number) = me->number1.
-    data(structure) = me->struct-comp.
-    structure = me->struct-comp.
-    structure = struct-comp.
-    assign me->(string4) to field-symbol(<test>).
-    assign me->(string5) to field-symbol(<test2>).
-  endmethod.
-
-endclass.
+ENDCLASS.

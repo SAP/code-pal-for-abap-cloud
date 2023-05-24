@@ -17,23 +17,29 @@ class test implementation.
   method execute_test_class.
 
     data(without_pseudo_comment_1) = value if_ci_atc_check=>ty_location(
-          object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-without_pseudo_comments ) )
+          object   = cl_ci_atc_unit_driver=>get_method_object(
+            value #( class = test_class method = test_class_methods-without_pseudo_comments ) )
           position = value #( line = 2 column = 4 ) ).
     data(without_pseudo_comment_2) = value if_ci_atc_check=>ty_location(
-        object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-without_pseudo_comments ) )
+        object   = cl_ci_atc_unit_driver=>get_method_object(
+          value #( class = test_class method = test_class_methods-without_pseudo_comments ) )
         position = value #( line = 10 column = 8 ) ).
     data(without_pseudo_comment_3) = value if_ci_atc_check=>ty_location(
-        object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-without_pseudo_comments ) )
+        object   = cl_ci_atc_unit_driver=>get_method_object(
+          value #( class = test_class method = test_class_methods-without_pseudo_comments ) )
         position = value #( line = 18 column = 10 ) ).
 
     data(with_pseudo_comment_1) = value if_ci_atc_check=>ty_location(
-          object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-with_pseudo_comments ) )
+          object   = cl_ci_atc_unit_driver=>get_method_object(
+            value #( class = test_class method = test_class_methods-with_pseudo_comments ) )
           position = value #( line = 2 column = 4 ) ).
     data(with_pseudo_comment_2) = value if_ci_atc_check=>ty_location(
-        object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-with_pseudo_comments ) )
+        object   = cl_ci_atc_unit_driver=>get_method_object(
+          value #( class = test_class method = test_class_methods-with_pseudo_comments ) )
         position = value #( line = 10 column = 8 ) ).
     data(with_pseudo_comment_3) = value if_ci_atc_check=>ty_location(
-        object   = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = test_class_methods-with_pseudo_comments ) )
+        object   = cl_ci_atc_unit_driver=>get_method_object(
+          value #( class = test_class method = test_class_methods-with_pseudo_comments ) )
         position = value #( line = 18 column = 10 ) ).
 
     cl_ci_atc_unit_driver=>create_asserter( )->check_and_assert(

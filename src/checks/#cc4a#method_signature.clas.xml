@@ -5,7 +5,7 @@
    <VSEOCLASS>
     <CLSNAME>/CC4A/METHOD_SIGNATURE</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>Message Easy To Find</DESCRIPT>
+    <DESCRIPT>Message Signature</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>
@@ -16,19 +16,13 @@
     <item>
      <ID>I</ID>
      <KEY>DS1</KEY>
-     <ENTRY>Number Output Parameters of Method not 1</ENTRY>
+     <ENTRY>Number Output Parameters of Method</ENTRY>
      <LENGTH>132</LENGTH>
     </item>
     <item>
      <ID>I</ID>
      <KEY>PC1</KEY>
      <ENTRY>Number Output Parameters of Method not 1</ENTRY>
-     <LENGTH>132</LENGTH>
-    </item>
-    <item>
-     <ID>I</ID>
-     <KEY>QF1</KEY>
-     <ENTRY>Replace MESSAGE ID variable by MESSAGE ID with resolved Message Class as string literal</ENTRY>
      <LENGTH>132</LENGTH>
     </item>
    </TPOOL>

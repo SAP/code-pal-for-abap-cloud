@@ -1,19 +1,45 @@
-class /cc4a/test_method_signature definition
-  public
-  final
-  create public .
+CLASS /cc4a/test_method_signature DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
 
-  public section.
+  PUBLIC SECTION.
 
-  protected section.
+  PROTECTED SECTION.
+
+  PRIVATE SECTION.
+    METHODS multi_ouput_params_1
+      EXPORTING param1        TYPE c
+      CHANGING  param2        TYPE c
+      RETURNING VALUE(result) TYPE string.
+
+    METHODS multi_ouput_params_2
+      EXPORTING param1        TYPE c
+                param2        TYPE c
+      CHANGING  param3        TYPE c
+      RETURNING VALUE(result) TYPE string.
+
+    METHODS multi_ouput_params_3
+      EXPORTING param1        TYPE c
+      CHANGING  param2        TYPE c
+      RETURNING VALUE(result) TYPE string.           "#EC PARAMETER_OUT
+
+ENDCLASS.
 
 
-  private section.
 
-endclass.
+CLASS /cc4a/test_method_signature IMPLEMENTATION.
 
+  METHOD multi_ouput_params_1.
+    "only signature is relevant for test
+  ENDMETHOD.
 
+  METHOD multi_ouput_params_2.
+    "only signature is relevant for test
+  ENDMETHOD.
 
-class /cc4a/test_method_signature implementation.
+  METHOD multi_ouput_params_3.
+    "only signature is relevant for test
+  ENDMETHOD.
 
-endclass.
+ENDCLASS.

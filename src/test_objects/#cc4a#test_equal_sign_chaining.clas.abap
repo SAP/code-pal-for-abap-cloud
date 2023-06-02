@@ -9,11 +9,14 @@ CLASS /cc4a/test_equal_sign_chaining DEFINITION
     METHODS finding_2.
     METHODS finding_3.
     METHODS finding_4.
+protected section.
+private section.
 ENDCLASS.
 
 
 
-CLASS /cc4a/test_equal_sign_chaining IMPLEMENTATION.
+CLASS /CC4A/TEST_EQUAL_SIGN_CHAINING IMPLEMENTATION.
+
 
   METHOD finding_1.
     DATA:
@@ -26,6 +29,7 @@ CLASS /cc4a/test_equal_sign_chaining IMPLEMENTATION.
     " Space needed because of bug
   ENDMETHOD.
 
+
   METHOD finding_2.
     DATA:
       a TYPE string,
@@ -33,6 +37,7 @@ CLASS /cc4a/test_equal_sign_chaining IMPLEMENTATION.
       c TYPE string.
     a = b = CONV #( c ).
   ENDMETHOD.
+
 
   METHOD finding_3.
     DATA:
@@ -45,6 +50,7 @@ CLASS /cc4a/test_equal_sign_chaining IMPLEMENTATION.
     " Space needed because of bug
   ENDMETHOD.
 
+
   METHOD finding_4.
     DATA:
       a TYPE string,
@@ -54,49 +60,4 @@ CLASS /cc4a/test_equal_sign_chaining IMPLEMENTATION.
       a = b = c.
     " Space needed because of bug
   ENDMETHOD.
-
 ENDCLASS.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

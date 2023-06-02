@@ -1,0 +1,10 @@
+{
+  "formatVersion": "1",
+  "header": {
+    "description": "Chained declarations",
+    "originalLanguage": "en",
+    "abapLanguageVersion": "cloudDevelopment"
+  },
+  "category": "/CC4A/CODE_PAL",
+  "implementingClass": "/CC4A/CHAIN_DECLARATION"
+}

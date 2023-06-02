@@ -1,0 +1,10 @@
+{
+  "formatVersion": "1",
+  "header": {
+    "description": "Avoid using TEST-SEAM",
+    "originalLanguage": "en"
+  },
+  "category": "/CC4A/CODE_PAL",
+  "implementingClass": "/CC4A/AVOID_TEST_SEAM",
+  "checkType": "remoteEnabled"
+}

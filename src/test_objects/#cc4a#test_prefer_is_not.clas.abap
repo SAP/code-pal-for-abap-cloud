@@ -15,7 +15,7 @@ class /cc4a/test_prefer_is_not definition
     methods without_brackets.
     methods with_brackets.
     methods with_pseudo_comments.
-
+    methods chained_method_call.
 
 
     methods getint
@@ -25,15 +25,40 @@ class /cc4a/test_prefer_is_not definition
     methods getbool
       importing true        type abap_bool optional
       returning value(bool) type abap_bool.
+    methods get_tester
+      returning value(tester) type ref to tester.
 
     data x type i.
     data obj type ref to object.
     data int_tab type range of i.
-endclass.
+ENDCLASS.
 
 
 
-class /cc4a/test_prefer_is_not implementation.
+CLASS /CC4A/TEST_PREFER_IS_NOT IMPLEMENTATION.
+
+
+  method chained_method_call.
+    if not get_tester( )->check( 2 ).
+    endif.
+  endmethod.
+
+
+  method getbool.
+
+  endmethod.
+
+
+  method getint.
+
+  endmethod.
+
+
+  method get_tester.
+
+  endmethod.
+
+
   method without_brackets.
 
     assert not getint( ) = getbool( ).
@@ -72,6 +97,7 @@ class /cc4a/test_prefer_is_not implementation.
     if not getbool( ).
     endif.
   endmethod.
+
 
   method with_brackets.
 
@@ -116,6 +142,7 @@ class /cc4a/test_prefer_is_not implementation.
 
   endmethod.
 
+
   method with_pseudo_comments.
 
     assert not getint( ) = getbool( ).               "#EC PREFER_IS_NOT
@@ -149,13 +176,4 @@ class /cc4a/test_prefer_is_not implementation.
     assert not ( 1 <> 2 ).                           "#EC PREFER_IS_NOT
 
   endmethod.
-
-  method getint.
-
-  endmethod.
-
-  method getbool.
-
-  endmethod.
-
-endclass.
+ENDCLASS.

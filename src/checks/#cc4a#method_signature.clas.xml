@@ -22,19 +22,19 @@
     <item>
      <ID>I</ID>
      <KEY>PC1</KEY>
-     <ENTRY>Use just one sort of output parameter type for each method</ENTRY>
+     <ENTRY>More than one output parameter type for method found</ENTRY>
      <LENGTH>132</LENGTH>
     </item>
     <item>
      <ID>I</ID>
      <KEY>PC2</KEY>
-     <ENTRY>Use just one output parameter for each method</ENTRY>
+     <ENTRY>More than one output parameter for method found</ENTRY>
      <LENGTH>132</LENGTH>
     </item>
     <item>
      <ID>I</ID>
      <KEY>PC3</KEY>
-     <ENTRY>Splitting the method may simplify its code and provide a better description for the consumer</ENTRY>
+     <ENTRY>BOOL type as importing parameter for method found</ENTRY>
      <LENGTH>132</LENGTH>
     </item>
    </TPOOL>

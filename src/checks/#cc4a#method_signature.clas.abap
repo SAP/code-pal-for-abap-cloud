@@ -49,7 +49,7 @@ ENDCLASS.
 
 
 
-CLASS /cc4a/method_signature IMPLEMENTATION.
+CLASS /CC4A/METHOD_SIGNATURE IMPLEMENTATION.
 
 
   METHOD if_ci_atc_check~get_meta_data.
@@ -92,6 +92,7 @@ CLASS /cc4a/method_signature IMPLEMENTATION.
   METHOD if_ci_atc_check~verify_prerequisites.
 
   ENDMETHOD.
+
 
   METHOD analyze_procedure.
     LOOP AT procedure-statements ASSIGNING FIELD-SYMBOL(<statement>)
@@ -166,6 +167,7 @@ CLASS /cc4a/method_signature IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD is_setter_method.
     result = xsdbool( method_name CS 'SET_' ).
   ENDMETHOD.
@@ -176,5 +178,4 @@ CLASS /cc4a/method_signature IMPLEMENTATION.
                       ( `\TY:ABAP_BOOLEAN` )
                     ).
   ENDMETHOD.
-
 ENDCLASS.

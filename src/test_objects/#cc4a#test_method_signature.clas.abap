@@ -3,7 +3,10 @@ CLASS /cc4a/test_method_signature DEFINITION
   FINAL
   CREATE PUBLIC .
 
-  PUBLIC SECTION.
+  PUBLIC SECTION.                                    "#EC INTF_IN_CLASS
+    INTERFACES /cc4a/test_method_signature_if.
+
+    METHODS public_inst_not_interface_meth.
 
   PROTECTED SECTION.
 
@@ -47,6 +50,9 @@ CLASS /cc4a/test_method_signature DEFINITION
       EXPORTING param1 TYPE c
                 param2 TYPE c.                     "#EC NUM_OUTPUT_PARA
 
+    METHODS single_export_param
+      EXPORTING param1 TYPE abap_bool.
+
     METHODS input_param_bool_1
       IMPORTING param1 TYPE abap_bool.
 
@@ -60,6 +66,18 @@ CLASS /cc4a/test_method_signature DEFINITION
 
     METHODS input_param_bool_4
       IMPORTING param1 TYPE abap_bool.                  "#EC BOOL_PARAM
+
+    METHODS set_param
+      IMPORTING param TYPE abap_bool.
+
+    METHODS do_one_or_the_other
+      IMPORTING what_i_need    TYPE string OPTIONAL
+                something_else TYPE i OPTIONAL.
+
+    METHODS do_one_or_the_other_prag
+      IMPORTING
+        what_i_need    TYPE string OPTIONAL
+        something_else TYPE i OPTIONAL.                 "#EC OPTL_PARAM
 
 ENDCLASS.
 
@@ -112,6 +130,30 @@ CLASS /cc4a/test_method_signature IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD input_param_bool_4.
+    "only signature is relevant for this test
+  ENDMETHOD.
+
+  METHOD do_one_or_the_other.
+    "only signature is relevant for this test
+  ENDMETHOD.
+
+  METHOD do_one_or_the_other_prag.
+    "only signature is relevant for this test
+  ENDMETHOD.
+
+  METHOD set_param.
+    "only signature is relevant for this test
+  ENDMETHOD.
+
+  METHOD public_inst_not_interface_meth.
+    "only signature is relevant for this test
+  ENDMETHOD.
+
+  METHOD /cc4a/test_method_signature_if~public_inst_interface_meth.
+    "only signature is relevant for this test
+  ENDMETHOD.
+
+  METHOD single_export_param.
     "only signature is relevant for this test
   ENDMETHOD.
 

@@ -22,19 +22,43 @@
     <item>
      <ID>I</ID>
      <KEY>PC1</KEY>
-     <ENTRY>More than one output parameter type for method found</ENTRY>
+     <ENTRY>Method with more than one output parameter type</ENTRY>
      <LENGTH>132</LENGTH>
     </item>
     <item>
      <ID>I</ID>
      <KEY>PC2</KEY>
-     <ENTRY>More than one output parameter for method found</ENTRY>
+     <ENTRY>Method with more than one output parameter</ENTRY>
      <LENGTH>132</LENGTH>
     </item>
     <item>
      <ID>I</ID>
      <KEY>PC3</KEY>
-     <ENTRY>BOOL type as importing parameter for method found</ENTRY>
+     <ENTRY>Method with boolean type as importing parameter</ENTRY>
+     <LENGTH>132</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>PC4</KEY>
+     <ENTRY>Method with optional importing parameter</ENTRY>
+     <LENGTH>132</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>PC5</KEY>
+     <ENTRY>Public instance method which is not part of an interface</ENTRY>
+     <LENGTH>132</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>PC6</KEY>
+     <ENTRY>Method with one exporting parameter</ENTRY>
+     <LENGTH>132</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>PC7</KEY>
+     <ENTRY>Returning Parameter of method not named RESULT</ENTRY>
      <LENGTH>132</LENGTH>
     </item>
    </TPOOL>

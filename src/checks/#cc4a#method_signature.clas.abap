@@ -73,60 +73,6 @@ ENDCLASS.
 CLASS /cc4a/method_signature IMPLEMENTATION.
 
 
-  METHOD if_ci_atc_check~get_meta_data.
-    meta_data = /cc4a/check_meta_data=>create( VALUE #( checked_types     = /cc4a/check_meta_data=>checked_types-abap_programs
-                                                        description       = TEXT-ds1
-                                                        finding_codes     = VALUE #( ( code           = message_codes-method_sig_param_out_type
-                                                                                       pseudo_comment = pseudo_comments-method_sig_param_out_type
-                                                                                       text           = TEXT-pc1 )
-                                                                                     ( code           = message_codes-method_sig_param_out_num
-                                                                                       pseudo_comment = pseudo_comments-method_sig_param_out_num
-                                                                                       text           = TEXT-pc2 )
-                                                                                     ( code           = message_codes-method_sig_param_in_bool
-                                                                                       pseudo_comment = pseudo_comments-method_sig_param_in_bool
-                                                                                       text           = TEXT-pc3 )
-                                                                                     ( code           = message_codes-method_sig_param_in_opt
-                                                                                       pseudo_comment = pseudo_comments-method_sig_param_in_opt
-                                                                                       text           = TEXT-pc4 )
-                                                                                     ( code           = message_codes-method_sig_interface_missing
-                                                                                       pseudo_comment = pseudo_comments-method_sig_interface_missing
-                                                                                       text           = TEXT-pc5 )
-                                                                                     ( code           = message_codes-method_sig_single_exp
-                                                                                       pseudo_comment = pseudo_comments-method_sig_single_exp
-                                                                                       text           = TEXT-pc6 )
-                                                                                     ( code           = message_codes-method_sig_ret_not_result
-                                                                                       pseudo_comment = pseudo_comments-method_sig_ret_not_result
-                                                                                       text           = TEXT-pc7 )
-                                                                                   )
-                                                        remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
-                                                       )
-                                             ).
-  ENDMETHOD.
-
-
-  METHOD if_ci_atc_check~run.
-    suspicious_bool_types = get_suspicious_bool_types(  ).
-    code_provider = data_provider->get_code_provider( ).
-    procedures    = code_provider->get_procedures( EXPORTING compilation_unit = code_provider->object_to_comp_unit( object = object ) ).
-
-    LOOP AT procedures->* ASSIGNING FIELD-SYMBOL(<procedure>)
-                          WHERE id-kind = if_ci_atc_source_code_provider=>procedure_kinds-class_definition.
-      INSERT LINES OF analyze_procedure( <procedure> ) INTO TABLE findings.
-    ENDLOOP.
-
-  ENDMETHOD.
-
-
-  METHOD if_ci_atc_check~set_assistant_factory.
-    assistant_factory = factory.
-  ENDMETHOD.
-
-
-  METHOD if_ci_atc_check~verify_prerequisites.
-
-  ENDMETHOD.
-
-
   METHOD analyze_procedure.
     DATA statement_in_section TYPE string.
     LOOP AT procedure-statements ASSIGNING FIELD-SYMBOL(<statement>).
@@ -157,7 +103,6 @@ CLASS /cc4a/method_signature IMPLEMENTATION.
   METHOD analyze_statement.
     DATA(nr_of_output_param_types) = 0.
     DATA(nr_of_output_params) = 0.
-    DATA(nr_of_output_params_total) = 0.
     DATA(has_suspicious_imp_bool) = abap_false.
     DATA(has_optional_imp) = abap_false.
     DATA(nr_of_export_params) = 0.
@@ -171,10 +116,6 @@ CLASS /cc4a/method_signature IMPLEMENTATION.
              'CHANGING' OR
              'RETURNING'.
           DATA(is_output_param) = abap_true.
-          "reset number of
-          nr_of_output_params_total += nr_of_output_params.
-          nr_of_output_params = 0.
-          nr_of_output_param_types += 1.
 
           DATA(is_exporting_param) = COND #( WHEN <token>-lexeme = 'EXPORTING'
                                                THEN abap_true
@@ -184,6 +125,8 @@ CLASS /cc4a/method_signature IMPLEMENTATION.
                                                THEN abap_true
                                              ELSE abap_false
                                            ).
+          nr_of_output_param_types += 1.
+
         WHEN 'IMPORTING'.
           is_output_param = abap_false.
 
@@ -191,6 +134,7 @@ CLASS /cc4a/method_signature IMPLEMENTATION.
           nr_of_output_params = COND #( WHEN is_output_param = abap_true
                                           THEN nr_of_output_params + 1
                                         ELSE nr_of_output_params ).
+
           nr_of_export_params = COND #( WHEN is_exporting_param = abap_true
                                           THEN nr_of_export_params + 1
                                         ELSE nr_of_export_params ).
@@ -267,27 +211,77 @@ CLASS /cc4a/method_signature IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD is_setter_method.
-    result = xsdbool( method_name CS 'SET_' ).
-  ENDMETHOD.
-
-
   METHOD get_suspicious_bool_types.
     result = VALUE #( ( `\TY:ABAP_BOOL` )
                       ( `\TY:ABAP_BOOLEAN` )
                     ).
   ENDMETHOD.
 
-  METHOD is_constructor.
-    result = COND #( WHEN VALUE #( statement-tokens[ 2 ]-lexeme OPTIONAL ) = 'CONSTRUCTOR'
+
+  METHOD if_ci_atc_check~get_meta_data.
+    meta_data = /cc4a/check_meta_data=>create( VALUE #( checked_types     = /cc4a/check_meta_data=>checked_types-abap_programs
+                                                        description       = TEXT-ds1
+                                                        finding_codes     = VALUE #( ( code           = message_codes-method_sig_param_out_type
+                                                                                       pseudo_comment = pseudo_comments-method_sig_param_out_type
+                                                                                       text           = TEXT-pc1 )
+                                                                                     ( code           = message_codes-method_sig_param_out_num
+                                                                                       pseudo_comment = pseudo_comments-method_sig_param_out_num
+                                                                                       text           = TEXT-pc2 )
+                                                                                     ( code           = message_codes-method_sig_param_in_bool
+                                                                                       pseudo_comment = pseudo_comments-method_sig_param_in_bool
+                                                                                       text           = TEXT-pc3 )
+                                                                                     ( code           = message_codes-method_sig_param_in_opt
+                                                                                       pseudo_comment = pseudo_comments-method_sig_param_in_opt
+                                                                                       text           = TEXT-pc4 )
+                                                                                     ( code           = message_codes-method_sig_interface_missing
+                                                                                       pseudo_comment = pseudo_comments-method_sig_interface_missing
+                                                                                       text           = TEXT-pc5 )
+                                                                                     ( code           = message_codes-method_sig_single_exp
+                                                                                       pseudo_comment = pseudo_comments-method_sig_single_exp
+                                                                                       text           = TEXT-pc6 )
+                                                                                     ( code           = message_codes-method_sig_ret_not_result
+                                                                                       pseudo_comment = pseudo_comments-method_sig_ret_not_result
+                                                                                       text           = TEXT-pc7 )
+                                                                                   )
+                                                        remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
+                                                       )
+                                             ).
+  ENDMETHOD.
+
+
+  METHOD if_ci_atc_check~run.
+    suspicious_bool_types = get_suspicious_bool_types(  ).
+    code_provider = data_provider->get_code_provider( ).
+    procedures    = code_provider->get_procedures( EXPORTING compilation_unit = code_provider->object_to_comp_unit( object = object ) ).
+
+    LOOP AT procedures->* ASSIGNING FIELD-SYMBOL(<procedure>)
+                          WHERE id-kind = if_ci_atc_source_code_provider=>procedure_kinds-class_definition.
+      INSERT LINES OF analyze_procedure( <procedure> ) INTO TABLE findings.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD if_ci_atc_check~set_assistant_factory.
+    assistant_factory = factory.
+  ENDMETHOD.
+
+
+  METHOD if_ci_atc_check~verify_prerequisites.
+
+  ENDMETHOD.
+
+
+  METHOD is_abstract.
+    result = COND #( WHEN VALUE #( statement-tokens[ 3 ]-lexeme OPTIONAL ) = 'ABSTRACT'
                        THEN abap_true
                      ELSE abap_false
                    ).
   ENDMETHOD.
 
 
-  METHOD is_abstract.
-    result = COND #( WHEN VALUE #( statement-tokens[ 3 ]-lexeme OPTIONAL ) = 'ABSTRACT'
+  METHOD is_constructor.
+    result = COND #( WHEN VALUE #( statement-tokens[ 2 ]-lexeme OPTIONAL ) = 'CONSTRUCTOR'
                        THEN abap_true
                      ELSE abap_false
                    ).
@@ -302,6 +296,11 @@ CLASS /cc4a/method_signature IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD is_setter_method.
+    result = xsdbool( method_name CS 'SET_' ).
+  ENDMETHOD.
+
+
   METHOD is_testmethod.
     result = COND #( WHEN VALUE #( statement-tokens[ 3 ]-lexeme OPTIONAL ) = 'FOR' AND
                           VALUE #( statement-tokens[ 4 ]-lexeme OPTIONAL ) = 'TESTING'
@@ -309,5 +308,4 @@ CLASS /cc4a/method_signature IMPLEMENTATION.
                      ELSE abap_false
                    ).
   ENDMETHOD.
-
 ENDCLASS.

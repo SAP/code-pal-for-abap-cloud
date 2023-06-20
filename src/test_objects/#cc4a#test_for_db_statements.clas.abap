@@ -16,36 +16,6 @@ ENDCLASS.
 CLASS /CC4A/TEST_FOR_DB_STATEMENTS IMPLEMENTATION.
 
 
-  METHOD no_db.
-    DATA: itab    TYPE TABLE OF /cc4a/db_test1,
-          entry   TYPE /cc4a/db_test1,
-          include TYPE TABLE OF string,
-*          texts   TYPE TABLE OF textpool,
-*          report  TYPE t100,
-          where   TYPE string,
-          itab2   TYPE TABLE OF /cc4a/db_test1.
-
-    INSERT entry INTO TABLE itab.
-    LOOP AT itab INTO entry.
-      INSERT entry INTO itab.
-    ENDLOOP.
-    DELETE itab INDEX 1.
-*    MODIFY CURRENT LINE.
-*    INSERT REPORT sy-repid FROM include.
-*    DELETE REPORT sy-repid.
-    DELETE ADJACENT DUPLICATES FROM itab.
-*    INSERT TEXTPOOL sy-repid LANGUAGE sy-langu FROM texts.
-*    DELETE TEXTPOOL sy-repid LANGUAGE sy-langu.
-    DELETE TABLE itab FROM entry.
-    DELETE itab FROM 5.
-    DELETE itab TO 7.
-    DELETE itab WHERE pgmid = 'R3TR'.
-    DELETE itab WHERE (where).
-    INSERT entry INTO TABLE itab.
-    INSERT entry INTO itab INDEX 5.
-  ENDMETHOD.
-
-
   METHOD dyn.
     CONSTANTS c_name TYPE tabname VALUE '/CC4A/DB_TEST2'.
     DATA: itab   TYPE TABLE OF i,
@@ -143,5 +113,35 @@ CLASS /CC4A/TEST_FOR_DB_STATEMENTS IMPLEMENTATION.
              ORDER BY name, connection
              INTO TABLE @DATA(result).
 
+  ENDMETHOD.
+
+
+  METHOD no_db.
+    DATA: itab    TYPE TABLE OF /cc4a/db_test1,
+          entry   TYPE /cc4a/db_test1,
+          include TYPE TABLE OF string,
+*          texts   TYPE TABLE OF textpool,
+*          report  TYPE t100,
+          where   TYPE string,
+          itab2   TYPE TABLE OF /cc4a/db_test1.
+
+    INSERT entry INTO TABLE itab.
+    LOOP AT itab INTO entry.
+      INSERT entry INTO itab.
+    ENDLOOP.
+    DELETE itab INDEX 1.
+*    MODIFY CURRENT LINE.
+*    INSERT REPORT sy-repid FROM include.
+*    DELETE REPORT sy-repid.
+    DELETE ADJACENT DUPLICATES FROM itab.
+*    INSERT TEXTPOOL sy-repid LANGUAGE sy-langu FROM texts.
+*    DELETE TEXTPOOL sy-repid LANGUAGE sy-langu.
+    DELETE TABLE itab FROM entry.
+    DELETE itab FROM 5.
+    DELETE itab TO 7.
+    DELETE itab WHERE pgmid = 'R3TR'.
+    DELETE itab WHERE (where).
+    INSERT entry INTO TABLE itab.
+    INSERT entry INTO itab INDEX 5.
   ENDMETHOD.
 ENDCLASS.

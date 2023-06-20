@@ -17,18 +17,20 @@ ENDCLASS.
 
 
 
-CLASS /cc4a/test_method_signature_2 IMPLEMENTATION.
+CLASS /CC4A/TEST_METHOD_SIGNATURE_2 IMPLEMENTATION.
 
-  METHOD public_inst_no_interface_meth1.
-    "only signature is relevant for this test
-  ENDMETHOD.
 
   METHOD priv_inst_not_interface_meth.
     "only signature is relevant for this test
   ENDMETHOD.
 
-  METHOD public_inst_no_interface_meth3.
+
+  METHOD public_inst_no_interface_meth1.
     "only signature is relevant for this test
   ENDMETHOD.
 
+
+  METHOD public_inst_no_interface_meth3.
+    "only signature is relevant for this test
+  ENDMETHOD.
 ENDCLASS.

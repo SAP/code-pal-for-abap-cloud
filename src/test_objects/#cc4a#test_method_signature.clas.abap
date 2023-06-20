@@ -64,6 +64,9 @@ CLASS /cc4a/test_method_signature DEFINITION
       IMPORTING param1        TYPE abap_bool
       RETURNING VALUE(result) TYPE string.
 
+    METHODS get_result
+      RETURNING VALUE(not_result) TYPE string.
+
     METHODS input_param_bool_4
       IMPORTING param1 TYPE abap_bool.                  "#EC BOOL_PARAM
 
@@ -85,75 +88,97 @@ ENDCLASS.
 
 CLASS /cc4a/test_method_signature IMPLEMENTATION.
 
+
   METHOD multi_ouput_params_types_1.
     "only signature is relevant for this test
   ENDMETHOD.
+
 
   METHOD multi_ouput_params_types_2.
     "only signature is relevant for this test
   ENDMETHOD.
 
+
   METHOD multi_ouput_params_types_3.
     "only signature is relevant for this test
   ENDMETHOD.
+
 
   METHOD multi_ouput_params_1.
     "only signature is relevant for this test
   ENDMETHOD.
 
+
   METHOD multi_ouput_params_2.
     "only signature is relevant for this test
   ENDMETHOD.
+
 
   METHOD multi_ouput_params_3.
     "only signature is relevant for this test
   ENDMETHOD.
 
+
   METHOD multi_ouput_params_4.
     "only signature is relevant for this test
   ENDMETHOD.
+
 
   METHOD multi_ouput_params_5.
     "only signature is relevant for this test
   ENDMETHOD.
 
+
   METHOD input_param_bool_1.
     "only signature is relevant for this test
   ENDMETHOD.
+
 
   METHOD input_param_bool_2.
     "only signature is relevant for this test
   ENDMETHOD.
 
+
   METHOD input_param_bool_3.
     "only signature is relevant for this test
   ENDMETHOD.
+
 
   METHOD input_param_bool_4.
     "only signature is relevant for this test
   ENDMETHOD.
 
+
   METHOD do_one_or_the_other.
     "only signature is relevant for this test
   ENDMETHOD.
+
 
   METHOD do_one_or_the_other_prag.
     "only signature is relevant for this test
   ENDMETHOD.
 
+
   METHOD set_param.
     "only signature is relevant for this test
   ENDMETHOD.
+
 
   METHOD public_inst_not_interface_meth.
     "only signature is relevant for this test
   ENDMETHOD.
 
+
   METHOD /cc4a/test_method_signature_if~public_inst_interface_meth.
     "only signature is relevant for this test
   ENDMETHOD.
 
+
   METHOD single_export_param.
+    "only signature is relevant for this test
+  ENDMETHOD.
+
+  METHOD get_result.
     "only signature is relevant for this test
   ENDMETHOD.
 

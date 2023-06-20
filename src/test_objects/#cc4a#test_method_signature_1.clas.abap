@@ -21,30 +21,35 @@ ENDCLASS.
 
 
 
-CLASS /cc4a/test_method_signature_1 IMPLEMENTATION.
+CLASS /CC4A/TEST_METHOD_SIGNATURE_1 IMPLEMENTATION.
 
-  METHOD public_inst_no_interface_meth2.
-    "only signature is relevant for this test
-  ENDMETHOD.
 
   METHOD /cc4a/test_method_signature_if~public_inst_interface_meth.
     "only signature is relevant for this test
   ENDMETHOD.
 
-  METHOD priv_inst_not_interface_meth.
-    "only signature is relevant for this test
-  ENDMETHOD.
-
-  METHOD prot_inst_not_interface_meth.
-    "only signature is relevant for this test
-  ENDMETHOD.
 
   METHOD constructor.
     "only signature is relevant for this test
   ENDMETHOD.
 
-  METHOD public_stat_no_interface_meth.
+
+  METHOD priv_inst_not_interface_meth.
     "only signature is relevant for this test
   ENDMETHOD.
 
+
+  METHOD prot_inst_not_interface_meth.
+    "only signature is relevant for this test
+  ENDMETHOD.
+
+
+  METHOD public_inst_no_interface_meth2.
+    "only signature is relevant for this test
+  ENDMETHOD.
+
+
+  METHOD public_stat_no_interface_meth.
+    "only signature is relevant for this test
+  ENDMETHOD.
 ENDCLASS.

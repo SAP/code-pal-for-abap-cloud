@@ -3,71 +3,71 @@ CLASS /cc4a/method_signature DEFINITION
   FINAL
   CREATE PUBLIC .
 
-  PUBLIC SECTION.
-    INTERFACES if_ci_atc_check.
+  public section.
+    interfaces if_ci_atc_check.
 
-    CONSTANTS:
-      BEGIN OF message_codes,
-        method_sig_param_out_type    TYPE if_ci_atc_check=>ty_finding_code VALUE 'METH_SIGN1',
-        method_sig_param_out_num     TYPE if_ci_atc_check=>ty_finding_code VALUE 'METH_SIGN2',
-        method_sig_param_in_bool     TYPE if_ci_atc_check=>ty_finding_code VALUE 'METH_SIGN3',
-        method_sig_param_in_opt      TYPE if_ci_atc_check=>ty_finding_code VALUE 'METH_SIGN4',
-        method_sig_interface_missing TYPE if_ci_atc_check=>ty_finding_code VALUE 'METH_SIGN5',
-        method_sig_single_exp        TYPE if_ci_atc_check=>ty_finding_code VALUE 'METH_SIGN6',
-        method_sig_ret_not_result    TYPE if_ci_atc_check=>ty_finding_code VALUE 'METH_SIGN7',
-      END OF   message_codes.
-    CONSTANTS:
-      BEGIN OF pseudo_comments,
-        method_sig_param_out_type    TYPE string VALUE 'PARAMETER_OUT',
-        method_sig_param_out_num     TYPE string VALUE 'NUM_OUTPUT_PARA',
-        method_sig_param_in_bool     TYPE string VALUE 'BOOL_PARAM',
-        method_sig_param_in_opt      TYPE string VALUE 'OPTL_PARAM',
-        method_sig_interface_missing TYPE string VALUE 'INTF_IN_CLASS',
-        method_sig_single_exp        TYPE string VALUE 'PREFER_RET',
-        method_sig_ret_not_result    TYPE string VALUE 'RET_NAME',
-      END OF   pseudo_comments.
-    CONSTANTS:
-      c_methods       TYPE string VALUE 'METHODS',
-      c_interface     TYPE string VALUE 'INTERFACE',
-      c_interface_end TYPE string VALUE 'ENDINTERFACE'.
+    constants:
+      begin of message_codes,
+        method_sig_param_out_type    type if_ci_atc_check=>ty_finding_code value 'METH_SIGN1',
+        method_sig_param_out_num     type if_ci_atc_check=>ty_finding_code value 'METH_SIGN2',
+        method_sig_param_in_bool     type if_ci_atc_check=>ty_finding_code value 'METH_SIGN3',
+        method_sig_param_in_opt      type if_ci_atc_check=>ty_finding_code value 'METH_SIGN4',
+        method_sig_interface_missing type if_ci_atc_check=>ty_finding_code value 'METH_SIGN5',
+        method_sig_single_exp        type if_ci_atc_check=>ty_finding_code value 'METH_SIGN6',
+        method_sig_ret_not_result    type if_ci_atc_check=>ty_finding_code value 'METH_SIGN7',
+      end of   message_codes.
+    constants:
+      begin of pseudo_comments,
+        method_sig_param_out_type    type string value 'PARAMETER_OUT',
+        method_sig_param_out_num     type string value 'NUM_OUTPUT_PARA',
+        method_sig_param_in_bool     type string value 'BOOL_PARAM',
+        method_sig_param_in_opt      type string value 'OPTL_PARAM',
+        method_sig_interface_missing type string value 'INTF_IN_CLASS',
+        method_sig_single_exp        type string value 'PREFER_RET',
+        method_sig_ret_not_result    type string value 'RET_NAME',
+      end of   pseudo_comments.
+    constants:
+      c_methods       type string value 'METHODS',
+      c_interface     type string value 'INTERFACE',
+      c_interface_end type string value 'ENDINTERFACE'.
 
-  PROTECTED SECTION.
+  protected section.
 
-  PRIVATE SECTION.
-    TYPES:
-      BEGIN OF qf_data,
-        replacement              TYPE if_ci_atc_quickfix=>ty_code,
-        insert_after             TYPE if_ci_atc_quickfix=>ty_code,
-        token_tabix_last_eq_sign TYPE i,
-      END OF qf_data.
+  private section.
+    types:
+      begin of qf_data,
+        replacement              type if_ci_atc_quickfix=>ty_code,
+        insert_after             type if_ci_atc_quickfix=>ty_code,
+        token_tabix_last_eq_sign type i,
+      end of qf_data.
 
-    DATA code_provider     TYPE REF TO if_ci_atc_source_code_provider.
-    DATA procedures        TYPE REF TO if_ci_atc_source_code_provider=>ty_procedures.
-    DATA assistant_factory TYPE REF TO cl_ci_atc_assistant_factory.
-    DATA suspicious_bool_types TYPE STANDARD TABLE OF if_ci_atc_source_code_provider=>ty_full_name WITH KEY table_line.
+    data code_provider     type ref to if_ci_atc_source_code_provider.
+    data procedures        type ref to if_ci_atc_source_code_provider=>ty_procedures.
+    data assistant_factory type ref to cl_ci_atc_assistant_factory.
+    data suspicious_bool_types type standard table of if_ci_atc_source_code_provider=>ty_full_name with key table_line.
 
-    METHODS analyze_procedure IMPORTING procedure     TYPE if_ci_atc_source_code_provider=>ty_procedure
-                              RETURNING VALUE(result) TYPE if_ci_atc_check=>ty_findings.
+    methods analyze_procedure importing procedure     type if_ci_atc_source_code_provider=>ty_procedure
+                              returning value(result) type if_ci_atc_check=>ty_findings.
 
-    METHODS analyze_statement IMPORTING statement     TYPE if_ci_atc_source_code_provider=>ty_statement
-                              RETURNING VALUE(result) TYPE if_ci_atc_check=>ty_findings.
+    methods analyze_statement importing statement     type if_ci_atc_source_code_provider=>ty_statement
+                              returning value(result) type if_ci_atc_check=>ty_findings.
 
-    METHODS is_setter_method IMPORTING method_name   TYPE string
-                             RETURNING VALUE(result) TYPE abap_bool.
+    methods is_setter_method importing method_name   type string
+                             returning value(result) type abap_bool.
 
-    METHODS get_suspicious_bool_types RETURNING VALUE(result) LIKE suspicious_bool_types.
+    methods get_suspicious_bool_types returning value(result) like suspicious_bool_types.
 
-    METHODS is_constructor IMPORTING statement     TYPE if_ci_atc_source_code_provider=>ty_statement
-                           RETURNING VALUE(result) TYPE abap_bool.
+    methods is_constructor importing statement     type if_ci_atc_source_code_provider=>ty_statement
+                           returning value(result) type abap_bool.
 
-    METHODS is_abstract IMPORTING statement     TYPE if_ci_atc_source_code_provider=>ty_statement
-                        RETURNING VALUE(result) TYPE abap_bool.
+    methods is_abstract importing statement     type if_ci_atc_source_code_provider=>ty_statement
+                        returning value(result) type abap_bool.
 
-    METHODS is_redefinition IMPORTING statement     TYPE if_ci_atc_source_code_provider=>ty_statement
-                            RETURNING VALUE(result) TYPE abap_bool.
+    methods is_redefinition importing statement     type if_ci_atc_source_code_provider=>ty_statement
+                            returning value(result) type abap_bool.
 
-    METHODS is_testmethod IMPORTING statement     TYPE if_ci_atc_source_code_provider=>ty_statement
-                          RETURNING VALUE(result) TYPE abap_bool.
+    methods is_testmethod importing statement     type if_ci_atc_source_code_provider=>ty_statement
+                          returning value(result) type abap_bool.
 ENDCLASS.
 
 
@@ -75,244 +75,235 @@ ENDCLASS.
 CLASS /cc4a/method_signature IMPLEMENTATION.
 
 
-  METHOD analyze_procedure.
-    DATA statement_in_section TYPE string.
-    LOOP AT procedure-statements ASSIGNING FIELD-SYMBOL(<statement>).
-      CASE <statement>-keyword.
-        WHEN c_interface.
-          DATA(is_inteface_section) = abap_true.
-        WHEN c_interface_end.
+  method analyze_procedure.
+    data statement_in_section type string.
+    loop at procedure-statements assigning field-symbol(<statement>).
+      case <statement>-keyword.
+        when c_interface.
+          data(is_inteface_section) = abap_true.
+        when c_interface_end.
           is_inteface_section = abap_false.
-        WHEN c_methods.
-          IF statement_in_section = 'PUBLIC' AND
-             is_constructor( <statement> ) = abap_false AND
-             is_abstract( <statement> ) = abap_false AND
-             is_redefinition( <statement> ) = abap_false AND
+        when c_methods.
+          if statement_in_section = 'PUBLIC' and
+             is_constructor( <statement> ) = abap_false and
+             is_abstract( <statement> ) = abap_false and
+             is_redefinition( <statement> ) = abap_false and
              is_testmethod( <statement> ) = abap_false and
              is_inteface_section = abap_false. "not within an Interface section
-            INSERT VALUE #( code               = message_codes-method_sig_interface_missing
+            insert value #( code               = message_codes-method_sig_interface_missing
                             location           = code_provider->get_statement_location( <statement> )
                             checksum           = code_provider->get_statement_checksum( <statement> )
-                            has_pseudo_comment = xsdbool( line_exists( <statement>-pseudo_comments[ table_line = pseudo_comments-method_sig_interface_missing ] ) ) ) INTO TABLE result.
-          ENDIF.
-          INSERT LINES OF analyze_statement( statement = <statement>
-                                           ) INTO TABLE result.
-        WHEN 'PUBLIC' OR
-             'PROTECTED' OR
+                            has_pseudo_comment = xsdbool( line_exists( <statement>-pseudo_comments[ table_line = pseudo_comments-method_sig_interface_missing ] ) ) ) into table result.
+          endif.
+          insert lines of analyze_statement( <statement>
+                                           ) into table result.
+        when 'PUBLIC' or
+             'PROTECTED' or
              'PRIVATE'.
           statement_in_section = <statement>-keyword.
-      ENDCASE.
-    ENDLOOP.
+      endcase.
+    endloop.
 
-  ENDMETHOD.
+  endmethod.
 
 
-  METHOD analyze_statement.
-    DATA(nr_of_output_param_types) = 0.
-    DATA(nr_of_output_params) = 0.
-    DATA(has_suspicious_imp_bool) = abap_false.
-    DATA(has_optional_imp) = abap_false.
-    DATA(nr_of_export_params) = 0.
+  method analyze_statement.
+    data(nr_of_output_param_types) = 0.
+    data(nr_of_output_params) = 0.
+    data(has_suspicious_imp_bool) = abap_false.
+    data(has_optional_imp) = abap_false.
+    data(nr_of_export_params) = 0.
 
     "at this point - statement is Method Definition --> therefore 2nd token bears method name
-    DATA(method_name_token) = VALUE #( statement-tokens[ 2 ] OPTIONAL ).
-    DATA(method_is_setter) = is_setter_method( method_name_token-lexeme ).
-    LOOP AT statement-tokens ASSIGNING FIELD-SYMBOL(<token>).
-      CASE <token>-lexeme.
-        WHEN 'EXPORTING' OR
-             'CHANGING' OR
+    data(method_name_token) = value #( statement-tokens[ 2 ] optional ).
+    data(method_is_setter) = is_setter_method( method_name_token-lexeme ).
+    loop at statement-tokens assigning field-symbol(<token>).
+      case <token>-lexeme.
+        when 'EXPORTING' or
+             'CHANGING' or
              'RETURNING'.
-          DATA(is_output_param) = abap_true.
+          data(is_output_param) = abap_true.
 
-          DATA(is_exporting_param) = COND #( WHEN <token>-lexeme = 'EXPORTING'
-                                               THEN abap_true
-                                             ELSE abap_false
-                                           ).
-          DATA(is_returning_param) = COND #( WHEN <token>-lexeme = 'RETURNING'
-                                               THEN abap_true
-                                             ELSE abap_false
-                                           ).
+          data(is_exporting_param) = cond #( when <token>-lexeme = 'EXPORTING'
+                                               then abap_true
+                                             else abap_false ).
+          data(is_returning_param) = cond #( when <token>-lexeme = 'RETURNING'
+                                               then abap_true
+                                             else abap_false ).
           nr_of_output_param_types += 1.
 
-        WHEN 'IMPORTING'.
+        when 'IMPORTING'.
           is_output_param = abap_false.
 
-        WHEN 'TYPE'.
-          nr_of_output_params = COND #( WHEN is_output_param = abap_true
-                                          THEN nr_of_output_params + 1
-                                        ELSE nr_of_output_params ).
+        when 'TYPE'.
+          nr_of_output_params = cond #( when is_output_param = abap_true
+                                          then nr_of_output_params + 1
+                                        else nr_of_output_params ).
 
-          nr_of_export_params = COND #( WHEN is_exporting_param = abap_true
-                                          THEN nr_of_export_params + 1
-                                        ELSE nr_of_export_params ).
-          IF is_output_param = abap_false.
+          nr_of_export_params = cond #( when is_exporting_param = abap_true
+                                          then nr_of_export_params + 1
+                                        else nr_of_export_params ).
+          if is_output_param = abap_false.
             "check next token as after type the actual type follows
-            DATA(importing_type_token) = VALUE #( statement-tokens[ sy-tabix + 1 ] OPTIONAL ).
+            data(importing_type_token) = value #( statement-tokens[ sy-tabix + 1 ] optional ).
             "now check if type is in suspicious bool
-            has_suspicious_imp_bool = COND #( WHEN has_suspicious_imp_bool = abap_true
-                                                THEN abap_true
-                                              ELSE xsdbool( line_exists( suspicious_bool_types[ table_line = importing_type_token-references[ 1 ]-full_name ] ) )
-                                            ).
-          ENDIF.
-          IF is_returning_param = abap_true.
-            DATA(returning_name_token) = VALUE #( statement-tokens[ sy-tabix - 1 ] OPTIONAL ).
-            IF returning_name_token-lexeme <> 'VALUE(RESULT)'.
-              DATA(ret_value_name_not_result) = abap_true.
-            ENDIF.
-          ENDIF.
+            has_suspicious_imp_bool = cond #( when has_suspicious_imp_bool = abap_true
+                                                then abap_true
+                                              else xsdbool( line_exists( suspicious_bool_types[ table_line = importing_type_token-references[ 1 ]-full_name ] ) ) ).
+          endif.
+          if is_returning_param = abap_true.
+            data(returning_name_token) = value #( statement-tokens[ sy-tabix - 1 ] optional ).
+            if returning_name_token-lexeme <> 'VALUE(RESULT)'.
+              data(ret_value_name_not_result) = abap_true.
+            endif.
+          endif.
 
-          CLEAR is_exporting_param.
-          CLEAR importing_type_token.
+          clear is_exporting_param.
+          clear importing_type_token.
 
-        WHEN 'OPTIONAL'.
-          IF is_output_param = abap_false.
+        when 'OPTIONAL'.
+          if is_output_param = abap_false.
             has_optional_imp = abap_true.
-          ENDIF.
+          endif.
 
-        WHEN OTHERS.
+        when others.
 
-      ENDCASE.
-    ENDLOOP.
-    IF nr_of_output_param_types > 1.
-      INSERT VALUE #( code               = message_codes-method_sig_param_out_type
+      endcase.
+    endloop.
+    if nr_of_output_param_types > 1.
+      insert value #( code               = message_codes-method_sig_param_out_type
                       location           = code_provider->get_statement_location( statement )
                       checksum           = code_provider->get_statement_checksum( statement )
-                      has_pseudo_comment = xsdbool( line_exists( statement-pseudo_comments[ table_line = pseudo_comments-method_sig_param_out_type ] ) ) ) INTO TABLE result.
-    ENDIF.
-    IF nr_of_output_params > 1.
-      INSERT VALUE #( code               = message_codes-method_sig_param_out_num
+                      has_pseudo_comment = xsdbool( line_exists( statement-pseudo_comments[ table_line = pseudo_comments-method_sig_param_out_type ] ) ) ) into table result.
+    endif.
+    if nr_of_output_params > 1.
+      insert value #( code               = message_codes-method_sig_param_out_num
                       location           = code_provider->get_statement_location( statement )
                       checksum           = code_provider->get_statement_checksum( statement )
-                      has_pseudo_comment = xsdbool( line_exists( statement-pseudo_comments[ table_line = pseudo_comments-method_sig_param_out_num ] ) ) ) INTO TABLE result.
-    ENDIF.
-    IF has_suspicious_imp_bool = abap_true AND
+                      has_pseudo_comment = xsdbool( line_exists( statement-pseudo_comments[ table_line = pseudo_comments-method_sig_param_out_num ] ) ) ) into table result.
+    endif.
+    if has_suspicious_imp_bool = abap_true and
        method_is_setter = abap_false.
-      INSERT VALUE #( code               = message_codes-method_sig_param_in_bool
+      insert value #( code               = message_codes-method_sig_param_in_bool
                       location           = code_provider->get_statement_location( statement )
                       checksum           = code_provider->get_statement_checksum( statement )
-                      has_pseudo_comment = xsdbool( line_exists( statement-pseudo_comments[ table_line = pseudo_comments-method_sig_param_in_bool ] ) ) ) INTO TABLE result.
-    ENDIF.
+                      has_pseudo_comment = xsdbool( line_exists( statement-pseudo_comments[ table_line = pseudo_comments-method_sig_param_in_bool ] ) ) ) into table result.
+    endif.
 
-    IF has_optional_imp = abap_true.
-      INSERT VALUE #( code               = message_codes-method_sig_param_in_opt
+    if has_optional_imp = abap_true.
+      insert value #( code               = message_codes-method_sig_param_in_opt
                       location           = code_provider->get_statement_location( statement )
                       checksum           = code_provider->get_statement_checksum( statement )
-                      has_pseudo_comment = xsdbool( line_exists( statement-pseudo_comments[ table_line = pseudo_comments-method_sig_param_in_opt ] ) ) ) INTO TABLE result.
-    ENDIF.
+                      has_pseudo_comment = xsdbool( line_exists( statement-pseudo_comments[ table_line = pseudo_comments-method_sig_param_in_opt ] ) ) ) into table result.
+    endif.
 
-    IF nr_of_export_params = 1 AND
+    if nr_of_export_params = 1 and
        nr_of_output_params = 1. "in this case only one exporting param
-      INSERT VALUE #( code               = message_codes-method_sig_single_exp
+      insert value #( code               = message_codes-method_sig_single_exp
                       location           = code_provider->get_statement_location( statement )
                       checksum           = code_provider->get_statement_checksum( statement )
-                      has_pseudo_comment = xsdbool( line_exists( statement-pseudo_comments[ table_line = pseudo_comments-method_sig_single_exp ] ) ) ) INTO TABLE result.
-    ENDIF.
+                      has_pseudo_comment = xsdbool( line_exists( statement-pseudo_comments[ table_line = pseudo_comments-method_sig_single_exp ] ) ) ) into table result.
+    endif.
 
-    IF ret_value_name_not_result = abap_true.
-      INSERT VALUE #( code               = message_codes-method_sig_ret_not_result
+    if ret_value_name_not_result = abap_true.
+      insert value #( code               = message_codes-method_sig_ret_not_result
                       location           = code_provider->get_statement_location( statement )
                       checksum           = code_provider->get_statement_checksum( statement )
-                      has_pseudo_comment = xsdbool( line_exists( statement-pseudo_comments[ table_line = pseudo_comments-method_sig_ret_not_result ] ) ) ) INTO TABLE result.
-    ENDIF.
+                      has_pseudo_comment = xsdbool( line_exists( statement-pseudo_comments[ table_line = pseudo_comments-method_sig_ret_not_result ] ) ) ) into table result.
+    endif.
 
-  ENDMETHOD.
-
-
-  METHOD get_suspicious_bool_types.
-    result = VALUE #( ( `\TY:ABAP_BOOL` )
-                      ( `\TY:ABAP_BOOLEAN` )
-                    ).
-  ENDMETHOD.
+  endmethod.
 
 
-  METHOD if_ci_atc_check~get_meta_data.
-    meta_data = /cc4a/check_meta_data=>create( VALUE #( checked_types     = /cc4a/check_meta_data=>checked_types-abap_programs
-                                                        description       = TEXT-ds1
-                                                        finding_codes     = VALUE #( ( code           = message_codes-method_sig_param_out_type
+  method get_suspicious_bool_types.
+    result = value #( ( `\TY:ABAP_BOOL` )
+                      ( `\TY:ABAP_BOOLEAN` ) ).
+  endmethod.
+
+
+  method if_ci_atc_check~get_meta_data.
+    meta_data = /cc4a/check_meta_data=>create( value #( checked_types     = /cc4a/check_meta_data=>checked_types-abap_programs
+                                                        description       = text-ds1
+                                                        finding_codes     = value #( ( code           = message_codes-method_sig_param_out_type
                                                                                        pseudo_comment = pseudo_comments-method_sig_param_out_type
-                                                                                       text           = TEXT-pc1 )
+                                                                                       text           = text-pc1 )
                                                                                      ( code           = message_codes-method_sig_param_out_num
                                                                                        pseudo_comment = pseudo_comments-method_sig_param_out_num
-                                                                                       text           = TEXT-pc2 )
+                                                                                       text           = text-pc2 )
                                                                                      ( code           = message_codes-method_sig_param_in_bool
                                                                                        pseudo_comment = pseudo_comments-method_sig_param_in_bool
-                                                                                       text           = TEXT-pc3 )
+                                                                                       text           = text-pc3 )
                                                                                      ( code           = message_codes-method_sig_param_in_opt
                                                                                        pseudo_comment = pseudo_comments-method_sig_param_in_opt
-                                                                                       text           = TEXT-pc4 )
+                                                                                       text           = text-pc4 )
                                                                                      ( code           = message_codes-method_sig_interface_missing
                                                                                        pseudo_comment = pseudo_comments-method_sig_interface_missing
-                                                                                       text           = TEXT-pc5 )
+                                                                                       text           = text-pc5 )
                                                                                      ( code           = message_codes-method_sig_single_exp
                                                                                        pseudo_comment = pseudo_comments-method_sig_single_exp
-                                                                                       text           = TEXT-pc6 )
+                                                                                       text           = text-pc6 )
                                                                                      ( code           = message_codes-method_sig_ret_not_result
                                                                                        pseudo_comment = pseudo_comments-method_sig_ret_not_result
-                                                                                       text           = TEXT-pc7 )
+                                                                                       text           = text-pc7 )
                                                                                    )
                                                         remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
-                                                       )
-                                             ).
-  ENDMETHOD.
+                                                       ) ).
+  endmethod.
 
 
-  METHOD if_ci_atc_check~run.
-    suspicious_bool_types = get_suspicious_bool_types(  ).
+  method if_ci_atc_check~run.
+    suspicious_bool_types = get_suspicious_bool_types( ).
     code_provider = data_provider->get_code_provider( ).
-    procedures    = code_provider->get_procedures( EXPORTING compilation_unit = code_provider->object_to_comp_unit( object = object ) ).
+    procedures    = code_provider->get_procedures( code_provider->object_to_comp_unit( object = object ) ).
 
-    LOOP AT procedures->* ASSIGNING FIELD-SYMBOL(<procedure>)
-                          WHERE id-kind = if_ci_atc_source_code_provider=>procedure_kinds-class_definition.
-      INSERT LINES OF analyze_procedure( <procedure> ) INTO TABLE findings.
-    ENDLOOP.
+    loop at procedures->* assigning field-symbol(<procedure>)
+                          where id-kind = if_ci_atc_source_code_provider=>procedure_kinds-class_definition.
+      insert lines of analyze_procedure( <procedure> ) into table findings.
+    endloop.
 
-  ENDMETHOD.
+  endmethod.
 
 
-  METHOD if_ci_atc_check~set_assistant_factory.
+  method if_ci_atc_check~set_assistant_factory.
     assistant_factory = factory.
-  ENDMETHOD.
+  endmethod.
 
 
-  METHOD if_ci_atc_check~verify_prerequisites.
+  method if_ci_atc_check~verify_prerequisites.
 
-  ENDMETHOD.
-
-
-  METHOD is_abstract.
-    result = COND #( WHEN VALUE #( statement-tokens[ 3 ]-lexeme OPTIONAL ) = 'ABSTRACT'
-                       THEN abap_true
-                     ELSE abap_false
-                   ).
-  ENDMETHOD.
+  endmethod.
 
 
-  METHOD is_constructor.
-    result = COND #( WHEN VALUE #( statement-tokens[ 2 ]-lexeme OPTIONAL ) = 'CONSTRUCTOR'
-                       THEN abap_true
-                     ELSE abap_false
-                   ).
-  ENDMETHOD.
+  method is_abstract.
+    result = cond #( when value #( statement-tokens[ 3 ]-lexeme optional ) = 'ABSTRACT'
+                       then abap_true
+                     else abap_false ).
+  endmethod.
 
 
-  METHOD is_redefinition.
-    result = COND #( WHEN VALUE #( statement-tokens[ 3 ]-lexeme OPTIONAL ) = 'REDEFINITION'
-                       THEN abap_true
-                     ELSE abap_false
-                   ).
-  ENDMETHOD.
+  method is_constructor.
+    result = cond #( when value #( statement-tokens[ 2 ]-lexeme optional ) = 'CONSTRUCTOR'
+                       then abap_true
+                     else abap_false ).
+  endmethod.
 
 
-  METHOD is_setter_method.
-    result = xsdbool( method_name CS 'SET_' ).
-  ENDMETHOD.
+  method is_redefinition.
+    result = cond #( when value #( statement-tokens[ 3 ]-lexeme optional ) = 'REDEFINITION'
+                       then abap_true
+                     else abap_false ).
+  endmethod.
 
 
-  METHOD is_testmethod.
-    result = COND #( WHEN VALUE #( statement-tokens[ 3 ]-lexeme OPTIONAL ) = 'FOR' AND
-                          VALUE #( statement-tokens[ 4 ]-lexeme OPTIONAL ) = 'TESTING'
-                       THEN abap_true
-                     ELSE abap_false
-                   ).
-  ENDMETHOD.
+  method is_setter_method.
+    result = xsdbool( method_name cs 'SET_' ).
+  endmethod.
+
+
+  method is_testmethod.
+    result = cond #( when value #( statement-tokens[ 3 ]-lexeme optional ) = 'FOR' and
+                          value #( statement-tokens[ 4 ]-lexeme optional ) = 'TESTING'
+                       then abap_true
+                     else abap_false ).
+  endmethod.
 ENDCLASS.

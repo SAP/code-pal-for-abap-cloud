@@ -1,117 +1,117 @@
-CLASS test DEFINITION FINAL FOR TESTING
-  DURATION SHORT
-  RISK LEVEL HARMLESS.
+class test definition final for testing
+  duration short
+  risk level harmless.
 
-  PRIVATE SECTION.
+  private section.
 
-    CONSTANTS:
-      BEGIN OF co_test_object,
-        object_type TYPE if_ci_atc_check=>ty_object-type VALUE 'CLAS',
-        object_name TYPE if_ci_atc_check=>ty_object-name VALUE '/CC4A/TEST_METHOD_SIGNATURE',
-      END OF co_test_object,
-      BEGIN OF co_test_method_name,
-        finding_1  TYPE cl_ci_atc_unit_driver=>ty_method_name VALUE 'PUBLIC_INST_NOT_INTERFACE_METH',
-        finding_2  TYPE cl_ci_atc_unit_driver=>ty_method_name VALUE 'MULTI_OUPUT_PARAMS_TYPES_1',
-        finding_3  TYPE cl_ci_atc_unit_driver=>ty_method_name VALUE 'MULTI_OUPUT_PARAMS_TYPES_1',
-        finding_4  TYPE cl_ci_atc_unit_driver=>ty_method_name VALUE 'MULTI_OUPUT_PARAMS_TYPES_2',
-        finding_5  TYPE cl_ci_atc_unit_driver=>ty_method_name VALUE 'MULTI_OUPUT_PARAMS_TYPES_2',
-        finding_6  TYPE cl_ci_atc_unit_driver=>ty_method_name VALUE 'MULTI_OUPUT_PARAMS_TYPES_3',
-        finding_7  TYPE cl_ci_atc_unit_driver=>ty_method_name VALUE 'MULTI_OUPUT_PARAMS_1',
-        finding_8  TYPE cl_ci_atc_unit_driver=>ty_method_name VALUE 'MULTI_OUPUT_PARAMS_2',
-        finding_9  TYPE cl_ci_atc_unit_driver=>ty_method_name VALUE 'MULTI_OUPUT_PARAMS_3',
-        finding_10 TYPE cl_ci_atc_unit_driver=>ty_method_name VALUE 'MULTI_OUPUT_PARAMS_3',
-        finding_11 TYPE cl_ci_atc_unit_driver=>ty_method_name VALUE 'SINGLE_EXPORT_PARAM',
-        finding_12 TYPE cl_ci_atc_unit_driver=>ty_method_name VALUE 'INPUT_PARAM_BOOL_1',
-        finding_13 TYPE cl_ci_atc_unit_driver=>ty_method_name VALUE 'INPUT_PARAM_BOOL_2',
-        finding_14 TYPE cl_ci_atc_unit_driver=>ty_method_name VALUE 'INPUT_PARAM_BOOL_3',
-        finding_15 TYPE cl_ci_atc_unit_driver=>ty_method_name VALUE 'DO_ONE_OR_THE_OTHER',
-        finding_16 TYPE cl_ci_atc_unit_driver=>ty_method_name VALUE 'GET_RESULT',
-      END OF co_test_method_name.
+    constants:
+      begin of co_test_object,
+        object_type type if_ci_atc_check=>ty_object-type value 'CLAS',
+        object_name type if_ci_atc_check=>ty_object-name value '/CC4A/TEST_METHOD_SIGNATURE',
+      end of co_test_object,
+      begin of co_test_method_name,
+        finding_1  type cl_ci_atc_unit_driver=>ty_method_name value 'PUBLIC_INST_NOT_INTERFACE_METH',
+        finding_2  type cl_ci_atc_unit_driver=>ty_method_name value 'MULTI_OUPUT_PARAMS_TYPES_1',
+        finding_3  type cl_ci_atc_unit_driver=>ty_method_name value 'MULTI_OUPUT_PARAMS_TYPES_1',
+        finding_4  type cl_ci_atc_unit_driver=>ty_method_name value 'MULTI_OUPUT_PARAMS_TYPES_2',
+        finding_5  type cl_ci_atc_unit_driver=>ty_method_name value 'MULTI_OUPUT_PARAMS_TYPES_2',
+        finding_6  type cl_ci_atc_unit_driver=>ty_method_name value 'MULTI_OUPUT_PARAMS_TYPES_3',
+        finding_7  type cl_ci_atc_unit_driver=>ty_method_name value 'MULTI_OUPUT_PARAMS_1',
+        finding_8  type cl_ci_atc_unit_driver=>ty_method_name value 'MULTI_OUPUT_PARAMS_2',
+        finding_9  type cl_ci_atc_unit_driver=>ty_method_name value 'MULTI_OUPUT_PARAMS_3',
+        finding_10 type cl_ci_atc_unit_driver=>ty_method_name value 'MULTI_OUPUT_PARAMS_3',
+        finding_11 type cl_ci_atc_unit_driver=>ty_method_name value 'SINGLE_EXPORT_PARAM',
+        finding_12 type cl_ci_atc_unit_driver=>ty_method_name value 'INPUT_PARAM_BOOL_1',
+        finding_13 type cl_ci_atc_unit_driver=>ty_method_name value 'INPUT_PARAM_BOOL_2',
+        finding_14 type cl_ci_atc_unit_driver=>ty_method_name value 'INPUT_PARAM_BOOL_3',
+        finding_15 type cl_ci_atc_unit_driver=>ty_method_name value 'DO_ONE_OR_THE_OTHER',
+        finding_16 type cl_ci_atc_unit_driver=>ty_method_name value 'GET_RESULT',
+      end of co_test_method_name.
 
-    METHODS execute_test_class FOR TESTING RAISING cx_static_check.
-ENDCLASS.
+    methods execute_test_class for testing raising cx_static_check.
+endclass.
 
-CLASS test IMPLEMENTATION.
+class test implementation.
 
-  METHOD execute_test_class.
+  method execute_test_class.
     " Location of expected findings
-    FINAL(finding_2_sect_pub) = cl_ci_atc_unit_driver=>get_class_section_object(
-       VALUE #( class = co_test_object-object_name kind = cl_ci_atc_unit_driver=>class_section_kind-public ) ).
+    final(finding_2_sect_pub) = cl_ci_atc_unit_driver=>get_class_section_object(
+       value #( class = co_test_object-object_name kind = cl_ci_atc_unit_driver=>class_section_kind-public ) ).
 
-    FINAL(finding_2_sect_pri) = cl_ci_atc_unit_driver=>get_class_section_object(
-       VALUE #( class = co_test_object-object_name kind = cl_ci_atc_unit_driver=>class_section_kind-private ) ).
+    final(finding_2_sect_pri) = cl_ci_atc_unit_driver=>get_class_section_object(
+       value #( class = co_test_object-object_name kind = cl_ci_atc_unit_driver=>class_section_kind-private ) ).
 
-    FINAL(finding_1_loc) = VALUE if_ci_atc_check=>ty_location(
+    final(finding_1_loc) = value if_ci_atc_check=>ty_location(
        object = finding_2_sect_pub
-       position = VALUE #( line = 9 column = 4 ) ).
+       position = value #( line = 9 column = 4 ) ).
 
-    FINAL(finding_2_loc) = VALUE if_ci_atc_check=>ty_location(
+    final(finding_2_loc) = value if_ci_atc_check=>ty_location(
        object = finding_2_sect_pri
-       position = VALUE #( line = 2 column = 4 ) ).
+       position = value #( line = 2 column = 4 ) ).
 
-    FINAL(finding_3_loc) = VALUE if_ci_atc_check=>ty_location(
+    final(finding_3_loc) = value if_ci_atc_check=>ty_location(
        object = finding_2_sect_pri
-       position = VALUE #( line = 2 column = 4 ) ).
+       position = value #( line = 2 column = 4 ) ).
 
-    FINAL(finding_4_loc) = VALUE if_ci_atc_check=>ty_location(
+    final(finding_4_loc) = value if_ci_atc_check=>ty_location(
        object = finding_2_sect_pri
-       position = VALUE #( line = 7 column = 4 ) ).
+       position = value #( line = 7 column = 4 ) ).
 
-    FINAL(finding_5_loc) = VALUE if_ci_atc_check=>ty_location(
+    final(finding_5_loc) = value if_ci_atc_check=>ty_location(
        object = finding_2_sect_pri
-       position = VALUE #( line = 7 column = 4 ) ).
+       position = value #( line = 7 column = 4 ) ).
 
-    FINAL(finding_6_loc) = VALUE if_ci_atc_check=>ty_location(
+    final(finding_6_loc) = value if_ci_atc_check=>ty_location(
        object = finding_2_sect_pri
-       position = VALUE #( line = 13 column = 4 ) ).
+       position = value #( line = 13 column = 4 ) ).
 
-    FINAL(finding_7_loc) = VALUE if_ci_atc_check=>ty_location(
+    final(finding_7_loc) = value if_ci_atc_check=>ty_location(
        object = finding_2_sect_pri
-       position = VALUE #( line = 18 column = 4 ) ).
+       position = value #( line = 18 column = 4 ) ).
 
-    FINAL(finding_8_loc) = VALUE if_ci_atc_check=>ty_location(
+    final(finding_8_loc) = value if_ci_atc_check=>ty_location(
        object = finding_2_sect_pri
-       position = VALUE #( line = 22 column = 4 ) ).
+       position = value #( line = 22 column = 4 ) ).
 
-    FINAL(finding_9_loc) = VALUE if_ci_atc_check=>ty_location(
+    final(finding_9_loc) = value if_ci_atc_check=>ty_location(
        object = finding_2_sect_pri
-       position = VALUE #( line = 26 column = 4 ) ).
+       position = value #( line = 26 column = 4 ) ).
 
-    FINAL(finding_10_loc) = VALUE if_ci_atc_check=>ty_location(
+    final(finding_10_loc) = value if_ci_atc_check=>ty_location(
        object = finding_2_sect_pri
-       position = VALUE #( line = 26 column = 4 ) ).
+       position = value #( line = 26 column = 4 ) ).
 
-    FINAL(finding_11_loc) = VALUE if_ci_atc_check=>ty_location(
+    final(finding_11_loc) = value if_ci_atc_check=>ty_location(
        object = finding_2_sect_pri
-       position = VALUE #( line = 41 column = 4 ) ).
+       position = value #( line = 41 column = 4 ) ).
 
-    FINAL(finding_12_loc) = VALUE if_ci_atc_check=>ty_location(
+    final(finding_12_loc) = value if_ci_atc_check=>ty_location(
        object = finding_2_sect_pri
-       position = VALUE #( line = 44 column = 4 ) ).
+       position = value #( line = 44 column = 4 ) ).
 
-    FINAL(finding_13_loc) = VALUE if_ci_atc_check=>ty_location(
+    final(finding_13_loc) = value if_ci_atc_check=>ty_location(
        object = finding_2_sect_pri
-       position = VALUE #( line = 47 column = 4 ) ).
+       position = value #( line = 47 column = 4 ) ).
 
-    FINAL(finding_14_loc) = VALUE if_ci_atc_check=>ty_location(
+    final(finding_14_loc) = value if_ci_atc_check=>ty_location(
        object = finding_2_sect_pri
-       position = VALUE #( line = 51 column = 4 ) ).
+       position = value #( line = 51 column = 4 ) ).
 
-    FINAL(finding_15_loc) = VALUE if_ci_atc_check=>ty_location(
+    final(finding_15_loc) = value if_ci_atc_check=>ty_location(
        object = finding_2_sect_pri
-       position = VALUE #( line = 55 column = 4 ) ).
+       position = value #( line = 55 column = 4 ) ).
 
-    FINAL(finding_16_loc) = VALUE if_ci_atc_check=>ty_location(
+    final(finding_16_loc) = value if_ci_atc_check=>ty_location(
        object = finding_2_sect_pri
-       position = VALUE #( line = 64 column = 4 ) ).
+       position = value #( line = 64 column = 4 ) ).
 
     cl_ci_atc_unit_driver=>create_asserter( )->check_and_assert(
-      check             = NEW /cc4a/method_signature( )
-      object            = VALUE #( name = co_test_object-object_name
+      check             = new /cc4a/method_signature( )
+      object            = value #( name = co_test_object-object_name
                                    type = co_test_object-object_type )
-      asserter_config   = VALUE #( quickfixes                 = abap_false
+      asserter_config   = value #( quickfixes                 = abap_false
                                    remove_findings_with_pcoms = abap_true )
-      expected_findings = VALUE #( ( code       = /cc4a/method_signature=>message_codes-method_sig_interface_missing
+      expected_findings = value #( ( code       = /cc4a/method_signature=>message_codes-method_sig_interface_missing
                                      location   = finding_1_loc )
                                    ( code       = /cc4a/method_signature=>message_codes-method_sig_param_out_type
                                      location   = finding_2_loc )
@@ -145,6 +145,6 @@ CLASS test IMPLEMENTATION.
                                      location   = finding_16_loc )
                                  ) ).
 
-  ENDMETHOD.
+  endmethod.
 
-ENDCLASS.
+endclass.

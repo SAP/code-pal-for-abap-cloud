@@ -133,7 +133,8 @@
           "./src/checks/#cc4a#avoid_default_key.clas.testclasses.abap",
           "./src/checks/#cc4a#check_constant_interface.clas.testclasses.abap",
           "./src/checks/#cc4a#equals_sign_chaining.clas.testclasses.abap",
-          "./src/checks/#cc4a#chain_declaration.clas.testclasses.abap"
+          "./src/checks/#cc4a#chain_declaration.clas.testclasses.abap",
+          "./src/checks/#cc4a#method_signature.clas.testclasses.abap"
         ],
         "severity": "Error"
       },

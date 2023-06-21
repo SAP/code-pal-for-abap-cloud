@@ -27,7 +27,9 @@ CLASS /cc4a/method_signature DEFINITION
         method_sig_ret_not_result    TYPE string VALUE 'RET_NAME',
       END OF   pseudo_comments.
     CONSTANTS:
-        c_methods TYPE string VALUE 'METHODS'.
+      c_methods       TYPE string VALUE 'METHODS',
+      c_interface     TYPE string VALUE 'INTERFACE',
+      c_interface_end TYPE string VALUE 'ENDINTERFACE'.
 
   PROTECTED SECTION.
 
@@ -77,12 +79,17 @@ CLASS /cc4a/method_signature IMPLEMENTATION.
     DATA statement_in_section TYPE string.
     LOOP AT procedure-statements ASSIGNING FIELD-SYMBOL(<statement>).
       CASE <statement>-keyword.
+        WHEN c_interface.
+          DATA(is_inteface_section) = abap_true.
+        WHEN c_interface_end.
+          is_inteface_section = abap_false.
         WHEN c_methods.
           IF statement_in_section = 'PUBLIC' AND
              is_constructor( <statement> ) = abap_false AND
              is_abstract( <statement> ) = abap_false AND
              is_redefinition( <statement> ) = abap_false AND
-             is_testmethod( <statement> ) = abap_false.
+             is_testmethod( <statement> ) = abap_false and
+             is_inteface_section = abap_false. "not within an Interface section
             INSERT VALUE #( code               = message_codes-method_sig_interface_missing
                             location           = code_provider->get_statement_location( <statement> )
                             checksum           = code_provider->get_statement_checksum( <statement> )

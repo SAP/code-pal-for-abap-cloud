@@ -92,11 +92,10 @@ class /cc4a/method_signature implementation.
                             location           = code_provider->get_statement_location( <statement> )
                             checksum           = code_provider->get_statement_checksum( <statement> )
                             has_pseudo_comment = xsdbool( line_exists( <statement>-pseudo_comments[ table_line =
-                                                          pseudo_comments-method_sig_interface_missing ] )
-                                                        )
+                                                          pseudo_comments-method_sig_interface_missing ] ) )
                           ) into table result.
           endif.
-          insert lines of analyze_statement( statement = <statement> ) into table result.
+          insert lines of analyze_statement( <statement> ) into table result.
         when 'PUBLIC' or
              'PROTECTED' or
              'PRIVATE'.
@@ -260,11 +259,10 @@ class /cc4a/method_signature implementation.
   endmethod.
 
   method if_ci_atc_check~run.
-    suspicious_bool_types = get_suspicious_bool_types(  ).
+    suspicious_bool_types = get_suspicious_bool_types( ).
     code_provider = data_provider->get_code_provider( ).
-    procedures = code_provider->get_procedures(
-                                                compilation_unit = code_provider->object_to_comp_unit( object = object )
-                                              ).
+    procedures = code_provider->get_procedures( compilation_unit =
+                                code_provider->object_to_comp_unit( object = object ) ).
 
     loop at procedures->* assigning field-symbol(<procedure>)
                           where id-kind = if_ci_atc_source_code_provider=>procedure_kinds-class_definition.
@@ -279,7 +277,6 @@ class /cc4a/method_signature implementation.
 
 
   method if_ci_atc_check~verify_prerequisites.
-
   endmethod.
 
   method is_abstract.

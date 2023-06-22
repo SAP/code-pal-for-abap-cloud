@@ -34,13 +34,6 @@ class /cc4a/method_signature definition
   protected section.
 
   private section.
-    types:
-      begin of qf_data,
-        replacement              type if_ci_atc_quickfix=>ty_code,
-        insert_after             type if_ci_atc_quickfix=>ty_code,
-        token_tabix_last_eq_sign type i,
-      end of qf_data.
-
     data code_provider     type ref to if_ci_atc_source_code_provider.
     data procedures        type ref to if_ci_atc_source_code_provider=>ty_procedures.
     data assistant_factory type ref to cl_ci_atc_assistant_factory.
@@ -261,8 +254,7 @@ class /cc4a/method_signature implementation.
   method if_ci_atc_check~run.
     suspicious_bool_types = get_suspicious_bool_types( ).
     code_provider = data_provider->get_code_provider( ).
-    procedures = code_provider->get_procedures( compilation_unit =
-                                code_provider->object_to_comp_unit( object = object ) ).
+    procedures = code_provider->get_procedures( code_provider->object_to_comp_unit( object = object ) ).
 
     loop at procedures->* assigning field-symbol(<procedure>)
                           where id-kind = if_ci_atc_source_code_provider=>procedure_kinds-class_definition.

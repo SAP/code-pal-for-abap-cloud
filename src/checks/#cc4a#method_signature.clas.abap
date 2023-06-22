@@ -73,8 +73,6 @@ endclass.
 
 
 class /cc4a/method_signature implementation.
-
-
   method analyze_procedure.
     data statement_in_section type string.
     loop at procedure-statements assigning field-symbol(<statement>).
@@ -98,8 +96,7 @@ class /cc4a/method_signature implementation.
                                                         )
                           ) into table result.
           endif.
-          insert lines of analyze_statement( statement = <statement>
-                                           ) into table result.
+          insert lines of analyze_statement( statement = <statement> ) into table result.
         when 'PUBLIC' or
              'PROTECTED' or
              'PRIVATE'.
@@ -108,7 +105,6 @@ class /cc4a/method_signature implementation.
     endloop.
 
   endmethod.
-
 
   method analyze_statement.
     data(nr_of_output_param_types) = 0.
@@ -150,9 +146,7 @@ class /cc4a/method_signature implementation.
             has_suspicious_imp_bool = cond #( when has_suspicious_imp_bool = abap_true
                                                 then abap_true
                                               else xsdbool( line_exists( suspicious_bool_types[ table_line =
-                                                            importing_type_token-references[ 1 ]-full_name ] )
-                                                          )
-                                            ).
+                                                            importing_type_token-references[ 1 ]-full_name ] ) ) ).
           endif.
           if is_returning_param = abap_true.
             data(returning_name_token) = value #( statement-tokens[ sy-tabix - 1 ] optional ).
@@ -179,8 +173,7 @@ class /cc4a/method_signature implementation.
                       location           = code_provider->get_statement_location( statement )
                       checksum           = code_provider->get_statement_checksum( statement )
                       has_pseudo_comment = xsdbool( line_exists( statement-pseudo_comments[ table_line =
-                                                    pseudo_comments-method_sig_param_out_type ] )
-                                                  )
+                                                    pseudo_comments-method_sig_param_out_type ] ) )
                     ) into table result.
     endif.
     if nr_of_output_params > 1.
@@ -188,8 +181,7 @@ class /cc4a/method_signature implementation.
                       location           = code_provider->get_statement_location( statement )
                       checksum           = code_provider->get_statement_checksum( statement )
                       has_pseudo_comment = xsdbool( line_exists( statement-pseudo_comments[ table_line =
-                                                    pseudo_comments-method_sig_param_out_num ] )
-                                                  )
+                                                    pseudo_comments-method_sig_param_out_num ] ) )
                     ) into table result.
     endif.
     if has_suspicious_imp_bool = abap_true and
@@ -198,8 +190,7 @@ class /cc4a/method_signature implementation.
                       location           = code_provider->get_statement_location( statement )
                       checksum           = code_provider->get_statement_checksum( statement )
                       has_pseudo_comment = xsdbool( line_exists( statement-pseudo_comments[ table_line =
-                                                    pseudo_comments-method_sig_param_in_bool ] )
-                                                  )
+                                                    pseudo_comments-method_sig_param_in_bool ] ) )
                     ) into table result.
     endif.
 
@@ -208,8 +199,7 @@ class /cc4a/method_signature implementation.
                       location           = code_provider->get_statement_location( statement )
                       checksum           = code_provider->get_statement_checksum( statement )
                       has_pseudo_comment = xsdbool( line_exists( statement-pseudo_comments[ table_line =
-                                                    pseudo_comments-method_sig_param_in_opt ] )
-                                                  )
+                                                    pseudo_comments-method_sig_param_in_opt ] ) )
                     ) into table result.
     endif.
 
@@ -219,8 +209,7 @@ class /cc4a/method_signature implementation.
                       location           = code_provider->get_statement_location( statement )
                       checksum           = code_provider->get_statement_checksum( statement )
                       has_pseudo_comment = xsdbool( line_exists( statement-pseudo_comments[ table_line =
-                                                    pseudo_comments-method_sig_single_exp ] )
-                                                  )
+                                                    pseudo_comments-method_sig_single_exp ] ) )
                     ) into table result.
     endif.
 
@@ -229,20 +218,16 @@ class /cc4a/method_signature implementation.
                       location           = code_provider->get_statement_location( statement )
                       checksum           = code_provider->get_statement_checksum( statement )
                       has_pseudo_comment = xsdbool( line_exists( statement-pseudo_comments[ table_line =
-                                                    pseudo_comments-method_sig_ret_not_result ] )
-                                                  )
+                                                    pseudo_comments-method_sig_ret_not_result ] ) )
                     ) into table result.
     endif.
 
   endmethod.
 
-
   method get_suspicious_bool_types.
     result = value #( ( `\TY:ABAP_BOOL` )
-                      ( `\TY:ABAP_BOOLEAN` )
-                    ).
+                      ( `\TY:ABAP_BOOLEAN` ) ).
   endmethod.
-
 
   method if_ci_atc_check~get_meta_data.
     data(finding_codes) = value /cc4a/check_meta_data=>ty_finding_codes(
@@ -266,17 +251,13 @@ class /cc4a/method_signature implementation.
                                      text           = text-pc6 )
                                    ( code           = message_codes-method_sig_ret_not_result
                                      pseudo_comment = pseudo_comments-method_sig_ret_not_result
-                                     text           = text-pc7 )
-                                 ).
+                                     text           = text-pc7 ) ).
     meta_data = /cc4a/check_meta_data=>create(
                     value #( checked_types     = /cc4a/check_meta_data=>checked_types-abap_programs
                              description       = text-ds1
                              finding_codes     = finding_codes
-                             remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
-                            )
-                                             ).
+                             remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional ) ).
   endmethod.
-
 
   method if_ci_atc_check~run.
     suspicious_bool_types = get_suspicious_bool_types(  ).
@@ -292,7 +273,6 @@ class /cc4a/method_signature implementation.
 
   endmethod.
 
-
   method if_ci_atc_check~set_assistant_factory.
     assistant_factory = factory.
   endmethod.
@@ -301,7 +281,6 @@ class /cc4a/method_signature implementation.
   method if_ci_atc_check~verify_prerequisites.
 
   endmethod.
-
 
   method is_abstract.
     result = xsdbool( value #( statement-tokens[ 3 ]-lexeme optional ) = 'ABSTRACT' ).
@@ -317,11 +296,9 @@ class /cc4a/method_signature implementation.
     result = xsdbool( value #( statement-tokens[ 3 ]-lexeme optional ) = 'REDEFINITION' ).
   endmethod.
 
-
   method is_setter_method.
     result = xsdbool( method_name cs 'SET_' ).
   endmethod.
-
 
   method is_testmethod.
     result = xsdbool( value #( statement-tokens[ 3 ]-lexeme optional ) = 'FOR' and

@@ -1,7 +1,7 @@
-CLASS /cc4a/method_signature DEFINITION
-  PUBLIC
-  FINAL
-  CREATE PUBLIC .
+class /cc4a/method_signature definition
+  public
+  final
+  create public .
 
   public section.
     interfaces if_ci_atc_check.
@@ -68,11 +68,11 @@ CLASS /cc4a/method_signature DEFINITION
 
     methods is_testmethod importing statement     type if_ci_atc_source_code_provider=>ty_statement
                           returning value(result) type abap_bool.
-ENDCLASS.
+endclass.
 
 
 
-CLASS /cc4a/method_signature IMPLEMENTATION.
+class /cc4a/method_signature implementation.
 
 
   method analyze_procedure.
@@ -89,13 +89,16 @@ CLASS /cc4a/method_signature IMPLEMENTATION.
              is_abstract( <statement> ) = abap_false and
              is_redefinition( <statement> ) = abap_false and
              is_testmethod( <statement> ) = abap_false and
-             is_inteface_section = abap_false. "not within an Interface section
+             is_inteface_section = abap_false.
             insert value #( code               = message_codes-method_sig_interface_missing
                             location           = code_provider->get_statement_location( <statement> )
                             checksum           = code_provider->get_statement_checksum( <statement> )
-                            has_pseudo_comment = xsdbool( line_exists( <statement>-pseudo_comments[ table_line = pseudo_comments-method_sig_interface_missing ] ) ) ) into table result.
+                            has_pseudo_comment = xsdbool( line_exists( <statement>-pseudo_comments[ table_line =
+                                                          pseudo_comments-method_sig_interface_missing ] )
+                                                        )
+                          ) into table result.
           endif.
-          insert lines of analyze_statement( <statement>
+          insert lines of analyze_statement( statement = <statement>
                                            ) into table result.
         when 'PUBLIC' or
              'PROTECTED' or
@@ -124,12 +127,9 @@ CLASS /cc4a/method_signature IMPLEMENTATION.
              'RETURNING'.
           data(is_output_param) = abap_true.
 
-          data(is_exporting_param) = cond #( when <token>-lexeme = 'EXPORTING'
-                                               then abap_true
-                                             else abap_false ).
-          data(is_returning_param) = cond #( when <token>-lexeme = 'RETURNING'
-                                               then abap_true
-                                             else abap_false ).
+          data(is_exporting_param) = xsdbool( <token>-lexeme = 'EXPORTING' ).
+          data(is_returning_param) = xsdbool( <token>-lexeme = 'RETURNING' ).
+
           nr_of_output_param_types += 1.
 
         when 'IMPORTING'.
@@ -149,7 +149,10 @@ CLASS /cc4a/method_signature IMPLEMENTATION.
             "now check if type is in suspicious bool
             has_suspicious_imp_bool = cond #( when has_suspicious_imp_bool = abap_true
                                                 then abap_true
-                                              else xsdbool( line_exists( suspicious_bool_types[ table_line = importing_type_token-references[ 1 ]-full_name ] ) ) ).
+                                              else xsdbool( line_exists( suspicious_bool_types[ table_line =
+                                                            importing_type_token-references[ 1 ]-full_name ] )
+                                                          )
+                                            ).
           endif.
           if is_returning_param = abap_true.
             data(returning_name_token) = value #( statement-tokens[ sy-tabix - 1 ] optional ).
@@ -167,6 +170,7 @@ CLASS /cc4a/method_signature IMPLEMENTATION.
           endif.
 
         when others.
+          continue.
 
       endcase.
     endloop.
@@ -174,42 +178,60 @@ CLASS /cc4a/method_signature IMPLEMENTATION.
       insert value #( code               = message_codes-method_sig_param_out_type
                       location           = code_provider->get_statement_location( statement )
                       checksum           = code_provider->get_statement_checksum( statement )
-                      has_pseudo_comment = xsdbool( line_exists( statement-pseudo_comments[ table_line = pseudo_comments-method_sig_param_out_type ] ) ) ) into table result.
+                      has_pseudo_comment = xsdbool( line_exists( statement-pseudo_comments[ table_line =
+                                                    pseudo_comments-method_sig_param_out_type ] )
+                                                  )
+                    ) into table result.
     endif.
     if nr_of_output_params > 1.
       insert value #( code               = message_codes-method_sig_param_out_num
                       location           = code_provider->get_statement_location( statement )
                       checksum           = code_provider->get_statement_checksum( statement )
-                      has_pseudo_comment = xsdbool( line_exists( statement-pseudo_comments[ table_line = pseudo_comments-method_sig_param_out_num ] ) ) ) into table result.
+                      has_pseudo_comment = xsdbool( line_exists( statement-pseudo_comments[ table_line =
+                                                    pseudo_comments-method_sig_param_out_num ] )
+                                                  )
+                    ) into table result.
     endif.
     if has_suspicious_imp_bool = abap_true and
        method_is_setter = abap_false.
       insert value #( code               = message_codes-method_sig_param_in_bool
                       location           = code_provider->get_statement_location( statement )
                       checksum           = code_provider->get_statement_checksum( statement )
-                      has_pseudo_comment = xsdbool( line_exists( statement-pseudo_comments[ table_line = pseudo_comments-method_sig_param_in_bool ] ) ) ) into table result.
+                      has_pseudo_comment = xsdbool( line_exists( statement-pseudo_comments[ table_line =
+                                                    pseudo_comments-method_sig_param_in_bool ] )
+                                                  )
+                    ) into table result.
     endif.
 
     if has_optional_imp = abap_true.
       insert value #( code               = message_codes-method_sig_param_in_opt
                       location           = code_provider->get_statement_location( statement )
                       checksum           = code_provider->get_statement_checksum( statement )
-                      has_pseudo_comment = xsdbool( line_exists( statement-pseudo_comments[ table_line = pseudo_comments-method_sig_param_in_opt ] ) ) ) into table result.
+                      has_pseudo_comment = xsdbool( line_exists( statement-pseudo_comments[ table_line =
+                                                    pseudo_comments-method_sig_param_in_opt ] )
+                                                  )
+                    ) into table result.
     endif.
 
     if nr_of_export_params = 1 and
-       nr_of_output_params = 1. "in this case only one exporting param
+       nr_of_output_params = 1.
       insert value #( code               = message_codes-method_sig_single_exp
                       location           = code_provider->get_statement_location( statement )
                       checksum           = code_provider->get_statement_checksum( statement )
-                      has_pseudo_comment = xsdbool( line_exists( statement-pseudo_comments[ table_line = pseudo_comments-method_sig_single_exp ] ) ) ) into table result.
+                      has_pseudo_comment = xsdbool( line_exists( statement-pseudo_comments[ table_line =
+                                                    pseudo_comments-method_sig_single_exp ] )
+                                                  )
+                    ) into table result.
     endif.
 
     if ret_value_name_not_result = abap_true.
       insert value #( code               = message_codes-method_sig_ret_not_result
                       location           = code_provider->get_statement_location( statement )
                       checksum           = code_provider->get_statement_checksum( statement )
-                      has_pseudo_comment = xsdbool( line_exists( statement-pseudo_comments[ table_line = pseudo_comments-method_sig_ret_not_result ] ) ) ) into table result.
+                      has_pseudo_comment = xsdbool( line_exists( statement-pseudo_comments[ table_line =
+                                                    pseudo_comments-method_sig_ret_not_result ] )
+                                                  )
+                    ) into table result.
     endif.
 
   endmethod.
@@ -217,44 +239,51 @@ CLASS /cc4a/method_signature IMPLEMENTATION.
 
   method get_suspicious_bool_types.
     result = value #( ( `\TY:ABAP_BOOL` )
-                      ( `\TY:ABAP_BOOLEAN` ) ).
+                      ( `\TY:ABAP_BOOLEAN` )
+                    ).
   endmethod.
 
 
   method if_ci_atc_check~get_meta_data.
-    meta_data = /cc4a/check_meta_data=>create( value #( checked_types     = /cc4a/check_meta_data=>checked_types-abap_programs
-                                                        description       = text-ds1
-                                                        finding_codes     = value #( ( code           = message_codes-method_sig_param_out_type
-                                                                                       pseudo_comment = pseudo_comments-method_sig_param_out_type
-                                                                                       text           = text-pc1 )
-                                                                                     ( code           = message_codes-method_sig_param_out_num
-                                                                                       pseudo_comment = pseudo_comments-method_sig_param_out_num
-                                                                                       text           = text-pc2 )
-                                                                                     ( code           = message_codes-method_sig_param_in_bool
-                                                                                       pseudo_comment = pseudo_comments-method_sig_param_in_bool
-                                                                                       text           = text-pc3 )
-                                                                                     ( code           = message_codes-method_sig_param_in_opt
-                                                                                       pseudo_comment = pseudo_comments-method_sig_param_in_opt
-                                                                                       text           = text-pc4 )
-                                                                                     ( code           = message_codes-method_sig_interface_missing
-                                                                                       pseudo_comment = pseudo_comments-method_sig_interface_missing
-                                                                                       text           = text-pc5 )
-                                                                                     ( code           = message_codes-method_sig_single_exp
-                                                                                       pseudo_comment = pseudo_comments-method_sig_single_exp
-                                                                                       text           = text-pc6 )
-                                                                                     ( code           = message_codes-method_sig_ret_not_result
-                                                                                       pseudo_comment = pseudo_comments-method_sig_ret_not_result
-                                                                                       text           = text-pc7 )
-                                                                                   )
-                                                        remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
-                                                       ) ).
+    data(finding_codes) = value /cc4a/check_meta_data=>ty_finding_codes(
+                                   ( code           = message_codes-method_sig_param_out_type
+                                     pseudo_comment = pseudo_comments-method_sig_param_out_type
+                                     text           = text-pc1 )
+                                   ( code           = message_codes-method_sig_param_out_num
+                                     pseudo_comment = pseudo_comments-method_sig_param_out_num
+                                     text           = text-pc2 )
+                                   ( code           = message_codes-method_sig_param_in_bool
+                                     pseudo_comment = pseudo_comments-method_sig_param_in_bool
+                                     text           = text-pc3 )
+                                   ( code           = message_codes-method_sig_param_in_opt
+                                     pseudo_comment = pseudo_comments-method_sig_param_in_opt
+                                     text           = text-pc4 )
+                                   ( code           = message_codes-method_sig_interface_missing
+                                     pseudo_comment = pseudo_comments-method_sig_interface_missing
+                                     text           = text-pc5 )
+                                   ( code           = message_codes-method_sig_single_exp
+                                     pseudo_comment = pseudo_comments-method_sig_single_exp
+                                     text           = text-pc6 )
+                                   ( code           = message_codes-method_sig_ret_not_result
+                                     pseudo_comment = pseudo_comments-method_sig_ret_not_result
+                                     text           = text-pc7 )
+                                 ).
+    meta_data = /cc4a/check_meta_data=>create(
+                    value #( checked_types     = /cc4a/check_meta_data=>checked_types-abap_programs
+                             description       = text-ds1
+                             finding_codes     = finding_codes
+                             remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
+                            )
+                                             ).
   endmethod.
 
 
   method if_ci_atc_check~run.
-    suspicious_bool_types = get_suspicious_bool_types( ).
+    suspicious_bool_types = get_suspicious_bool_types(  ).
     code_provider = data_provider->get_code_provider( ).
-    procedures    = code_provider->get_procedures( code_provider->object_to_comp_unit( object = object ) ).
+    procedures = code_provider->get_procedures(
+                                                compilation_unit = code_provider->object_to_comp_unit( object = object )
+                                              ).
 
     loop at procedures->* assigning field-symbol(<procedure>)
                           where id-kind = if_ci_atc_source_code_provider=>procedure_kinds-class_definition.
@@ -275,23 +304,17 @@ CLASS /cc4a/method_signature IMPLEMENTATION.
 
 
   method is_abstract.
-    result = cond #( when value #( statement-tokens[ 3 ]-lexeme optional ) = 'ABSTRACT'
-                       then abap_true
-                     else abap_false ).
+    result = xsdbool( value #( statement-tokens[ 3 ]-lexeme optional ) = 'ABSTRACT' ).
   endmethod.
 
 
   method is_constructor.
-    result = cond #( when value #( statement-tokens[ 2 ]-lexeme optional ) = 'CONSTRUCTOR'
-                       then abap_true
-                     else abap_false ).
+    result = xsdbool( value #( statement-tokens[ 2 ]-lexeme optional ) = 'CONSTRUCTOR' ).
   endmethod.
 
 
   method is_redefinition.
-    result = cond #( when value #( statement-tokens[ 3 ]-lexeme optional ) = 'REDEFINITION'
-                       then abap_true
-                     else abap_false ).
+    result = xsdbool( value #( statement-tokens[ 3 ]-lexeme optional ) = 'REDEFINITION' ).
   endmethod.
 
 
@@ -301,9 +324,7 @@ CLASS /cc4a/method_signature IMPLEMENTATION.
 
 
   method is_testmethod.
-    result = cond #( when value #( statement-tokens[ 3 ]-lexeme optional ) = 'FOR' and
-                          value #( statement-tokens[ 4 ]-lexeme optional ) = 'TESTING'
-                       then abap_true
-                     else abap_false ).
+    result = xsdbool( value #( statement-tokens[ 3 ]-lexeme optional ) = 'FOR' and
+                      value #( statement-tokens[ 4 ]-lexeme optional ) = 'TESTING' ).
   endmethod.
-ENDCLASS.
+endclass.

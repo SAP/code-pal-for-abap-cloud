@@ -49,13 +49,13 @@ class /cc4a/method_signature definition
     data assistant_factory type ref to cl_ci_atc_assistant_factory.
     data suspicious_bool_types type standard table of if_ci_atc_source_code_provider=>ty_full_name with key table_line.
 
-    data check_sig_param_out_type     type abap_bool.
-    data check_sig_param_out_num      type abap_bool.
-    data check_sig_param_in_bool      type abap_bool.
-    data check_sig_param_in_opt       type abap_bool.
-    data check_sig_interface_missing  type abap_bool.
-    data check_sig_single_exp         type abap_bool.
-    data check_sig_ret_not_result     type abap_bool.
+    data check_sig_param_out_type     type abap_bool value abap_true.
+    data check_sig_param_out_num      type abap_bool value abap_true.
+    data check_sig_param_in_bool      type abap_bool value abap_true.
+    data check_sig_param_in_opt       type abap_bool value abap_true.
+    data check_sig_interface_missing  type abap_bool value abap_true.
+    data check_sig_single_exp         type abap_bool value abap_true.
+    data check_sig_ret_not_result     type abap_bool value abap_true.
 
     methods analyze_procedure importing procedure     type if_ci_atc_source_code_provider=>ty_procedure
                               returning value(result) type if_ci_atc_check=>ty_findings.
@@ -159,10 +159,11 @@ class /cc4a/method_signature implementation.
             "check next token as after type the actual type follows
             data(importing_type_token) = value #( statement-tokens[ sy-tabix + 1 ] optional ).
             "now check if type is in suspicious bool
-            has_suspicious_imp_bool = cond #( when has_suspicious_imp_bool = abap_true
-                                                then abap_true
-                                              else xsdbool( line_exists( suspicious_bool_types[ table_line =
-                                                            importing_type_token-references[ 1 ]-full_name ] ) ) ).
+            has_suspicious_imp_bool = cond #(
+                     when has_suspicious_imp_bool = abap_true
+                       then abap_true
+                     else xsdbool( line_exists( suspicious_bool_types[ table_line =
+                                   value #( importing_type_token-references[ 1 ]-full_name optional ) ] ) ) ).
           endif.
           if is_returning_param = abap_true.
             data(returning_name_token) = value #( statement-tokens[ sy-tabix - 1 ] optional ).
@@ -311,13 +312,13 @@ class /cc4a/method_signature implementation.
     attr_value = attributes[ name = attribute_names-check_sig_param_in_opt ]-value.
     check_sig_param_in_opt = attr_value->*.
     attr_value = attributes[ name = attribute_names-check_sig_param_out_num ]-value.
-    check_sig_param_in_opt = attr_value->*.
+    check_sig_param_out_num = attr_value->*.
     attr_value = attributes[ name = attribute_names-check_sig_param_out_type ]-value.
-    check_sig_param_in_opt = attr_value->*.
+    check_sig_param_out_type = attr_value->*.
     attr_value = attributes[ name = attribute_names-check_sig_ret_not_result ]-value.
-    check_sig_param_in_opt = attr_value->*.
+    check_sig_ret_not_result = attr_value->*.
     attr_value = attributes[ name = attribute_names-check_sig_single_exp ]-value.
-    check_sig_param_in_opt = attr_value->*.
+    check_sig_single_exp = attr_value->*.
   endmethod.
 
   method if_ci_atc_check~run.

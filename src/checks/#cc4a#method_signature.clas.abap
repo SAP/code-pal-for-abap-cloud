@@ -110,7 +110,7 @@ class /cc4a/method_signature implementation.
                                                           pseudo_comments-method_sig_interface_missing ] ) )
                           ) into table result.
           endif.
-          if do_analyze_statement(  ) = abap_true.
+          if do_analyze_statement( ) = abap_true.
             insert lines of analyze_statement( <statement> ) into table result.
           endif.
         when 'PUBLIC' or

@@ -27,6 +27,16 @@ class /cc4a/method_signature definition
         method_sig_ret_not_result    type string value 'RET_NAME',
       end of   pseudo_comments.
     constants:
+      begin of attribute_names,
+        check_sig_param_out_type    type string value 'CheckOutputParameterType',
+        check_sig_param_out_num     type string value 'CheckOutputParameterNumber',
+        check_sig_param_in_bool     type string value 'CheckInputParameterBoolean',
+        check_sig_param_in_opt      type string value 'CheckInputParameterOptional',
+        check_sig_interface_missing type string value 'CheckPublicMethodNoInterface',
+        check_sig_single_exp        type string value 'CheckExportingParameterNumberNotOne',
+        check_sig_ret_not_result    type string value 'CheckReturningParameterNotNamedResult',
+      end of   attribute_names.
+    constants:
       c_methods       type string value 'METHODS',
       c_interface     type string value 'INTERFACE',
       c_interface_end type string value 'ENDINTERFACE'.
@@ -38,6 +48,14 @@ class /cc4a/method_signature definition
     data procedures        type ref to if_ci_atc_source_code_provider=>ty_procedures.
     data assistant_factory type ref to cl_ci_atc_assistant_factory.
     data suspicious_bool_types type standard table of if_ci_atc_source_code_provider=>ty_full_name with key table_line.
+
+    data check_sig_param_out_type     type abap_bool.
+    data check_sig_param_out_num      type abap_bool.
+    data check_sig_param_in_bool      type abap_bool.
+    data check_sig_param_in_opt       type abap_bool.
+    data check_sig_interface_missing  type abap_bool.
+    data check_sig_single_exp         type abap_bool.
+    data check_sig_ret_not_result     type abap_bool.
 
     methods analyze_procedure importing procedure     type if_ci_atc_source_code_provider=>ty_procedure
                               returning value(result) type if_ci_atc_check=>ty_findings.
@@ -61,6 +79,9 @@ class /cc4a/method_signature definition
 
     methods is_testmethod importing statement     type if_ci_atc_source_code_provider=>ty_statement
                           returning value(result) type abap_bool.
+    methods do_analyze_statement
+      returning
+        value(result) type abap_bool.
 endclass.
 
 
@@ -75,7 +96,8 @@ class /cc4a/method_signature implementation.
         when c_interface_end.
           is_inteface_section = abap_false.
         when c_methods.
-          if statement_in_section = 'PUBLIC' and
+          if check_sig_interface_missing = abap_true and
+             statement_in_section = 'PUBLIC' and
              is_constructor( <statement> ) = abap_false and
              is_abstract( <statement> ) = abap_false and
              is_redefinition( <statement> ) = abap_false and
@@ -88,7 +110,9 @@ class /cc4a/method_signature implementation.
                                                           pseudo_comments-method_sig_interface_missing ] ) )
                           ) into table result.
           endif.
-          insert lines of analyze_statement( <statement> ) into table result.
+          if do_analyze_statement(  ) = abap_true.
+            insert lines of analyze_statement( <statement> ) into table result.
+          endif.
         when 'PUBLIC' or
              'PROTECTED' or
              'PRIVATE'.
@@ -160,7 +184,8 @@ class /cc4a/method_signature implementation.
 
       endcase.
     endloop.
-    if nr_of_output_param_types > 1.
+    if check_sig_param_out_type = abap_true and
+       nr_of_output_param_types > 1.
       insert value #( code               = message_codes-method_sig_param_out_type
                       location           = code_provider->get_statement_location( statement )
                       checksum           = code_provider->get_statement_checksum( statement )
@@ -168,7 +193,8 @@ class /cc4a/method_signature implementation.
                                                     pseudo_comments-method_sig_param_out_type ] ) )
                     ) into table result.
     endif.
-    if nr_of_output_params > 1.
+    if check_sig_param_out_num = abap_true and
+       nr_of_output_params > 1.
       insert value #( code               = message_codes-method_sig_param_out_num
                       location           = code_provider->get_statement_location( statement )
                       checksum           = code_provider->get_statement_checksum( statement )
@@ -176,7 +202,8 @@ class /cc4a/method_signature implementation.
                                                     pseudo_comments-method_sig_param_out_num ] ) )
                     ) into table result.
     endif.
-    if has_suspicious_imp_bool = abap_true and
+    if check_sig_param_in_bool = abap_true and
+       has_suspicious_imp_bool = abap_true and
        method_is_setter = abap_false.
       insert value #( code               = message_codes-method_sig_param_in_bool
                       location           = code_provider->get_statement_location( statement )
@@ -186,7 +213,8 @@ class /cc4a/method_signature implementation.
                     ) into table result.
     endif.
 
-    if has_optional_imp = abap_true.
+    if check_sig_param_in_opt = abap_true and
+       has_optional_imp = abap_true.
       insert value #( code               = message_codes-method_sig_param_in_opt
                       location           = code_provider->get_statement_location( statement )
                       checksum           = code_provider->get_statement_checksum( statement )
@@ -195,7 +223,8 @@ class /cc4a/method_signature implementation.
                     ) into table result.
     endif.
 
-    if nr_of_export_params = 1 and
+    if check_sig_single_exp = abap_true and
+       nr_of_export_params = 1 and
        nr_of_output_params = 1.
       insert value #( code               = message_codes-method_sig_single_exp
                       location           = code_provider->get_statement_location( statement )
@@ -205,7 +234,8 @@ class /cc4a/method_signature implementation.
                     ) into table result.
     endif.
 
-    if ret_value_name_not_result = abap_true.
+    if check_sig_ret_not_result = abap_true and
+       ret_value_name_not_result = abap_true.
       insert value #( code               = message_codes-method_sig_ret_not_result
                       location           = code_provider->get_statement_location( statement )
                       checksum           = code_provider->get_statement_checksum( statement )
@@ -248,7 +278,46 @@ class /cc4a/method_signature implementation.
                     value #( checked_types     = /cc4a/check_meta_data=>checked_types-abap_programs
                              description       = text-ds1
                              finding_codes     = finding_codes
-                             remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional ) ).
+                             remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
+                             attributes        = value #( ( kind = if_ci_atc_check_meta_data=>attribute_kinds-boolean
+                                                            name = attribute_names-check_sig_interface_missing
+                                                            value = ref #( check_sig_interface_missing ) )
+                                                          ( kind = if_ci_atc_check_meta_data=>attribute_kinds-boolean
+                                                            name = attribute_names-check_sig_param_in_bool
+                                                            value = ref #( check_sig_param_in_bool ) )
+                                                          ( kind = if_ci_atc_check_meta_data=>attribute_kinds-boolean
+                                                            name = attribute_names-check_sig_param_in_opt
+                                                            value = ref #( check_sig_param_in_opt ) )
+                                                          ( kind = if_ci_atc_check_meta_data=>attribute_kinds-boolean
+                                                            name = attribute_names-check_sig_param_out_num
+                                                            value = ref #( check_sig_param_out_num ) )
+                                                          ( kind = if_ci_atc_check_meta_data=>attribute_kinds-boolean
+                                                            name = attribute_names-check_sig_param_out_type
+                                                            value = ref #( check_sig_param_out_type ) )
+                                                          ( kind = if_ci_atc_check_meta_data=>attribute_kinds-boolean
+                                                            name = attribute_names-check_sig_ret_not_result
+                                                            value = ref #( check_sig_ret_not_result ) )
+                                                          ( kind = if_ci_atc_check_meta_data=>attribute_kinds-boolean
+                                                            name = attribute_names-check_sig_single_exp
+                                                            value = ref #( check_sig_single_exp ) )
+                                                        ) ) ).
+  endmethod.
+
+  method if_ci_atc_check~set_attributes ##NEEDED.
+    data(attr_value) = attributes[ name = attribute_names-check_sig_interface_missing ]-value.
+    check_sig_interface_missing = attr_value->*.
+    attr_value = attributes[ name = attribute_names-check_sig_param_in_bool ]-value.
+    check_sig_param_in_bool = attr_value->*.
+    attr_value = attributes[ name = attribute_names-check_sig_param_in_opt ]-value.
+    check_sig_param_in_opt = attr_value->*.
+    attr_value = attributes[ name = attribute_names-check_sig_param_out_num ]-value.
+    check_sig_param_in_opt = attr_value->*.
+    attr_value = attributes[ name = attribute_names-check_sig_param_out_type ]-value.
+    check_sig_param_in_opt = attr_value->*.
+    attr_value = attributes[ name = attribute_names-check_sig_ret_not_result ]-value.
+    check_sig_param_in_opt = attr_value->*.
+    attr_value = attributes[ name = attribute_names-check_sig_single_exp ]-value.
+    check_sig_param_in_opt = attr_value->*.
   endmethod.
 
   method if_ci_atc_check~run.
@@ -293,4 +362,16 @@ class /cc4a/method_signature implementation.
     result = xsdbool( value #( statement-tokens[ 3 ]-lexeme optional ) = 'FOR' and
                       value #( statement-tokens[ 4 ]-lexeme optional ) = 'TESTING' ).
   endmethod.
+
+  method do_analyze_statement.
+    if check_sig_param_in_bool = abap_true or
+       check_sig_param_in_opt = abap_true or
+       check_sig_param_out_num = abap_true or
+       check_sig_param_out_type = abap_true or
+       check_sig_ret_not_result = abap_true or
+       check_sig_single_exp = abap_true.
+      result = abap_true.
+    endif.
+  endmethod.
+
 endclass.

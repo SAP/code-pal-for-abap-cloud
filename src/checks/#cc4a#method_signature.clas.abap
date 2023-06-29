@@ -117,10 +117,12 @@ class /cc4a/method_signature implementation.
 
   method analyze_procedure.
     data statement_in_section type string.
+    data is_interface_section type abap_bool.
+
     loop at procedure-statements assigning field-symbol(<statement>).
       case <statement>-keyword.
         when keywords-interface.
-          data(is_interface_section) = abap_true.
+          is_interface_section = abap_true.
         when keywords-interface_end.
           is_interface_section = abap_false.
         when keywords-methods.
@@ -149,6 +151,12 @@ class /cc4a/method_signature implementation.
 
 
   method analyze_statement.
+    data is_output_param type abap_bool.
+    data is_exporting_param type abap_bool.
+    data is_returning_param type abap_bool.
+    data importing_type_token type if_ci_atc_source_code_provider=>ty_token.
+    data returning_name_token type if_ci_atc_source_code_provider=>ty_token.
+
     "at this point - statement is Method Definition --> therefore 2nd token bears method name
     data(signature) =
     value ty_signature( method_is_setter = is_setter_method( value #( statement-tokens[ 2 ]-lexeme optional ) ) ).
@@ -157,10 +165,10 @@ class /cc4a/method_signature implementation.
         when 'EXPORTING' or
              'CHANGING' or
              'RETURNING'.
-          data(is_output_param) = abap_true.
+          is_output_param = abap_true.
 
-          data(is_exporting_param) = xsdbool( <token>-lexeme = 'EXPORTING' ).
-          data(is_returning_param) = xsdbool( <token>-lexeme = 'RETURNING' ).
+          is_exporting_param = xsdbool( <token>-lexeme = 'EXPORTING' ).
+          is_returning_param = xsdbool( <token>-lexeme = 'RETURNING' ).
 
           signature-nr_of_output_param_types += 1.
 
@@ -177,7 +185,7 @@ class /cc4a/method_signature implementation.
                                         else signature-nr_of_export_params ).
           if is_output_param = abap_false.
             "check next token as after type the actual type follows
-            data(importing_type_token) = value #( statement-tokens[ sy-tabix + 1 ] optional ).
+            importing_type_token = value #( statement-tokens[ sy-tabix + 1 ] optional ).
             "now check if type is in suspicious bool
             signature-has_suspicious_imp_bool = cond #(
                      when signature-has_suspicious_imp_bool = abap_true
@@ -186,7 +194,7 @@ class /cc4a/method_signature implementation.
                                    value #( importing_type_token-references[ 1 ]-full_name optional ) ] ) ) ).
           endif.
           if is_returning_param = abap_true.
-            data(returning_name_token) = value #( statement-tokens[ sy-tabix - 1 ] optional ).
+            returning_name_token = value #( statement-tokens[ sy-tabix - 1 ] optional ).
             if returning_name_token-lexeme <> 'VALUE(RESULT)'.
               signature-ret_value_name_not_result = abap_true.
             endif.

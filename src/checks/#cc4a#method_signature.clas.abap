@@ -323,14 +323,16 @@ class /cc4a/method_signature implementation.
 
 
   method if_ci_atc_check~set_attributes ##NEEDED.
-    config =
-     value #( check_sig_param_in_bool     = attributes[ name = attribute_names-check_sig_param_in_bool ]-value->*
+    data(config_temp) = value ty_config(
+              check_sig_param_in_bool     = attributes[ name = attribute_names-check_sig_param_in_bool ]-value->*
               check_sig_param_in_opt      = attributes[ name = attribute_names-check_sig_param_in_opt ]-value->*
               check_sig_param_out_num     = attributes[ name = attribute_names-check_sig_param_out_num ]-value->*
               check_sig_param_out_type    = attributes[ name = attribute_names-check_sig_param_out_type ]-value->*
               check_sig_ret_not_result    = attributes[ name = attribute_names-check_sig_ret_not_result ]-value->*
               check_sig_single_exp        = attributes[ name = attribute_names-check_sig_single_exp ]-value->*
               check_sig_interface_missing = attributes[ name = attribute_names-check_sig_interface_missing ]-value->* ).
+
+    config = config_temp.
   endmethod.
 
 

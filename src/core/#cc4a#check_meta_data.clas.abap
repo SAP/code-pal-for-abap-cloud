@@ -55,6 +55,17 @@ CLASS /CC4A/CHECK_META_DATA IMPLEMENTATION.
 
   method constructor.
     me->meta_data = meta_data.
+    " Callers will usually pass references to the actual attributes of their check as the value.
+    " This can lead to various unexpected phenomena when these references are then passed back in SET_ATTRIBUTES
+    " to the checks. In order to isolate us againnst these errors we copy all the attribute references to freshly
+    " allocated anonymous references on the heap that are used for nother else.
+    loop at me->meta_data-attributes assigning field-symbol(<attribute>).
+      data(type_handle) = cast cl_abap_datadescr( cl_abap_typedescr=>describe_by_data_ref( <attribute>-value ) ).
+      data value type ref to data.
+      create data value type handle type_handle.
+      value->* = <attribute>-value->*.
+      <attribute>-value = value.
+    endloop.
   endmethod.
 
 

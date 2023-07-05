@@ -108,11 +108,11 @@ class /cc4a/method_signature definition
       returning
         value(result)  type if_ci_atc_check=>ty_finding.
 
-endclass.
+ENDCLASS.
 
 
 
-class /cc4a/method_signature implementation.
+CLASS /CC4A/METHOD_SIGNATURE IMPLEMENTATION.
 
 
   method analyze_procedure.
@@ -219,6 +219,26 @@ class /cc4a/method_signature implementation.
   endmethod.
 
 
+  method constructor.
+    config = value #( check_sig_param_in_bool     = abap_true
+                      check_sig_param_in_opt      = abap_true
+                      check_sig_param_out_num     = abap_true
+                      check_sig_param_out_type    = abap_true
+                      check_sig_ret_not_result    = abap_true
+                      check_sig_single_exp        = abap_true
+                      check_sig_interface_missing = abap_true ).
+  endmethod.
+
+
+  method create_finding.
+    result =
+    value #( code               = code
+             location           = code_provider->get_statement_location( statement )
+             checksum           = code_provider->get_statement_checksum( statement )
+             has_pseudo_comment = xsdbool( line_exists( statement-pseudo_comments[ table_line = pseudo_comment ] ) ) ).
+  endmethod.
+
+
   method evaluate_siganture.
     if config-check_sig_param_out_type = abap_true and
        signature-nr_of_output_param_types > 1.
@@ -264,10 +284,12 @@ class /cc4a/method_signature implementation.
 
   endmethod.
 
+
   method get_suspicious_bool_types.
     result = value #( ( `\TY:ABAP_BOOL` )
                       ( `\TY:ABAP_BOOLEAN` ) ).
   endmethod.
+
 
   method if_ci_atc_check~get_meta_data.
     data(finding_codes) = value /cc4a/check_meta_data=>ty_finding_codes(
@@ -322,20 +344,6 @@ class /cc4a/method_signature implementation.
   endmethod.
 
 
-  method if_ci_atc_check~set_attributes ##NEEDED.
-    data(config_temp) = value ty_config(
-              check_sig_param_in_bool     = attributes[ name = attribute_names-check_sig_param_in_bool ]-value->*
-              check_sig_param_in_opt      = attributes[ name = attribute_names-check_sig_param_in_opt ]-value->*
-              check_sig_param_out_num     = attributes[ name = attribute_names-check_sig_param_out_num ]-value->*
-              check_sig_param_out_type    = attributes[ name = attribute_names-check_sig_param_out_type ]-value->*
-              check_sig_ret_not_result    = attributes[ name = attribute_names-check_sig_ret_not_result ]-value->*
-              check_sig_single_exp        = attributes[ name = attribute_names-check_sig_single_exp ]-value->*
-              check_sig_interface_missing = attributes[ name = attribute_names-check_sig_interface_missing ]-value->* ).
-
-    config = config_temp.
-  endmethod.
-
-
   method if_ci_atc_check~run.
     suspicious_bool_types = get_suspicious_bool_types( ).
     code_provider = data_provider->get_code_provider( ).
@@ -351,6 +359,18 @@ class /cc4a/method_signature implementation.
 
   method if_ci_atc_check~set_assistant_factory.
     assistant_factory = factory.
+  endmethod.
+
+
+  method if_ci_atc_check~set_attributes ##NEEDED.
+    config = value ty_config(
+              check_sig_param_in_bool     = attributes[ name = attribute_names-check_sig_param_in_bool ]-value->*
+              check_sig_param_in_opt      = attributes[ name = attribute_names-check_sig_param_in_opt ]-value->*
+              check_sig_param_out_num     = attributes[ name = attribute_names-check_sig_param_out_num ]-value->*
+              check_sig_param_out_type    = attributes[ name = attribute_names-check_sig_param_out_type ]-value->*
+              check_sig_ret_not_result    = attributes[ name = attribute_names-check_sig_ret_not_result ]-value->*
+              check_sig_single_exp        = attributes[ name = attribute_names-check_sig_single_exp ]-value->*
+              check_sig_interface_missing = attributes[ name = attribute_names-check_sig_interface_missing ]-value->* ).
   endmethod.
 
 
@@ -394,24 +414,4 @@ class /cc4a/method_signature implementation.
       result = abap_true.
     endif.
   endmethod.
-
-  method constructor.
-    config = value #( check_sig_param_in_bool     = abap_true
-                      check_sig_param_in_opt      = abap_true
-                      check_sig_param_out_num     = abap_true
-                      check_sig_param_out_type    = abap_true
-                      check_sig_ret_not_result    = abap_true
-                      check_sig_single_exp        = abap_true
-                      check_sig_interface_missing = abap_true ).
-  endmethod.
-
-
-  method create_finding.
-    result =
-    value #( code               = code
-             location           = code_provider->get_statement_location( statement )
-             checksum           = code_provider->get_statement_checksum( statement )
-             has_pseudo_comment = xsdbool( line_exists( statement-pseudo_comments[ table_line = pseudo_comment ] ) ) ).
-  endmethod.
-
-endclass.
+ENDCLASS.

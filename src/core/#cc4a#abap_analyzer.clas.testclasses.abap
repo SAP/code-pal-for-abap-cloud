@@ -71,7 +71,7 @@ class key_words implementation.
       ( lexeme = '1' ) ( lexeme = '2' ) ( lexeme = '3' )
       ( lexeme = '4' ) ( lexeme = '5' ) ( lexeme = '6' )
       ( lexeme = '7' ) ( lexeme = '8' ) ( lexeme = '9' ) ( lexeme = '10' ) ).
-    data(test_clause) = '5 6 7'.
+    data(test_clause) = `5 6 7`.
     data(index) = /cc4a/abap_analyzer=>create( )->find_clause_index( tokens = test_tokens clause = test_clause ).
     cl_abap_unit_assert=>assert_equals( act = index exp = 5 ).
 

@@ -10,31 +10,31 @@
   "checkType": "remoteEnabled",
   "parameters": [
     {
-      "name": "CheckPublicMethodNoInterface",
+      "name": "CheckPubMethodNoInterface",
       "description": "Check for public methods which are not in an interface"
     },
     {
-      "name": "CheckInputParameterBoolean",
+      "name": "CheckInputParamBoolean",
       "description": "Check for importing parameter of type boolean"
     },
     {
-      "name": "CheckInputParameterOptional",
+      "name": "CheckInputParamOptional",
       "description": "Check for importing parameter which are optional"
     },
     {
-      "name": "CheckOutputParameterNumber",
+      "name": "CheckOutputParamNumber",
       "description": "Check number of output parameter (exporting, changing, returning)"
     },
     {
-      "name": "CheckOutputParameterType",
+      "name": "CheckOutputParamType",
       "description": "Check for output parameter combinations (exporting, changing, returning)"
     },
     {
-      "name": "CheckReturningParameterNotNamedResult",
+      "name": "CheckRetParamNotNamedResult",
       "description": "Check returning parameter not named RESULT"
     },
     {
-      "name": "CheckExportingParameterNumberNotOne",
+      "name": "CheckExpParamNumberNotOne",
       "description": "Check number of exporting parameter more than 1"
     }
   ]

@@ -1,0 +1,13 @@
+unmanaged implementation in class /cc4a/bp_test_rap_unamanaged unique;
+strict ( 2 );
+
+define behavior for /CC4A/TEST_RAP_UNAMANAGED //alias <alias_name>
+//late numbering
+lock master
+authorization master ( instance )
+//etag master <field_name>
+{
+  create;
+  update;
+  delete;
+}

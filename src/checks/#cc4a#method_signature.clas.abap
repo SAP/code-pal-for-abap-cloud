@@ -28,20 +28,40 @@ class /cc4a/method_signature definition
       end of   pseudo_comments.
     constants:
       begin of attribute_names,
-        check_sig_param_out_type    type string value 'CheckOutputParameterType',
-        check_sig_param_out_num     type string value 'CheckOutputParameterNumber',
-        check_sig_param_in_bool     type string value 'CheckInputParameterBoolean',
-        check_sig_param_in_opt      type string value 'CheckInputParameterOptional',
-        check_sig_interface_missing type string value 'CheckPublicMethodNoInterface',
-        check_sig_single_exp        type string value 'CheckExportingParameterNumberNotOne',
-        check_sig_ret_not_result    type string value 'CheckReturningParameterNotNamedResult',
+        check_sig_param_out_type    type string value 'CheckOutputParamType',
+        check_sig_param_out_num     type string value 'CheckOutputParamNumber',
+        check_sig_param_in_bool     type string value 'CheckInputParamBoolean',
+        check_sig_param_in_opt      type string value 'CheckInputParamOptional',
+        check_sig_interface_missing type string value 'CheckPubMethodNoInterface',
+        check_sig_single_exp        type string value 'CheckExpParamNumberNotOne',
+        check_sig_ret_not_result    type string value 'CheckRetParamNotNamedResult',
       end of   attribute_names.
     constants:
       begin of keywords,
         methods       type string value 'METHODS',
         interface     type string value 'INTERFACE',
         interface_end type string value 'ENDINTERFACE',
+        public        type string value 'PUBLIC',
+        protected     type string value 'PROTECTED',
+        private       type string value 'PRIVATE',
+        class         type string value 'CLASS',
       end of keywords.
+    constants:
+      begin of bdef_impl_keywords,
+        meth_for_lock        type string value 'FOR LOCK',
+        meth_for_modify      type string value 'FOR MODIFY',
+        meth_for_delete      type string value 'FOR DELETE',
+        meth_for_read        type string value 'FOR READ',
+        meth_for_det_on      type string value 'FOR DETERMINE ON',
+        meth_for_global_auth type string value 'FOR GLOBAL AUTHORIZATION',
+        meth_for_numbering   type string value 'FOR NUMBERING',
+        meth_for_precheck    type string value 'FOR PRECHECK',
+        meth_for_val_on_save type string value 'FOR VALIDATE ON SAVE',
+        meth_for_auth        type string value 'FOR AUTHORIZATION',
+        meth_for_inst_auth   type string value 'FOR INSTANCE AUTHORIZATION',
+        meth_for_feat        type string value 'FOR FEATURES',
+        meth_for_inst_feat   type string value 'FOR INSTANCE FEATURES',
+      end of bdef_impl_keywords.
 
     methods constructor.
   protected section.
@@ -91,6 +111,9 @@ class /cc4a/method_signature definition
     methods is_abstract importing statement     type if_ci_atc_source_code_provider=>ty_statement
                         returning value(result) type abap_bool.
 
+    methods is_bdef_impl_def importing statement     type if_ci_atc_source_code_provider=>ty_statement
+                             returning value(result) type abap_bool.
+
     methods is_redefinition importing statement     type if_ci_atc_source_code_provider=>ty_statement
                             returning value(result) type abap_bool.
 
@@ -108,11 +131,11 @@ class /cc4a/method_signature definition
       returning
         value(result)  type if_ci_atc_check=>ty_finding.
 
-ENDCLASS.
+endclass.
 
 
 
-CLASS /CC4A/METHOD_SIGNATURE IMPLEMENTATION.
+class /cc4a/method_signature implementation.
 
 
   method analyze_procedure.
@@ -121,13 +144,14 @@ CLASS /CC4A/METHOD_SIGNATURE IMPLEMENTATION.
 
     loop at procedure-statements assigning field-symbol(<statement>).
       case <statement>-keyword.
+
         when keywords-interface.
           is_interface_section = abap_true.
         when keywords-interface_end.
           is_interface_section = abap_false.
         when keywords-methods.
           if config-check_sig_interface_missing = abap_true and
-             statement_in_section = 'PUBLIC' and
+             statement_in_section = keywords-public and
              is_constructor( <statement> ) = abap_false and
              is_abstract( <statement> ) = abap_false and
              is_redefinition( <statement> ) = abap_false and
@@ -140,9 +164,9 @@ CLASS /CC4A/METHOD_SIGNATURE IMPLEMENTATION.
           if should_analyze_statement( ).
             insert lines of analyze_statement( <statement> ) into table result.
           endif.
-        when 'PUBLIC' or
-             'PROTECTED' or
-             'PRIVATE'.
+        when keywords-public or
+             keywords-protected or
+             keywords-private.
           statement_in_section = <statement>-keyword.
       endcase.
     endloop.
@@ -247,7 +271,8 @@ CLASS /CC4A/METHOD_SIGNATURE IMPLEMENTATION.
                              pseudo_comment = pseudo_comments-method_sig_param_out_type ) into table result.
     endif.
     if config-check_sig_param_out_num = abap_true and
-       signature-nr_of_output_params > 1.
+       signature-nr_of_output_params > 1 and
+       not is_bdef_impl_def( statement ).
       insert create_finding( statement = statement
                              code = message_codes-method_sig_param_out_num
                              pseudo_comment = pseudo_comments-method_sig_param_out_num ) into table result.
@@ -414,4 +439,23 @@ CLASS /CC4A/METHOD_SIGNATURE IMPLEMENTATION.
       result = abap_true.
     endif.
   endmethod.
-ENDCLASS.
+
+  method is_bdef_impl_def.
+    "check if statement contains a RAP Handler Handler method definition
+    data(flat_statement) = /cc4a/abap_analyzer=>create( )->flatten_tokens( statement-tokens ).
+    result = xsdbool( flat_statement cs bdef_impl_keywords-meth_for_lock or
+                      flat_statement cs bdef_impl_keywords-meth_for_modify or
+                      flat_statement cs bdef_impl_keywords-meth_for_delete or
+                      flat_statement cs bdef_impl_keywords-meth_for_read or
+                      flat_statement cs bdef_impl_keywords-meth_for_det_on or
+                      flat_statement cs bdef_impl_keywords-meth_for_global_auth or
+                      flat_statement cs bdef_impl_keywords-meth_for_numbering or
+                      flat_statement cs bdef_impl_keywords-meth_for_precheck or
+                      flat_statement cs bdef_impl_keywords-meth_for_val_on_save or
+                      flat_statement cs bdef_impl_keywords-meth_for_auth or
+                      flat_statement cs bdef_impl_keywords-meth_for_inst_auth or
+                      flat_statement cs bdef_impl_keywords-meth_for_feat or
+                      flat_statement cs bdef_impl_keywords-meth_for_inst_feat ).
+  endmethod.
+
+endclass.

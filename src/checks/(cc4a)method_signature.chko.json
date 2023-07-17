@@ -1,0 +1,41 @@
+{
+  "formatVersion": "1",
+  "header": {
+    "description": "Method Signature",
+    "originalLanguage": "en",
+    "abapLanguageVersion": "cloudDevelopment"
+  },
+  "category": "/CC4A/CODE_PAL",
+  "implementingClass": "/CC4A/METHOD_SIGNATURE",
+  "checkType": "remoteEnabled",
+  "parameters": [
+    {
+      "name": "CheckPubMethodNoInterface",
+      "description": "Check for public methods which are not in an interface"
+    },
+    {
+      "name": "CheckInputParamBoolean",
+      "description": "Check for importing parameter of type boolean"
+    },
+    {
+      "name": "CheckInputParamOptional",
+      "description": "Check for importing parameter which are optional"
+    },
+    {
+      "name": "CheckOutputParamNumber",
+      "description": "Check number of output parameter (exporting, changing, returning)"
+    },
+    {
+      "name": "CheckOutputParamType",
+      "description": "Check for output parameter combinations (exporting, changing, returning)"
+    },
+    {
+      "name": "CheckRetParamNotNamedResult",
+      "description": "Check returning parameter not named RESULT"
+    },
+    {
+      "name": "CheckExpParamNumberNotOne",
+      "description": "Check number of exporting parameter more than 1"
+    }
+  ]
+}

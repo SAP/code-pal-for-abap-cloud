@@ -3,13 +3,16 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <VSEOCLASS>
-    <CLSNAME>/CC4A/TEST_FOR_DB_STATEMENTS</CLSNAME>
+    <CLSNAME>/CC4A/TEST_METHOD_SIGNATURE_3</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>test for db statements</DESCRIPT>
+    <DESCRIPT>Test class for check Message Easy to Find</DESCRIPT>
+    <CATEGORY>05</CATEGORY>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>
     <UNICODE>X</UNICODE>
+    <DURATION_TYPE>12</DURATION_TYPE>
+    <RISK_LEVEL>11</RISK_LEVEL>
    </VSEOCLASS>
   </asx:values>
  </asx:abap>

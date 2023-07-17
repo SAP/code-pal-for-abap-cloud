@@ -13,13 +13,55 @@
       "checkName": "/CC4A/ASSIGNMENT_CHAINING"
     },
     {
+      "checkName": "/CC4A/AVOID_DB_ACCESS_IN_AUNIT"
+    },
+    {
+      "checkName": "/CC4A/AVOID_TEST_SEAM"
+    },
+    {
       "checkName": "/CC4A/CHAIN_DECLARATIONS"
     },
     {
       "checkName": "/CC4A/CONSTANTS_INTERFACE"
     },
     {
+      "checkName": "/CC4A/AVOID_SELF_REFERENCE"
+    },
+    {
       "checkName": "/CC4A/AVOID_DEFAULT_KEY"
+    },
+    {
+      "checkName": "/CC4A/METHOD_SIGNATURE",
+      "parameters": [
+        {
+          "name": "CheckPublicMethodNoInterface",
+          "value": "true"
+        },
+        {
+          "name": "CheckInputParameterBoolean",
+          "value": "true"
+        },
+        {
+          "name": "CheckInputParameterOptional",
+          "value": "true"
+        },
+        {
+          "name": "CheckOutputParameterNumber",
+          "value": "true"
+        },
+        {
+          "name": "CheckOutputParameterType",
+          "value": "true"
+        },
+        {
+          "name": "CheckReturningParameterNotName",
+          "value": "true"
+        },
+        {
+          "name": "CheckExportingParameterNumberN",
+          "value": "true"
+        }
+      ]
     }
   ]
 }

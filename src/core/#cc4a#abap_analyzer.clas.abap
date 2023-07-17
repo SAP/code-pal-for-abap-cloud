@@ -23,7 +23,9 @@ class /cc4a/abap_analyzer definition
 ENDCLASS.
 
 
+
 CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
+
 
   method /cc4a/if_abap_analyzer~break_into_lines.
     constants allowed_line_length type i value 255.
@@ -38,6 +40,7 @@ CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
       remaining_chunk -= chars_to_chop.
     endwhile.
   endmethod.
+
 
   method /cc4a/if_abap_analyzer~flatten_tokens.
     if line_exists( tokens[ lexeme = '|' ] ).
@@ -91,6 +94,7 @@ CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
     endif.
   endmethod.
 
+
   method /cc4a/if_abap_analyzer~calculate_bracket_end.
     if is_bracket( statement-tokens[ bracket_position ] ) ne /cc4a/if_abap_analyzer=>bracket_type-opening and
        is_bracket( statement-tokens[ bracket_position ] ) ne /cc4a/if_abap_analyzer=>bracket_type-closing.
@@ -123,6 +127,7 @@ CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
     endif.
   endmethod.
 
+
   method /cc4a/if_abap_analyzer~find_key_words.
     position = -1.
     loop at statement-tokens transporting no fields where lexeme eq key_words[ 1 ] and references is initial.
@@ -142,6 +147,7 @@ CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
       endif.
     endloop.
   endmethod.
+
 
   method /cc4a/if_abap_analyzer~is_bracket.
     data(first_char) = token-lexeme(1).
@@ -165,6 +171,7 @@ CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
     negated_comparison_operator = negations[ operator = comparison_operator ]-negated.
   endmethod.
 
+
   method /cc4a/if_abap_analyzer~token_is_comparison_operator.
     case token-lexeme.
       when 'IS' or 'IN' or '>' or 'GT' or '<' or 'LT' or '>=' or 'GE' or '<=' or 'LE' or '=' or 'EQ' or '<>' or 'NE'.
@@ -173,6 +180,7 @@ CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
         is_operator = abap_false.
     endcase.
   endmethod.
+
 
   method /cc4a/if_abap_analyzer~find_clause_index.
     token_index = 0.
@@ -241,6 +249,7 @@ CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
     result = analyzer->analyze( ).
 
   endmethod.
+
 
   method create.
     instance = new /cc4a/abap_analyzer( ).

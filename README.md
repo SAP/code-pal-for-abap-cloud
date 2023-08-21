@@ -2,12 +2,12 @@
 
 ## About this Project
 
-Code Pal is a project that provides ATC checks to assist ABAP programmers in adhering to the [Clean ABAP style guide](https://github.com/SAP/styleguides/blob/main/clean-abap/CleanABAP.md). This is a version of that project that provides ATC checks that can be executed in an ABAP Cloud (["Steampunk"](https://blogs.sap.com/2019/08/20/its-steampunk-now/)) environment and modern on-premise installations (`SAP_BASIS` release equal to or greater than 7.56). The legacy version for SAP_BASIS releases starting at 7.40 is [here](https://github.com/SAP/code-pal-for-abap).
+Code Pal is a project that provides ATC checks to assist ABAP programmers in adhering to the [Clean ABAP style guide](https://github.com/SAP/styleguides/blob/main/clean-abap/CleanABAP.md). This is a version of that project that provides ATC checks that can be executed in an ABAP Cloud (["Steampunk"](https://blogs.sap.com/2019/08/20/its-steampunk-now/)) environment. The legacy version for SAP_BASIS releases starting at 7.40 is [here](https://github.com/SAP/code-pal-for-abap).
 
 
 ## Requirements and Setup
 
-Install via [abapGit Eclipse plugin](https://github.com/abapGit/ADT_Frontend) on ABAP cloud systems and [abapGit for SAPGUI](https://docs.abapgit.org/guide-online-install.html) on systems with SAP_BASIS 7.57 or higher.
+Install via [abapGit Eclipse plugin](https://github.com/abapGit/ADT_Frontend) on ABAP cloud systems and [abapGit for SAPGUI](https://docs.abapgit.org/guide-online-install.html) on systems with SAP_BASIS 7.58 or higher.
 
 Long-term compatibility is only guaranteed for the current version of ABAP for Cloud Development. 
 

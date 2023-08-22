@@ -34,31 +34,31 @@
       "checkName": "/CC4A/METHOD_SIGNATURE",
       "parameters": [
         {
-          "name": "CheckPublicMethodNoInterface",
+          "name": "CheckPubMethodNoInterface",
           "value": "true"
         },
         {
-          "name": "CheckInputParameterBoolean",
+          "name": "CheckInputParamBoolean",
           "value": "true"
         },
         {
-          "name": "CheckInputParameterOptional",
+          "name": "CheckInputParamOptional",
           "value": "true"
         },
         {
-          "name": "CheckOutputParameterNumber",
+          "name": "CheckOutputParamNumber",
           "value": "true"
         },
         {
-          "name": "CheckOutputParameterType",
+          "name": "CheckOutputParamType",
           "value": "true"
         },
         {
-          "name": "CheckReturningParameterNotName",
+          "name": "CheckRetParamNotNamedResult",
           "value": "true"
         },
         {
-          "name": "CheckExportingParameterNumberN",
+          "name": "CheckExpParamNumberNotOne",
           "value": "true"
         }
       ]

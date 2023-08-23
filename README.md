@@ -1,5 +1,7 @@
 # Code Pal for ABAP - Cloud Edition
 
+[![REUSE status](https://api.reuse.software/badge/github.com/SAP/code-pal-for-abap-cloud)](https://api.reuse.software/info/github.com/SAP/code-pal-for-abap-cloud)
+
 ## About this Project
 
 Code Pal is a project that provides ATC checks to assist ABAP programmers in adhering to the [Clean ABAP style guide](https://github.com/SAP/styleguides/blob/main/clean-abap/CleanABAP.md). This is a version of that project that provides ATC checks that can be executed in an ABAP Cloud (["Steampunk"](https://blogs.sap.com/2019/08/20/its-steampunk-now/)) environment. The legacy version for SAP_BASIS releases starting at 7.40 is [here](https://github.com/SAP/code-pal-for-abap).

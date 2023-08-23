@@ -412,8 +412,6 @@ class lcl_analyze_db_statement implementation.
       endif.
       is_db = abap_true.
       check_if_dbtab = abap_false.
-    else.
-      return.
     endif.
   endmethod.
 

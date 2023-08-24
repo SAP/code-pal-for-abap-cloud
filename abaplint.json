@@ -2,7 +2,6 @@
     "global": {
       "files": "/src/**/*.*",
       "exclude": [ "/src/test_objects" ],
-      "noIssues": [],
       "skipGeneratedBOPFInterfaces": false,
       "skipGeneratedFunctionGroups": false,
       "skipGeneratedGatewayClasses": false,
@@ -14,22 +13,17 @@
     },
     "dependencies": [
       {
-        "url": "https://github.com/abapedia/steampunk-2302-api",
+        "url": "https://github.com/abapedia/steampunk-2305-api",
         "folder": "/deps",
         "files": "/src/**/*.*"
       }
     ],
     "syntax": {
       "version": "Cloud",
-      "errorNamespace": "^(Z|Y|LCL_|TY_|LIF_)",
-      "globalConstants": [],
-      "globalMacros": []
+      "errorNamespace": "^(Z|Y|LCL_|TY_|LIF_|/CC4A/|)"
     },
     "rules": {
-      "7bit_ascii": {
-        "exclude": [],
-        "severity": "Error"
-      },
+      "7bit_ascii": true,
       "abapdoc": false,
       "align_parameters": false,
       "allowed_object_naming": false,
@@ -128,16 +122,7 @@
         "assign": false,
         "find": true
       },
-      "check_syntax": {
-        "exclude": [
-          "./src/checks/#cc4a#avoid_default_key.clas.testclasses.abap",
-          "./src/checks/#cc4a#check_constant_interface.clas.testclasses.abap",
-          "./src/checks/#cc4a#equals_sign_chaining.clas.testclasses.abap",
-          "./src/checks/#cc4a#chain_declaration.clas.testclasses.abap",
-          "./src/checks/#cc4a#method_signature.clas.testclasses.abap"
-        ],
-        "severity": "Error"
-      },
+      "check_syntax": true,
       "check_text_elements": {
         "exclude": [],
         "severity": "Error"
@@ -650,10 +635,7 @@
         "exclude": [],
         "severity": "Error"
       },
-      "prefer_inline": {
-        "exclude": [],
-        "severity": "Error"
-      },
+      "prefer_inline": false,
       "prefer_is_not": {
         "exclude": [],
         "severity": "Error"
@@ -882,4 +864,3 @@
       }
     }
   }
-  

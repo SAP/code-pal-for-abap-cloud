@@ -6,5 +6,6 @@
     "abapLanguageVersion": "cloudDevelopment"
   },
   "category": "/CC4A/CODE_PAL",
-  "implementingClass": "/CC4A/PREFER_IS_NOT"
+  "implementingClass": "/CC4A/PREFER_IS_NOT",
+  "checkType": "remoteEnabled"
 }

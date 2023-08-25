@@ -37,5 +37,5 @@
       "name": "CheckExpParamNumberNotOne",
       "description": "Check number of exporting parameter more than 1"
     }
-  ],
+  ]
 }

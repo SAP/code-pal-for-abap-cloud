@@ -69,13 +69,13 @@ class ltcl_test implementation.
                                    type = co_test_object-object_type )
       asserter_config   = value #( quickfixes                 = abap_false
                                    remove_findings_with_pcoms = abap_true )
-      expected_findings = value #( ( code       = /cc4a/equals_sign_chaining=>message_codes-eqals_sign_chaining
+      expected_findings = value #( ( code       = /cc4a/equals_sign_chaining=>finding_codes-equals_sign_chaining
                                      location   = finding_1_loc
                                      quickfixes = qf1_finding_1 )
-                                   ( code       = /cc4a/equals_sign_chaining=>message_codes-eqals_sign_chaining
+                                   ( code       = /cc4a/equals_sign_chaining=>finding_codes-equals_sign_chaining
                                      location   = finding_2_loc
                                      quickfixes = qf1_finding_2 )
-                                   ( code       = /cc4a/equals_sign_chaining=>message_codes-eqals_sign_chaining
+                                   ( code       = /cc4a/equals_sign_chaining=>finding_codes-equals_sign_chaining
                                      location   = finding_4_loc
                                      quickfixes = qf1_finding_4 ) ) ).
 

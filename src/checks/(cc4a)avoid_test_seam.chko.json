@@ -1,7 +1,7 @@
 {
   "formatVersion": "1",
   "header": {
-    "description": "Avoid using TEST-SEAM",
+    "description": "Usage of TEST-SEAM",
     "originalLanguage": "en",
     "abapLanguageVersion": "cloudDevelopment"
   },

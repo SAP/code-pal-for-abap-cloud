@@ -74,10 +74,10 @@ class /cc4a/db_access_in_ut implementation.
   method if_ci_atc_check~get_meta_data.
     meta_data = /cc4a/check_meta_data=>create(
       value #( checked_types = /cc4a/check_meta_data=>checked_types-abap_programs
-        description = 'Avoid data base access in unit-tests'(des)
+        description = 'Database access in unit tests'(des)
         remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
         finding_codes = value #(
-          ( code = finding_code pseudo_comment = pseudo_comment text = 'Database access in unit-test'(dau) ) )
+          ( code = finding_code pseudo_comment = pseudo_comment text = 'Database access in unit test'(dau) ) )
         ) ).
   endmethod.
 

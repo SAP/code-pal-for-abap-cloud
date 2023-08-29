@@ -7,6 +7,7 @@ class /cc4a/abap_analyzer definition
     interfaces /cc4a/if_abap_analyzer.
 
     class-methods create returning value(instance) type ref to /cc4a/if_abap_analyzer.
+    class-methods class_constructor.
     aliases find_clause_index for /cc4a/if_abap_analyzer~find_clause_index.
     aliases is_token_keyword for /cc4a/if_abap_analyzer~is_token_keyword.
     aliases is_db_statement for /cc4a/if_abap_analyzer~is_db_statement.
@@ -221,19 +222,6 @@ class /cc4a/abap_analyzer implementation.
 
   method create.
     instance = new /cc4a/abap_analyzer( ).
-
-    negations = value #( ( operator = '>' negated = '<=' )
-                         ( operator = 'GT' negated = 'LE' )
-                         ( operator = '<' negated = '>=' )
-                         ( operator = 'LT' negated = 'GE' )
-                         ( operator = '=' negated = '<>' )
-                         ( operator = 'EQ' negated = 'NE' )
-                         ( operator = '<>' negated = '=' )
-                         ( operator = 'NE' negated = 'EQ' )
-                         ( operator = '<=' negated = '>' )
-                         ( operator = 'LE' negated = 'GT' )
-                         ( operator = '>=' negated = '<' )
-                         ( operator = 'GE' negated = 'LT' ) ).
   endmethod.
 
 
@@ -271,6 +259,21 @@ class /cc4a/abap_analyzer implementation.
   method /cc4a/if_abap_analyzer~is_logical_connective.
     is_logical_connective = xsdbool(
       token-references is initial and ( token-lexeme = 'AND' or token-lexeme = 'OR' or token-lexeme = 'EQUIV' ) ).
+  endmethod.
+
+  method class_constructor.
+    negations = value #( ( operator = '>' negated = '<=' )
+                         ( operator = 'GT' negated = 'LE' )
+                         ( operator = '<' negated = '>=' )
+                         ( operator = 'LT' negated = 'GE' )
+                         ( operator = '=' negated = '<>' )
+                         ( operator = 'EQ' negated = 'NE' )
+                         ( operator = '<>' negated = '=' )
+                         ( operator = 'NE' negated = 'EQ' )
+                         ( operator = '<=' negated = '>' )
+                         ( operator = 'LE' negated = 'GT' )
+                         ( operator = '>=' negated = '<' )
+                         ( operator = 'GE' negated = 'LT' ) ).
   endmethod.
 
 endclass.

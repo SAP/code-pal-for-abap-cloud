@@ -6,8 +6,12 @@ class /cc4a/prefer_is_not definition
   public section.
     interfaces if_ci_atc_check.
 
-    constants finding_code type if_ci_atc_check=>ty_finding_code value 'NOTISCOND'.
+    constants:
+      begin of finding_codes,
+        misplaced_not type if_ci_atc_check=>ty_finding_code value 'NOTISCOND',
+      end of finding_codes.
     constants quickfix_code type cl_ci_atc_quickfixes=>ty_quickfix_code value 'PREFISNOT'.
+    methods constructor.
   protected section.
   private section.
     constants pseudo_comment type string value 'PREFER_IS_NOT'.
@@ -24,6 +28,7 @@ class /cc4a/prefer_is_not definition
 
     data code_provider     type ref to if_ci_atc_source_code_provider.
     data assistant_factory type ref to cl_ci_atc_assistant_factory.
+    data meta_data type ref to /cc4a/if_check_meta_data.
 
     methods analyze_procedure
       importing procedure       type if_ci_atc_source_code_provider=>ty_procedure
@@ -99,14 +104,16 @@ CLASS /CC4A/PREFER_IS_NOT IMPLEMENTATION.
           context = assistant_factory->create_quickfix_context(
             value #( procedure_id = procedure-id statements = value #( from = statement_index to = statement_index ) ) )
           code = create_quickfix_code( statement = <statement> finding_information = <finding_information> ) ).
-        insert value #( code = finding_code
+        insert value #( code = finding_codes-misplaced_not
           location = value #(
             object = code_provider->get_statement_location( <statement> )-object
             position = value #(
               line = code_provider->get_statement_location( <statement> )-position-line
               column = <finding_information>-operator_position ) )
           checksum = code_provider->get_statement_checksum( <statement> )
-          has_pseudo_comment = xsdbool( line_exists( <statement>-pseudo_comments[ table_line = pseudo_comment ] ) )
+          has_pseudo_comment = meta_data->has_valid_pseudo_comment(
+            statement = <statement>
+            finding_code = finding_codes-misplaced_not )
           details = assistant_factory->create_finding_details( )->attach_quickfixes( available_quickfixes )
         ) into table findings.
       endloop.
@@ -229,12 +236,16 @@ CLASS /CC4A/PREFER_IS_NOT IMPLEMENTATION.
 
 
   method if_ci_atc_check~get_meta_data.
+    meta_data = me->meta_data.
+  endmethod.
+
+  method constructor.
     meta_data = /cc4a/check_meta_data=>create(
       value #( checked_types = /cc4a/check_meta_data=>checked_types-abap_programs
           description = 'Prefer IS NOT to NOT IS'(des)
           remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
           finding_codes = value #(
-            ( code = finding_code pseudo_comment = pseudo_comment text = 'Usage of NOT IS condition'(nic) ) )
+            ( code = finding_codes-misplaced_not pseudo_comment = pseudo_comment text = 'Usage of NOT IS condition'(nic) ) )
           quickfix_codes = value #(
             ( code = quickfix_code short_text = 'Replace NOT IS condition with IS NOT'(qin) ) ) ) ).
   endmethod.

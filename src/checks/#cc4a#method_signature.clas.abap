@@ -90,6 +90,7 @@ class /cc4a/method_signature definition
 
     data code_provider     type ref to if_ci_atc_source_code_provider.
     data assistant_factory type ref to cl_ci_atc_assistant_factory.
+    data meta_data type ref to /cc4a/if_check_meta_data.
     data suspicious_bool_types type hashed table of if_ci_atc_source_code_provider=>ty_full_name
                                with unique key table_line.
     data config type ty_config.
@@ -127,15 +128,14 @@ class /cc4a/method_signature definition
       importing
         statement      type if_ci_atc_source_code_provider=>ty_statement
         code           type if_ci_atc_check=>ty_finding_code
-        pseudo_comment type string
       returning
         value(result)  type if_ci_atc_check=>ty_finding.
 
-endclass.
+ENDCLASS.
 
 
 
-class /cc4a/method_signature implementation.
+CLASS /CC4A/METHOD_SIGNATURE IMPLEMENTATION.
 
 
   method analyze_procedure.
@@ -158,8 +158,7 @@ class /cc4a/method_signature implementation.
              is_testmethod( <statement> ) = abap_false and
              is_interface_section = abap_false.
             insert create_finding( statement = <statement>
-                                  code = message_codes-method_sig_interface_missing
-                                  pseudo_comment = pseudo_comments-method_sig_interface_missing ) into table result.
+                                   code = message_codes-method_sig_interface_missing ) into table result.
           endif.
           if should_analyze_statement( ).
             insert lines of analyze_statement( <statement> ) into table result.
@@ -251,72 +250,6 @@ class /cc4a/method_signature implementation.
                       check_sig_ret_not_result    = abap_true
                       check_sig_single_exp        = abap_true
                       check_sig_interface_missing = abap_true ).
-  endmethod.
-
-
-  method create_finding.
-    result =
-    value #( code               = code
-             location           = code_provider->get_statement_location( statement )
-             checksum           = code_provider->get_statement_checksum( statement )
-             has_pseudo_comment = xsdbool( line_exists( statement-pseudo_comments[ table_line = pseudo_comment ] ) ) ).
-  endmethod.
-
-
-  method evaluate_siganture.
-    if config-check_sig_param_out_type = abap_true and
-       signature-nr_of_output_param_types > 1.
-      insert create_finding( statement = statement
-                             code = message_codes-method_sig_param_out_type
-                             pseudo_comment = pseudo_comments-method_sig_param_out_type ) into table result.
-    endif.
-    if config-check_sig_param_out_num = abap_true and
-       signature-nr_of_output_params > 1 and
-       not is_bdef_impl_def( statement ).
-      insert create_finding( statement = statement
-                             code = message_codes-method_sig_param_out_num
-                             pseudo_comment = pseudo_comments-method_sig_param_out_num ) into table result.
-    endif.
-    if config-check_sig_param_in_bool = abap_true and
-       signature-has_suspicious_imp_bool = abap_true and
-       signature-method_is_setter = abap_false.
-      insert create_finding( statement = statement
-                             code = message_codes-method_sig_param_in_bool
-                             pseudo_comment = pseudo_comments-method_sig_param_in_bool ) into table result.
-    endif.
-
-    if config-check_sig_param_in_opt = abap_true and
-       signature-has_optional_imp = abap_true.
-      insert create_finding( statement = statement
-                             code = message_codes-method_sig_param_in_opt
-                             pseudo_comment = pseudo_comments-method_sig_param_in_opt ) into table result.
-    endif.
-
-    if config-check_sig_single_exp = abap_true and
-       signature-nr_of_export_params = 1 and
-       signature-nr_of_output_params = 1.
-      insert create_finding( statement = statement
-                             code = message_codes-method_sig_single_exp
-                             pseudo_comment = pseudo_comments-method_sig_single_exp ) into table result.
-    endif.
-
-    if config-check_sig_ret_not_result = abap_true and
-       signature-ret_value_name_not_result = abap_true.
-      insert create_finding( statement = statement
-                             code = message_codes-method_sig_ret_not_result
-                             pseudo_comment = pseudo_comments-method_sig_ret_not_result ) into table result.
-    endif.
-
-  endmethod.
-
-
-  method get_suspicious_bool_types.
-    result = value #( ( `\TY:ABAP_BOOL` )
-                      ( `\TY:ABAP_BOOLEAN` ) ).
-  endmethod.
-
-
-  method if_ci_atc_check~get_meta_data.
     data(finding_codes) = value /cc4a/check_meta_data=>ty_finding_codes(
                                    ( code           = message_codes-method_sig_param_out_type
                                      pseudo_comment = pseudo_comments-method_sig_param_out_type
@@ -369,6 +302,69 @@ class /cc4a/method_signature implementation.
   endmethod.
 
 
+  method create_finding.
+    result =
+      value #( code               = code
+               location           = code_provider->get_statement_location( statement )
+               checksum           = code_provider->get_statement_checksum( statement )
+               has_pseudo_comment = meta_data->has_valid_pseudo_comment(
+                 statement = statement
+                 finding_code = code ) ).
+  endmethod.
+
+
+  method evaluate_siganture.
+    if config-check_sig_param_out_type = abap_true and
+       signature-nr_of_output_param_types > 1.
+      insert create_finding( statement = statement
+                             code = message_codes-method_sig_param_out_type ) into table result.
+    endif.
+    if config-check_sig_param_out_num = abap_true and
+       signature-nr_of_output_params > 1 and
+       not is_bdef_impl_def( statement ).
+      insert create_finding( statement = statement
+                             code = message_codes-method_sig_param_out_num ) into table result.
+    endif.
+    if config-check_sig_param_in_bool = abap_true and
+       signature-has_suspicious_imp_bool = abap_true and
+       signature-method_is_setter = abap_false.
+      insert create_finding( statement = statement
+                             code = message_codes-method_sig_param_in_bool ) into table result.
+    endif.
+
+    if config-check_sig_param_in_opt = abap_true and
+       signature-has_optional_imp = abap_true.
+      insert create_finding( statement = statement
+                             code = message_codes-method_sig_param_in_opt ) into table result.
+    endif.
+
+    if config-check_sig_single_exp = abap_true and
+       signature-nr_of_export_params = 1 and
+       signature-nr_of_output_params = 1.
+      insert create_finding( statement = statement
+                             code = message_codes-method_sig_single_exp ) into table result.
+    endif.
+
+    if config-check_sig_ret_not_result = abap_true and
+       signature-ret_value_name_not_result = abap_true.
+      insert create_finding( statement = statement
+                             code = message_codes-method_sig_ret_not_result ) into table result.
+    endif.
+
+  endmethod.
+
+
+  method get_suspicious_bool_types.
+    result = value #( ( `\TY:ABAP_BOOL` )
+                      ( `\TY:ABAP_BOOLEAN` ) ).
+  endmethod.
+
+
+  method if_ci_atc_check~get_meta_data.
+    meta_data = me->meta_data.
+  endmethod.
+
+
   method if_ci_atc_check~run.
     suspicious_bool_types = get_suspicious_bool_types( ).
     code_provider = data_provider->get_code_provider( ).
@@ -408,6 +404,25 @@ class /cc4a/method_signature implementation.
   endmethod.
 
 
+  method is_bdef_impl_def.
+    "check if statement contains a RAP Handler Handler method definition
+    data(flat_statement) = /cc4a/abap_analyzer=>create( )->flatten_tokens( statement-tokens ).
+    result = xsdbool( flat_statement cs bdef_impl_keywords-meth_for_lock or
+                      flat_statement cs bdef_impl_keywords-meth_for_modify or
+                      flat_statement cs bdef_impl_keywords-meth_for_delete or
+                      flat_statement cs bdef_impl_keywords-meth_for_read or
+                      flat_statement cs bdef_impl_keywords-meth_for_det_on or
+                      flat_statement cs bdef_impl_keywords-meth_for_global_auth or
+                      flat_statement cs bdef_impl_keywords-meth_for_numbering or
+                      flat_statement cs bdef_impl_keywords-meth_for_precheck or
+                      flat_statement cs bdef_impl_keywords-meth_for_val_on_save or
+                      flat_statement cs bdef_impl_keywords-meth_for_auth or
+                      flat_statement cs bdef_impl_keywords-meth_for_inst_auth or
+                      flat_statement cs bdef_impl_keywords-meth_for_feat or
+                      flat_statement cs bdef_impl_keywords-meth_for_inst_feat ).
+  endmethod.
+
+
   method is_constructor.
     result = xsdbool( value #( statement-tokens[ 2 ]-lexeme optional ) = 'CONSTRUCTOR' ).
   endmethod.
@@ -439,23 +454,4 @@ class /cc4a/method_signature implementation.
       result = abap_true.
     endif.
   endmethod.
-
-  method is_bdef_impl_def.
-    "check if statement contains a RAP Handler Handler method definition
-    data(flat_statement) = /cc4a/abap_analyzer=>create( )->flatten_tokens( statement-tokens ).
-    result = xsdbool( flat_statement cs bdef_impl_keywords-meth_for_lock or
-                      flat_statement cs bdef_impl_keywords-meth_for_modify or
-                      flat_statement cs bdef_impl_keywords-meth_for_delete or
-                      flat_statement cs bdef_impl_keywords-meth_for_read or
-                      flat_statement cs bdef_impl_keywords-meth_for_det_on or
-                      flat_statement cs bdef_impl_keywords-meth_for_global_auth or
-                      flat_statement cs bdef_impl_keywords-meth_for_numbering or
-                      flat_statement cs bdef_impl_keywords-meth_for_precheck or
-                      flat_statement cs bdef_impl_keywords-meth_for_val_on_save or
-                      flat_statement cs bdef_impl_keywords-meth_for_auth or
-                      flat_statement cs bdef_impl_keywords-meth_for_inst_auth or
-                      flat_statement cs bdef_impl_keywords-meth_for_feat or
-                      flat_statement cs bdef_impl_keywords-meth_for_inst_feat ).
-  endmethod.
-
-endclass.
+ENDCLASS.

@@ -36,8 +36,8 @@ class /cc4a/db_access_in_ut definition
     types ty_classes_with_risk_level       type hashed table of ty_class_risk_level with unique key class_id class_name.
     types ty_classes_with_test_envrnment type standard table of string with empty key.
 
-    data code_provider                  type ref to if_ci_atc_source_code_provider.
-    data assistant_factory              type ref to cl_ci_atc_assistant_factory.
+    data code_provider     type ref to if_ci_atc_source_code_provider.
+    data assistant_factory type ref to cl_ci_atc_assistant_factory.
 
     methods get_relevant_class_information
       importing procedures                     type ref to if_ci_atc_source_code_provider=>ty_procedures
@@ -66,112 +66,12 @@ class /cc4a/db_access_in_ut definition
       importing classes_with_risk_level       type ty_classes_with_risk_level
                 classes_with_test_environment type ty_classes_with_test_envrnment
       returning value(relevant_classes)       type ty_classes_with_risk_level.
-endclass.
+ENDCLASS.
 
 
-class /cc4a/db_access_in_ut implementation.
 
-  method if_ci_atc_check~get_meta_data.
-    meta_data = /cc4a/check_meta_data=>create(
-      value #( checked_types = /cc4a/check_meta_data=>checked_types-abap_programs
-        description = 'Database access in unit tests'(des)
-        remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
-        finding_codes = value #(
-          ( code = finding_code pseudo_comment = pseudo_comment text = 'Database access in unit test'(dau) ) )
-        ) ).
-  endmethod.
+CLASS /CC4A/DB_ACCESS_IN_UT IMPLEMENTATION.
 
-
-  method if_ci_atc_check~run.
-    code_provider = data_provider->get_code_provider( ).
-    data(procedures) = code_provider->get_procedures( code_provider->object_to_comp_unit( object ) ).
-    data(classes_with_risk_level) = get_relevant_class_information( procedures ).
-
-    loop at procedures->* assigning field-symbol(<procedure>).
-      if line_exists( classes_with_risk_level[ class_name = substring_before( val = <procedure>-id-name sub = '=>' ) ] )
-         or line_exists( classes_with_risk_level[ class_id = <procedure>-id-name ] ).
-        insert lines of analyze_procedure( procedure = <procedure>
-                                           classes_with_risk_level = classes_with_risk_level ) into table findings.
-      endif.
-    endloop.
-  endmethod.
-
-  method get_relevant_class_information.
-    data classes_with_test_environment type ty_classes_with_test_envrnment.
-    loop at procedures->* assigning field-symbol(<procedure>).
-      data(class_with_risk_level) = determine_classes_risk_level( <procedure> ).
-      if class_with_risk_level is not initial.
-        insert lines of class_with_risk_level into table classes_with_risk_level.
-      endif.
-      if line_exists( classes_with_risk_level[ class_name = substring_before( val = <procedure>-id-name sub = '=>' ) ] )
-         or line_exists( classes_with_risk_level[ class_id = <procedure>-id-name ] ).
-        data(class_with_test_environment) =
-          find_test_environment( procedure = <procedure> classes_with_risk_level = classes_with_risk_level ).
-        if class_with_test_environment is not initial.
-          insert class_with_test_environment into table classes_with_test_environment.
-        endif.
-      endif.
-    endloop.
-    classes_with_risk_level =
-      get_relevant_classes(
-        classes_with_risk_level = classes_with_risk_level
-        classes_with_test_environment = classes_with_test_environment ).
-  endmethod.
-
-  method get_relevant_classes.
-    loop at classes_with_risk_level assigning field-symbol(<class_with_risk_level>).
-      if not line_exists( classes_with_test_environment[ table_line = <class_with_risk_level>-class_name ] ).
-        insert <class_with_risk_level> into table relevant_classes.
-      endif.
-    endloop.
-  endmethod.
-
-  method if_ci_atc_check~set_assistant_factory.
-    assistant_factory = factory.
-  endmethod.
-
-
-  method if_ci_atc_check~verify_prerequisites.
-  endmethod.
-
-  method determine_classes_risk_level.
-    loop at procedure-statements assigning field-symbol(<statement>) using key keyword where keyword eq 'CLASS'.
-      loop at <statement>-tokens transporting no fields where lexeme eq 'FOR'.
-        if <statement>-tokens[ sy-tabix + 1 ]-lexeme eq 'TESTING'.
-          insert
-            get_class_name_and_risk_level( statement = <statement> procedure_id = procedure-id-name )
-          into table class_names_with_risk_level.
-        endif.
-      endloop.
-    endloop.
-  endmethod.
-
-  method get_class_name_and_risk_level.
-    class_name_with_risk_level-class_name = statement-tokens[ 2 ]-lexeme.
-    class_name_with_risk_level-class_id = procedure_id.
-    loop at statement-tokens transporting no fields where lexeme eq 'RISK'.
-      if statement-tokens[ sy-tabix + 1 ]-lexeme eq 'LEVEL'.
-        class_name_with_risk_level-risk_level = statement-tokens[ sy-tabix + 2 ]-lexeme.
-      endif.
-    endloop.
-  endmethod.
-
-  method find_test_environment.
-    loop at procedure-statements assigning field-symbol(<statement>).
-      loop at <statement>-tokens assigning field-symbol(<token>).
-        if <token>-lexeme cs test_environments-cl_cds_test_environment or
-           <token>-lexeme cs test_environments-cl_osql_test_environment or
-           <token>-lexeme cs test_environments-if_cds_test_environment or
-           <token>-lexeme cs test_environments-if_osql_test_environment.
-          if procedure-id-name cs '=>'.
-            class_with_test_environment = substring_before( val = procedure-id-name sub = '=>' ).
-          else.
-            class_with_test_environment = classes_with_risk_level[ class_id = procedure-id-name ]-class_name.
-          endif.
-        endif.
-      endloop.
-    endloop.
-  endmethod.
 
   method analyze_procedure.
     types ty_key_word_range type range of string.
@@ -213,4 +113,113 @@ class /cc4a/db_access_in_ut implementation.
       endif.
     endloop.
   endmethod.
-endclass.
+
+
+  method determine_classes_risk_level.
+    loop at procedure-statements assigning field-symbol(<statement>) using key keyword where keyword eq 'CLASS'.
+      loop at <statement>-tokens transporting no fields where lexeme eq 'FOR'.
+        if <statement>-tokens[ sy-tabix + 1 ]-lexeme eq 'TESTING'.
+          insert
+            get_class_name_and_risk_level( statement = <statement> procedure_id = procedure-id-name )
+          into table class_names_with_risk_level.
+        endif.
+      endloop.
+    endloop.
+  endmethod.
+
+
+  method find_test_environment.
+    loop at procedure-statements assigning field-symbol(<statement>).
+      loop at <statement>-tokens assigning field-symbol(<token>).
+        if <token>-lexeme cs test_environments-cl_cds_test_environment or
+           <token>-lexeme cs test_environments-cl_osql_test_environment or
+           <token>-lexeme cs test_environments-if_cds_test_environment or
+           <token>-lexeme cs test_environments-if_osql_test_environment.
+          if procedure-id-name cs '=>'.
+            class_with_test_environment = substring_before( val = procedure-id-name sub = '=>' ).
+          else.
+            class_with_test_environment = classes_with_risk_level[ class_id = procedure-id-name ]-class_name.
+          endif.
+        endif.
+      endloop.
+    endloop.
+  endmethod.
+
+
+  method get_class_name_and_risk_level.
+    class_name_with_risk_level-class_name = statement-tokens[ 2 ]-lexeme.
+    class_name_with_risk_level-class_id = procedure_id.
+    loop at statement-tokens transporting no fields where lexeme eq 'RISK'.
+      if statement-tokens[ sy-tabix + 1 ]-lexeme eq 'LEVEL'.
+        class_name_with_risk_level-risk_level = statement-tokens[ sy-tabix + 2 ]-lexeme.
+      endif.
+    endloop.
+  endmethod.
+
+
+  method get_relevant_classes.
+    loop at classes_with_risk_level assigning field-symbol(<class_with_risk_level>).
+      if not line_exists( classes_with_test_environment[ table_line = <class_with_risk_level>-class_name ] ).
+        insert <class_with_risk_level> into table relevant_classes.
+      endif.
+    endloop.
+  endmethod.
+
+
+  method get_relevant_class_information.
+    data classes_with_test_environment type ty_classes_with_test_envrnment.
+    loop at procedures->* assigning field-symbol(<procedure>).
+      data(class_with_risk_level) = determine_classes_risk_level( <procedure> ).
+      if class_with_risk_level is not initial.
+        insert lines of class_with_risk_level into table classes_with_risk_level.
+      endif.
+      if line_exists( classes_with_risk_level[ class_name = substring_before( val = <procedure>-id-name sub = '=>' ) ] )
+         or line_exists( classes_with_risk_level[ class_id = <procedure>-id-name ] ).
+        data(class_with_test_environment) =
+          find_test_environment( procedure = <procedure> classes_with_risk_level = classes_with_risk_level ).
+        if class_with_test_environment is not initial.
+          insert class_with_test_environment into table classes_with_test_environment.
+        endif.
+      endif.
+    endloop.
+    classes_with_risk_level =
+      get_relevant_classes(
+        classes_with_risk_level = classes_with_risk_level
+        classes_with_test_environment = classes_with_test_environment ).
+  endmethod.
+
+
+  method if_ci_atc_check~get_meta_data.
+    meta_data = /cc4a/check_meta_data=>create(
+      value #( checked_types = /cc4a/check_meta_data=>checked_types-abap_programs
+        description = 'Database access in unit tests'(des)
+        remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
+        finding_codes = value #(
+          ( code = finding_code pseudo_comment = pseudo_comment text = 'Database access in unit test'(dau) ) )
+        ) ).
+  endmethod.
+
+
+  method if_ci_atc_check~run.
+    code_provider = data_provider->get_code_provider( ).
+    data(procedures) = code_provider->get_procedures( code_provider->object_to_comp_unit( object ) ).
+    data(classes_with_risk_level) = get_relevant_class_information( procedures ).
+
+    loop at procedures->* assigning field-symbol(<procedure>).
+      if line_exists( classes_with_risk_level[ class_name = substring_before( val = <procedure>-id-name sub = '=>' ) ] )
+         or line_exists( classes_with_risk_level[ class_id = <procedure>-id-name ] ).
+        insert lines of analyze_procedure( procedure = <procedure>
+                                           classes_with_risk_level = classes_with_risk_level ) into table findings.
+      endif.
+    endloop.
+  endmethod.
+
+
+  method if_ci_atc_check~set_assistant_factory.
+    assistant_factory = factory.
+  endmethod.
+
+
+  method if_ci_atc_check~verify_prerequisites.
+  endmethod.
+ENDCLASS.

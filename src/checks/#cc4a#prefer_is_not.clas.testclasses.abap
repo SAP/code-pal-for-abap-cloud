@@ -1,9 +1,10 @@
-class test definition final for testing
+class tests definition final for testing
   duration short
   risk level harmless.
 
   private section.
     constants test_class type c length 30 value '/CC4A/TEST_PREFER_IS_NOT'.
+    constants negative_test_class type c length 30 value '/CC4A/TEST_PREFER_IS_NOT_2'.
     constants:
       begin of test_class_methods,
         without_brackets     type c length 30 value 'WITHOUT_BRACKETS',
@@ -11,12 +12,14 @@ class test definition final for testing
         with_pseudo_comments type c length 30 value 'WITH_PSEUDO_COMMENTS',
       end of test_class_methods.
 
-    methods execute_test_class for testing raising cx_static_check.
+    methods main_test for testing raising cx_static_check.
+
+    methods no_findings for testing raising cx_static_check.
 endclass.
 
-class test implementation.
+class tests implementation.
 
-  method execute_test_class.
+  method main_test.
 
     data(without_brackets_1) = value if_ci_atc_check=>ty_location(
           object = cl_ci_atc_unit_driver=>get_method_object(
@@ -416,5 +419,13 @@ class test implementation.
                                        ( `ASSERT ( 1 = 2 ) .` ) ) ) ) ) )
       asserter_config   = value #( quickfixes = abap_false ) ).
 
+  endmethod.
+
+  method no_findings.
+    cl_ci_atc_unit_driver=>create_asserter( )->check_and_assert(
+      check = new /cc4a/prefer_is_not( )
+      object = value #( type = 'CLAS' name = negative_test_class )
+      expected_findings = value #( )
+      asserter_config = value #( ) ).
   endmethod.
 endclass.

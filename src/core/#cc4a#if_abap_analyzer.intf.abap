@@ -91,4 +91,7 @@ interface /cc4a/if_abap_analyzer
       keyword       type string
     returning
       value(result) type abap_bool .
+  methods is_logical_connective
+    importing token type if_ci_atc_source_code_provider=>ty_token
+    returning value(is_logical_connective) type abap_bool.
 endinterface.

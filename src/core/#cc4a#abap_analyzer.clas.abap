@@ -20,11 +20,11 @@ class /cc4a/abap_analyzer definition
         negated  type string,
       end of ty_negation.
     class-data negations type table of ty_negation.
-ENDCLASS.
+endclass.
 
 
 
-CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
+class /cc4a/abap_analyzer implementation.
 
 
   method /cc4a/if_abap_analyzer~break_into_lines.
@@ -39,6 +39,89 @@ CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
       insert code+already_chopped_chars(chars_to_chop) into table code_lines.
       remaining_chunk -= chars_to_chop.
     endwhile.
+  endmethod.
+
+
+  method /cc4a/if_abap_analyzer~calculate_bracket_end.
+    if is_bracket( statement-tokens[ bracket_position ] ) ne /cc4a/if_abap_analyzer=>bracket_type-opening and
+       is_bracket( statement-tokens[ bracket_position ] ) ne /cc4a/if_abap_analyzer=>bracket_type-closing.
+      raise exception new /cc4a/cx_token_is_no_bracket( ).
+    endif.
+
+    data(bracket_counter) = 1.
+    loop at statement-tokens assigning field-symbol(<token>) from bracket_position + 1.
+      data(idx) = sy-tabix.
+      case is_bracket( <token> ).
+        when /cc4a/if_abap_analyzer=>bracket_type-opening.
+          bracket_counter += 1.
+
+        when /cc4a/if_abap_analyzer=>bracket_type-closing.
+          if bracket_counter eq 1.
+            end_of_bracket = idx.
+            exit.
+          endif.
+          bracket_counter -= 1.
+
+        when /cc4a/if_abap_analyzer=>bracket_type-clopening.
+          if bracket_counter eq 1.
+            end_of_bracket = idx.
+            exit.
+          endif.
+      endcase.
+    endloop.
+    if end_of_bracket is initial.
+      end_of_bracket = -1.
+    endif.
+  endmethod.
+
+
+  method /cc4a/if_abap_analyzer~find_clause_index.
+    token_index = 0.
+    split condense( clause ) at space into table data(clauses).
+    if clauses is initial or clauses[ 1 ] is initial.
+      raise exception type /cc4a/cx_clause_is_initial.
+    endif.
+    loop at tokens transporting no fields from start_index
+      where references is initial
+      and lexeme = clauses[ 1 ].
+      token_index = sy-tabix.
+      data(clause_index) = 2.
+      while clause_index <= lines( clauses )
+      and token_index + clause_index - 1 <= lines( tokens ).
+        assign tokens[ token_index + clause_index - 1 ] to field-symbol(<token1>).
+        if <token1>-lexeme = clauses[ clause_index ]
+        and <token1>-references is initial.
+          clause_index += 1.
+        else.
+          token_index = 0.
+          exit.
+        endif.
+      endwhile.
+      if token_index <> 0.
+        return.
+      endif.
+    endloop.
+  endmethod.
+
+
+  method /cc4a/if_abap_analyzer~find_key_words.
+    position = -1.
+    loop at statement-tokens transporting no fields where lexeme eq key_words[ 1 ] and references is initial.
+      data(token_index) = sy-tabix.
+      if lines( key_words ) eq 1.
+        position = token_index.
+        return.
+      else.
+        loop at key_words assigning field-symbol(<key_word>) from 2.
+          data(next_token) = value #( statement-tokens[ token_index + sy-tabix - 1 ] optional ).
+          if next_token-references is not initial or next_token-lexeme ne <key_word>.
+            exit.
+          elseif sy-tabix eq lines( key_words ).
+            position = token_index.
+          endif.
+        endloop.
+      endif.
+    endloop.
   endmethod.
 
 
@@ -95,60 +178,6 @@ CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
   endmethod.
 
 
-  method /cc4a/if_abap_analyzer~calculate_bracket_end.
-    if is_bracket( statement-tokens[ bracket_position ] ) ne /cc4a/if_abap_analyzer=>bracket_type-opening and
-       is_bracket( statement-tokens[ bracket_position ] ) ne /cc4a/if_abap_analyzer=>bracket_type-closing.
-      raise exception new /cc4a/cx_token_is_no_bracket( ).
-    endif.
-
-    data(bracket_counter) = 1.
-    loop at statement-tokens assigning field-symbol(<token>) from bracket_position + 1.
-      data(idx) = sy-tabix.
-      case is_bracket( <token> ).
-        when /cc4a/if_abap_analyzer=>bracket_type-opening.
-          bracket_counter += 1.
-
-        when /cc4a/if_abap_analyzer=>bracket_type-closing.
-          if bracket_counter eq 1.
-            end_of_bracket = idx.
-            exit.
-          endif.
-          bracket_counter -= 1.
-
-        when /cc4a/if_abap_analyzer=>bracket_type-clopening.
-          if bracket_counter eq 1.
-            end_of_bracket = idx.
-            exit.
-          endif.
-      endcase.
-    endloop.
-    if end_of_bracket is initial.
-      end_of_bracket = -1.
-    endif.
-  endmethod.
-
-
-  method /cc4a/if_abap_analyzer~find_key_words.
-    position = -1.
-    loop at statement-tokens transporting no fields where lexeme eq key_words[ 1 ] and references is initial.
-      data(token_index) = sy-tabix.
-      if lines( key_words ) eq 1.
-        position = token_index.
-        return.
-      else.
-        loop at key_words assigning field-symbol(<key_word>) from 2.
-          data(next_token) = value #( statement-tokens[ token_index + sy-tabix - 1 ] optional ).
-          if next_token-references is not initial or next_token-lexeme ne <key_word>.
-            exit.
-          elseif sy-tabix eq lines( key_words ).
-            position = token_index.
-          endif.
-        endloop.
-      endif.
-    endloop.
-  endmethod.
-
-
   method /cc4a/if_abap_analyzer~is_bracket.
     data(first_char) = token-lexeme(1).
     data(offset_for_last_char) = strlen( token-lexeme ) - 1.
@@ -161,6 +190,14 @@ CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
             when ')' then /cc4a/if_abap_analyzer=>bracket_type-clopening
             else /cc4a/if_abap_analyzer=>bracket_type-opening )
         else /cc4a/if_abap_analyzer=>bracket_type-no_bracket ).
+  endmethod.
+
+
+  method /cc4a/if_abap_analyzer~is_token_keyword.
+    result = abap_true.
+    if token-references is not initial or token-lexeme <> keyword.
+      result = abap_false.
+    endif.
   endmethod.
 
 
@@ -182,40 +219,21 @@ CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
   endmethod.
 
 
-  method /cc4a/if_abap_analyzer~find_clause_index.
-    token_index = 0.
-    split condense( clause ) at space into table data(clauses).
-    if clauses is initial or clauses[ 1 ] is initial.
-      raise exception type /cc4a/cx_clause_is_initial.
-    endif.
-    loop at tokens transporting no fields from start_index
-      where references is initial
-      and lexeme = clauses[ 1 ].
-      token_index = sy-tabix.
-      data(clause_index) = 2.
-      while clause_index <= lines( clauses )
-      and token_index + clause_index - 1 <= lines( tokens ).
-        assign tokens[ token_index + clause_index - 1 ] to field-symbol(<token1>).
-        if <token1>-lexeme = clauses[ clause_index ]
-        and <token1>-references is initial.
-          clause_index += 1.
-        else.
-          token_index = 0.
-          exit.
-        endif.
-      endwhile.
-      if token_index <> 0.
-        return.
-      endif.
-    endloop.
-  endmethod.
+  method create.
+    instance = new /cc4a/abap_analyzer( ).
 
-
-  method /cc4a/if_abap_analyzer~is_token_keyword.
-    result = abap_true.
-    if token-references is not initial or token-lexeme <> keyword.
-      result = abap_false.
-    endif.
+    negations = value #( ( operator = '>' negated = '<=' )
+                         ( operator = 'GT' negated = 'LE' )
+                         ( operator = '<' negated = '>=' )
+                         ( operator = 'LT' negated = 'GE' )
+                         ( operator = '=' negated = '<>' )
+                         ( operator = 'EQ' negated = 'NE' )
+                         ( operator = '<>' negated = '=' )
+                         ( operator = 'NE' negated = 'EQ' )
+                         ( operator = '<=' negated = '>' )
+                         ( operator = 'LE' negated = 'GT' )
+                         ( operator = '>=' negated = '<' )
+                         ( operator = 'GE' negated = 'LT' ) ).
   endmethod.
 
 
@@ -241,7 +259,7 @@ CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
     and statement-tokens[ token_idx ]-references is initial.
       token_idx += 3.
     endwhile.
-    data(analyzer) = new lcl_analyze_db_statement(
+    data(analyzer) = new db_statement_analyzer(
        statement = statement
        start_idx = token_idx
        analyzer = me
@@ -250,21 +268,9 @@ CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
 
   endmethod.
 
-
-  method create.
-    instance = new /cc4a/abap_analyzer( ).
-
-    negations = value #( ( operator = '>' negated = '<=' )
-                         ( operator = 'GT' negated = 'LE' )
-                         ( operator = '<' negated = '>=' )
-                         ( operator = 'LT' negated = 'GE' )
-                         ( operator = '=' negated = '<>' )
-                         ( operator = 'EQ' negated = 'NE' )
-                         ( operator = '<>' negated = '=' )
-                         ( operator = 'NE' negated = 'EQ' )
-                         ( operator = '<=' negated = '>' )
-                         ( operator = 'LE' negated = 'GT' )
-                         ( operator = '>=' negated = '<' )
-                         ( operator = 'GE' negated = 'LT' ) ).
+  method /cc4a/if_abap_analyzer~is_logical_connective.
+    is_logical_connective = xsdbool(
+      token-references is initial and ( token-lexeme = 'AND' or token-lexeme = 'OR' or token-lexeme = 'EQUIV' ) ).
   endmethod.
-ENDCLASS.
+
+endclass.

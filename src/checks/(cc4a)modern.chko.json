@@ -1,0 +1,10 @@
+{
+  "formatVersion": "1",
+  "header": {
+    "description": "Modern Language",
+    "originalLanguage": "en"
+  },
+  "category": "/CC4A/CODE_PAL",
+  "implementingClass": "/CC4A/MODERN_LANGUAGE",
+  "checkType": "remoteEnabled"
+}

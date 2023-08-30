@@ -149,7 +149,7 @@ class lcl_atc_check_db_stmt implementation.
   endmethod.
 endclass.
 
-class lcl_test_db_stmt definition final for testing
+class db_stmt definition final for testing
   duration short
   risk level harmless.
 
@@ -158,7 +158,7 @@ class lcl_test_db_stmt definition final for testing
     methods execute_test_class for testing raising cx_static_check.
 endclass.
 
-class lcl_test_db_stmt implementation.
+class db_stmt implementation.
 
   method execute_test_class.
 
@@ -215,16 +215,29 @@ class lcl_test_db_stmt implementation.
   endmethod.
 endclass.
 
+class shared definition final abstract.
+  public section.
+    class-methods tokenize
+      importing code type string
+      returning value(statement) type if_ci_atc_source_code_provider=>ty_statement.
+endclass.
+
+class shared implementation.
+
+  method tokenize.
+    split code at space into table data(tokens).
+    statement = value #( tokens = value #( for <tok> in tokens ( lexeme = to_upper( <tok> ) ) ) ).
+    statement-keyword = statement-tokens[ 1 ]-lexeme.
+  endmethod.
+
+endclass.
+
 class bracket_matching definition final for testing
   duration short
   risk level harmless.
 
   private section.
     methods bracket_ends for testing raising cx_static_check.
-
-    methods tokenize
-      importing code type string
-      returning value(statement) type if_ci_atc_source_code_provider=>ty_statement.
 endclass.
 
 
@@ -235,44 +248,90 @@ class bracket_matching implementation.
 
     cl_abap_unit_assert=>assert_equals(
       act = analyzer->calculate_bracket_end(
-        statement = tokenize( `call( )` )
+        statement = shared=>tokenize( `call( )` )
         bracket_position = 1 )
       exp = 2 ).
     cl_abap_unit_assert=>assert_equals(
       act = analyzer->calculate_bracket_end(
-        statement = tokenize( `if ( a = b ) and ( c = d )` )
+        statement = shared=>tokenize( `if ( a = b ) and ( c = d )` )
         bracket_position = 2 )
       exp = 6 ).
     cl_abap_unit_assert=>assert_equals(
       act = analyzer->calculate_bracket_end(
-        statement = tokenize( `if ( a = b ) and ( c = d )` )
+        statement = shared=>tokenize( `if ( a = b ) and ( c = d )` )
         bracket_position = 8 )
       exp = 12 ).
     cl_abap_unit_assert=>assert_equals(
       act = analyzer->calculate_bracket_end(
-        statement = tokenize( `if ( a = b and ( c = d ) )` )
+        statement = shared=>tokenize( `if ( a = b and ( c = d ) )` )
         bracket_position = 2 )
       exp = 12 ).
     cl_abap_unit_assert=>assert_equals(
       act = analyzer->calculate_bracket_end(
-        statement = tokenize( `if ( a = b and ( c = d ) )` )
+        statement = shared=>tokenize( `if ( a = b and ( c = d ) )` )
         bracket_position = 7 )
       exp = 11 ).
     cl_abap_unit_assert=>assert_equals(
       act = analyzer->calculate_bracket_end(
-        statement = tokenize( `obj->call( )` )
+        statement = shared=>tokenize( `obj->call( )` )
         bracket_position = 1 )
       exp = 2 ).
     cl_abap_unit_assert=>assert_equals(
       act = analyzer->calculate_bracket_end(
-        statement = tokenize( `obj->call( )->second_call( )` )
+        statement = shared=>tokenize( `obj->call( )->second_call( )` )
         bracket_position = 1 )
       exp = 2 ).
   endmethod.
 
-  method tokenize.
-    split code at space into table data(tokens).
-    statement = value #( tokens = value #( for <tok> in tokens ( lexeme = <tok> ) ) ).
-  endmethod.
-
 endclass.
+
+class method_definitions definition final for testing
+  duration short
+  risk level harmless.
+
+  private section.
+    methods method_definitions for testing raising cx_static_check.
+endclass.
+
+CLASS method_definitions IMPLEMENTATION.
+
+  METHOD method_definitions.
+    data(analyzer) = /cc4a/abap_analyzer=>create( ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = analyzer->parse_method_definition(
+        shared=>tokenize( `methods meth importing par type i .` ) )
+      exp = value /cc4a/if_abap_analyzer=>ty_method_parameters(
+        ( name = `PAR` kind = /cc4a/if_abap_analyzer=>parameter_kind-importing ) ) ).
+    cl_abap_unit_assert=>assert_equals(
+      act = analyzer->parse_method_definition(
+        shared=>tokenize( `methods meth importing reference(par) type i .` ) )
+      exp = value /cc4a/if_abap_analyzer=>ty_method_parameters(
+        ( name = `PAR` kind = /cc4a/if_abap_analyzer=>parameter_kind-importing ) ) ).
+    cl_abap_unit_assert=>assert_equals(
+      act = analyzer->parse_method_definition(
+        shared=>tokenize( `methods meth exporting par type i .` ) )
+      exp = value /cc4a/if_abap_analyzer=>ty_method_parameters(
+        ( name = `PAR` kind = /cc4a/if_abap_analyzer=>parameter_kind-exporting ) ) ).
+    cl_abap_unit_assert=>assert_equals(
+      act = analyzer->parse_method_definition(
+        shared=>tokenize( `methods meth changing par type i .` ) )
+      exp = value /cc4a/if_abap_analyzer=>ty_method_parameters(
+        ( name = `PAR` kind = /cc4a/if_abap_analyzer=>parameter_kind-changing ) ) ).
+    cl_abap_unit_assert=>assert_equals(
+      act = analyzer->parse_method_definition(
+        shared=>tokenize( `methods meth changing par type i .` ) )
+      exp = value /cc4a/if_abap_analyzer=>ty_method_parameters(
+        ( name = `PAR` kind = /cc4a/if_abap_analyzer=>parameter_kind-changing ) ) ).
+    cl_abap_unit_assert=>assert_equals(
+      act = analyzer->parse_method_definition(
+        shared=>tokenize(
+          `methods meth importing imp type i exporting reference(exp) type i changing ch type i returning value(ret) type i.` ) )
+      exp = value /cc4a/if_abap_analyzer=>ty_method_parameters(
+        ( name = `IMP` kind = /cc4a/if_abap_analyzer=>parameter_kind-importing )
+        ( name = `EXP` kind = /cc4a/if_abap_analyzer=>parameter_kind-exporting )
+        ( name = `CH` kind = /cc4a/if_abap_analyzer=>parameter_kind-changing )
+        ( name = `RET` kind = /cc4a/if_abap_analyzer=>parameter_kind-returning ) ) ).
+  ENDMETHOD.
+
+ENDCLASS.

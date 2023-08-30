@@ -36,6 +36,7 @@ class /cc4a/avoid_self_reference definition
     data code_provider     type ref to if_ci_atc_source_code_provider.
     data assistant_factory type ref to cl_ci_atc_assistant_factory.
     data meta_data type ref to /cc4a/if_check_meta_data.
+    data analyzer type ref to /cc4a/if_abap_analyzer.
     data classes_w_methods_and_paras type ty_classes_w_methods_and_paras.
 
     methods analyze_procedure
@@ -65,14 +66,30 @@ CLASS /CC4A/AVOID_SELF_REFERENCE IMPLEMENTATION.
 
   method analyze_procedure.
     data(local_variable_names) = get_local_variables( procedure ).
+    data(class_name) = substring_before( val = procedure-id-name sub = '=' ).
+    data(method_name) = substring_after( val = procedure-id-name sub = '>' ).
     if line_exists(
         classes_w_methods_and_paras[
-          class_name = substring_before( val = procedure-id-name sub = '=' )
-          method_name = substring_after( val = procedure-id-name sub = '>' ) ] ).
+          class_name = class_name
+          method_name = method_name ] ).
       data(method_parameters) =
         classes_w_methods_and_paras[
-          class_name = substring_before( val = procedure-id-name sub = '=' )
-          method_name = substring_after( val = procedure-id-name sub = '>' ) ]-parameter_names.
+          class_name = class_name
+          method_name = method_name ]-parameter_names.
+    else.
+      if method_name ca '~'.
+        split method_name at '~' into data(implemented_interface) method_name.
+        data(interface_procedures) =
+          code_provider->get_procedures(
+            code_provider->object_to_comp_unit( value #( type = 'INTF' name = implemented_interface ) ) ).
+        loop at interface_procedures->*[ 1 ]-statements assigning field-symbol(<method_statement>)
+            where keyword = 'METHODS' or keyword = 'CLASS-METHODS'.
+          if <method_statement>-tokens[ 2 ]-lexeme = method_name.
+            method_parameters = value #( for <p> in analyzer->parse_method_definition( <method_statement> )
+              ( <p>-name ) ).
+          endif.
+        endloop.
+      endif.
     endif.
     loop at procedure-statements assigning field-symbol(<statement>).
       data(statement_index) = sy-tabix.
@@ -111,18 +128,14 @@ CLASS /CC4A/AVOID_SELF_REFERENCE IMPLEMENTATION.
 
 
   method get_clsses_w_methods_and_paras.
-    data parameter_names type ty_local_variable_names.
     loop at procedure-statements assigning field-symbol(<class_statement>) where keyword eq 'CLASS' ##PRIMKEY[KEYWORD].
       data(statement_index) = sy-tabix.
-      loop at <class_statement>-tokens assigning field-symbol(<token>) where lexeme eq 'DEFINITION'.
-        data(is_class_definition) = abap_true.
-      endloop.
-      if is_class_definition = abap_true.
+      if line_exists( <class_statement>-tokens[ lexeme = 'DEFINITION' ] ).
         loop at procedure-statements assigning field-symbol(<statement>) from statement_index.
           if <statement>-keyword eq 'ENDCLASS'.
             exit.
           endif.
-          loop at <statement>-tokens assigning <token> where lexeme eq 'INHERITING'.
+          loop at <statement>-tokens assigning field-symbol(<token>) where lexeme eq 'INHERITING'.
             if <statement>-tokens[ sy-tabix + 1 ]-lexeme eq 'FROM'.
               data(inheriting_class) = <statement>-tokens[ sy-tabix + 2 ]-lexeme.
             endif.
@@ -132,54 +145,23 @@ CLASS /CC4A/AVOID_SELF_REFERENCE IMPLEMENTATION.
           endif.
           if inheriting_class is initial.
             if <statement>-keyword eq 'METHODS' or <statement>-keyword eq 'CLASS-METHODS'.
-              loop at <statement>-tokens assigning <token> where lexeme eq 'TYPE'.
-                if <statement>-tokens[ sy-tabix - 1 ]-lexeme cs 'VALUE('.
-                  insert
-                    substring(
-                      val = <statement>-tokens[ sy-tabix - 1 ]-lexeme
-                      off = 6
-                      len = strlen( <statement>-tokens[ sy-tabix - 1 ]-lexeme ) - 7
-                  ) into table parameter_names.
-                else.
-                  insert <statement>-tokens[ sy-tabix - 1 ]-lexeme into table parameter_names.
-                endif.
-              endloop.
-              insert value #( class_name = class_name
-                              method_name = <statement>-tokens[ 2 ]-lexeme
-                              parameter_names = parameter_names ) into table classes_w_methods_and_paras.
+              insert value #(
+                class_name = class_name
+                method_name = <statement>-tokens[ 2 ]-lexeme
+                parameter_names = value #(
+                  for <p> in analyzer->parse_method_definition( <statement> )
+                    ( <p>-name ) ) ) into table classes_w_methods_and_paras.
             endif.
           else.
             if <statement>-keyword eq 'METHODS' or <statement>-keyword eq 'CLASS-METHODS'.
-              loop at <statement>-tokens assigning <token> where lexeme eq 'TYPE' or lexeme eq 'REDEFINITION'.
-                if <token>-lexeme eq 'TYPE'.
-                  if <statement>-tokens[ sy-tabix - 1 ]-lexeme cs 'VALUE('.
-                    insert
-                      substring(
-                        val = <statement>-tokens[ sy-tabix - 1 ]-lexeme
-                        off = 6
-                        len = strlen( <statement>-tokens[ sy-tabix - 1 ]-lexeme ) - 7 )
-                    into table parameter_names.
-                  else.
-                    insert <statement>-tokens[ sy-tabix - 1 ]-lexeme into table parameter_names.
-                  endif.
-                else.
-                  if line_exists(
-                      classes_w_methods_and_paras[
-                        class_name = inheriting_class
-                        method_name = <statement>-tokens[ 2 ]-lexeme ] ).
-                    parameter_names =
-                      classes_w_methods_and_paras[
-                        class_name = inheriting_class
-                        method_name = <statement>-tokens[ 2 ]-lexeme ]-parameter_names.
-                  endif.
-                endif.
-              endloop.
-              insert value #( class_name = class_name
-                              method_name = <statement>-tokens[ 2 ]-lexeme
-                              parameter_names = parameter_names ) into table classes_w_methods_and_paras.
+              insert value #(
+                class_name = class_name
+                method_name = <statement>-tokens[ 2 ]-lexeme
+                parameter_names = value #(
+                  for <p> in analyzer->parse_method_definition( <statement> )
+                    ( <p>-name ) ) ) into table classes_w_methods_and_paras.
             endif.
           endif.
-          clear parameter_names.
         endloop.
       endif.
     endloop.
@@ -222,6 +204,7 @@ CLASS /CC4A/AVOID_SELF_REFERENCE IMPLEMENTATION.
 
   method if_ci_atc_check~run.
     code_provider = data_provider->get_code_provider( ).
+    analyzer = /cc4a/abap_analyzer=>create( ).
     data(procedures) = code_provider->get_procedures( code_provider->object_to_comp_unit( object ) ).
     loop at procedures->* assigning field-symbol(<procedure>).
       insert lines of get_clsses_w_methods_and_paras( <procedure> ) into table classes_w_methods_and_paras.

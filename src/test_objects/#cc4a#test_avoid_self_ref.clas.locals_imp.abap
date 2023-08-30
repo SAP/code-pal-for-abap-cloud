@@ -69,3 +69,18 @@ class lz_self_reference2 implementation.
   endmethod.
 
 endclass.
+
+class impl_interface definition.
+  public section.
+    interfaces /cc4a/if_test_avoid_self_ref.
+  private section.
+    data var_1 type i.
+endclass.
+
+class impl_interface implementation.
+
+  method /cc4a/if_test_avoid_self_ref~meth_1.
+    me->var_1 = var_1.
+  endmethod.
+
+endclass.

@@ -7,6 +7,7 @@ class /cc4a/abap_analyzer definition
     interfaces /cc4a/if_abap_analyzer.
 
     class-methods create returning value(instance) type ref to /cc4a/if_abap_analyzer.
+    class-methods class_constructor.
     aliases find_clause_index for /cc4a/if_abap_analyzer~find_clause_index.
     aliases is_token_keyword for /cc4a/if_abap_analyzer~is_token_keyword.
     aliases is_db_statement for /cc4a/if_abap_analyzer~is_db_statement.
@@ -20,11 +21,11 @@ class /cc4a/abap_analyzer definition
         negated  type string,
       end of ty_negation.
     class-data negations type table of ty_negation.
-ENDCLASS.
+endclass.
 
 
 
-CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
+class /cc4a/abap_analyzer implementation.
 
 
   method /cc4a/if_abap_analyzer~break_into_lines.
@@ -241,7 +242,7 @@ CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
     and statement-tokens[ token_idx ]-references is initial.
       token_idx += 3.
     endwhile.
-    data(analyzer) = new lcl_analyze_db_statement(
+    data(analyzer) = new db_statement_analyzer(
        statement = statement
        start_idx = token_idx
        analyzer = me
@@ -250,10 +251,16 @@ CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
 
   endmethod.
 
+  method /cc4a/if_abap_analyzer~is_logical_connective.
+    is_logical_connective = xsdbool(
+      token-references is initial and ( token-lexeme = 'AND' or token-lexeme = 'OR' or token-lexeme = 'EQUIV' ) ).
+  endmethod.
 
   method create.
     instance = new /cc4a/abap_analyzer( ).
+  endmethod.
 
+  method class_constructor.
     negations = value #( ( operator = '>' negated = '<=' )
                          ( operator = 'GT' negated = 'LE' )
                          ( operator = '<' negated = '>=' )

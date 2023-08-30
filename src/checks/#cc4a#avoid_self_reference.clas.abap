@@ -22,14 +22,14 @@ class /cc4a/avoid_self_reference definition
   private section.
     constants pseudo_comment type string value 'SELF_REF'.
 
+    types:
+      begin of ty_method_definition,
+        class type string,
+        method type string,
+        parameters type /cc4a/if_abap_analyzer=>ty_method_parameters,
+      end of ty_method_definition.
+    types ty_method_definitions type hashed table of ty_method_definition with unique key class method.
 
-    types: begin of ty_method_w_class_and_paras,
-             class_name      type string,
-             method_name     type string,
-             parameter_names type standard table of string with empty key,
-           end of ty_method_w_class_and_paras.
-
-    types ty_classes_w_methods_and_paras type standard table of ty_method_w_class_and_paras with empty key.
     types ty_local_variable_names type standard table of string with empty key.
     types ty_local_variable_positions type standard table of i with empty key.
 
@@ -37,12 +37,11 @@ class /cc4a/avoid_self_reference definition
     data assistant_factory type ref to cl_ci_atc_assistant_factory.
     data meta_data type ref to /cc4a/if_check_meta_data.
     data analyzer type ref to /cc4a/if_abap_analyzer.
-    data classes_w_methods_and_paras type ty_classes_w_methods_and_paras.
 
     methods analyze_procedure
-      importing procedure                   type if_ci_atc_source_code_provider=>ty_procedure
-                classes_w_methods_and_paras type ty_classes_w_methods_and_paras
-      returning value(findings)             type if_ci_atc_check=>ty_findings.
+      importing procedure type if_ci_atc_source_code_provider=>ty_procedure
+                method_definitions type ty_method_definitions
+      returning value(findings) type if_ci_atc_check=>ty_findings.
 
     methods get_local_variables
       importing procedure                   type if_ci_atc_source_code_provider=>ty_procedure
@@ -53,9 +52,15 @@ class /cc4a/avoid_self_reference definition
                 variable_positions        type ty_local_variable_positions optional
       returning value(modified_statement) type if_ci_atc_quickfix=>ty_code.
 
-    methods get_clsses_w_methods_and_paras
-      importing procedure                          type if_ci_atc_source_code_provider=>ty_procedure
-      returning value(classes_w_methods_and_paras) type ty_classes_w_methods_and_paras.
+    methods collect_method_definitions
+      importing procedure type if_ci_atc_source_code_provider=>ty_procedure
+      changing method_definitions type ty_method_definitions.
+    methods load_method_from_parent
+      importing
+        parent type string
+        method type string
+      returning
+        value(method_definition) type /cc4a/if_abap_analyzer=>ty_method_definition.
 
 ENDCLASS.
 
@@ -69,13 +74,13 @@ CLASS /CC4A/AVOID_SELF_REFERENCE IMPLEMENTATION.
     data(class_name) = substring_before( val = procedure-id-name sub = '=' ).
     data(method_name) = substring_after( val = procedure-id-name sub = '>' ).
     if line_exists(
-        classes_w_methods_and_paras[
-          class_name = class_name
-          method_name = method_name ] ).
+        method_definitions[
+          class = class_name
+          method = method_name ] ).
       data(method_parameters) =
-        classes_w_methods_and_paras[
-          class_name = class_name
-          method_name = method_name ]-parameter_names.
+        method_definitions[
+          class = class_name
+          method = method_name ]-parameters.
     else.
       if method_name ca '~'.
         split method_name at '~' into data(implemented_interface) method_name.
@@ -85,8 +90,7 @@ CLASS /CC4A/AVOID_SELF_REFERENCE IMPLEMENTATION.
         loop at interface_procedures->*[ 1 ]-statements assigning field-symbol(<method_statement>)
             where keyword = 'METHODS' or keyword = 'CLASS-METHODS'.
           if <method_statement>-tokens[ 2 ]-lexeme = method_name.
-            method_parameters = value #( for <p> in analyzer->parse_method_definition( <method_statement> )
-              ( <p>-name ) ).
+            method_parameters = analyzer->parse_method_definition( <method_statement> )-parameters.
           endif.
         endloop.
       endif.
@@ -101,7 +105,7 @@ CLASS /CC4A/AVOID_SELF_REFERENCE IMPLEMENTATION.
             variable_name = substring_before( val = variable_name sub = '-' ).
           endif.
           if not line_exists( local_variable_names[ table_line = variable_name ] )
-              and not line_exists( method_parameters[ table_line = variable_name ] ).
+              and not line_exists( method_parameters[ name = variable_name ] ).
             insert sy-tabix into table reference_variable_positions.
           endif.
         endif.
@@ -127,7 +131,7 @@ CLASS /CC4A/AVOID_SELF_REFERENCE IMPLEMENTATION.
   endmethod.
 
 
-  method get_clsses_w_methods_and_paras.
+  method collect_method_definitions.
     loop at procedure-statements assigning field-symbol(<class_statement>) where keyword eq 'CLASS' ##PRIMKEY[KEYWORD].
       data(statement_index) = sy-tabix.
       if line_exists( <class_statement>-tokens[ lexeme = 'DEFINITION' ] ).
@@ -137,36 +141,47 @@ CLASS /CC4A/AVOID_SELF_REFERENCE IMPLEMENTATION.
           endif.
           loop at <statement>-tokens assigning field-symbol(<token>) where lexeme eq 'INHERITING'.
             if <statement>-tokens[ sy-tabix + 1 ]-lexeme eq 'FROM'.
-              data(inheriting_class) = <statement>-tokens[ sy-tabix + 2 ]-lexeme.
+              data(parent_class) = <statement>-tokens[ sy-tabix + 2 ]-lexeme.
             endif.
           endloop.
           if <statement>-keyword eq 'CLASS'.
             data(class_name) = <statement>-tokens[ 2 ]-lexeme.
           endif.
-          if inheriting_class is initial.
-            if <statement>-keyword eq 'METHODS' or <statement>-keyword eq 'CLASS-METHODS'.
-              insert value #(
-                class_name = class_name
-                method_name = <statement>-tokens[ 2 ]-lexeme
-                parameter_names = value #(
-                  for <p> in analyzer->parse_method_definition( <statement> )
-                    ( <p>-name ) ) ) into table classes_w_methods_and_paras.
+          if <statement>-keyword eq 'METHODS' or <statement>-keyword eq 'CLASS-METHODS'.
+            data(method_information) = analyzer->parse_method_definition( <statement> ).
+            if method_information-is_redefinition = abap_true.
+              if line_exists( method_definitions[ class = parent_class method = method_information-name ] ).
+                method_information-parameters =
+                  method_definitions[ class = parent_class method = method_information-name ]-parameters.
+              else.
+                method_information = load_method_from_parent(
+                  parent = parent_class
+                  method = method_information-name ).
+              endif.
             endif.
-          else.
-            if <statement>-keyword eq 'METHODS' or <statement>-keyword eq 'CLASS-METHODS'.
-              insert value #(
-                class_name = class_name
-                method_name = <statement>-tokens[ 2 ]-lexeme
-                parameter_names = value #(
-                  for <p> in analyzer->parse_method_definition( <statement> )
-                    ( <p>-name ) ) ) into table classes_w_methods_and_paras.
-            endif.
+            insert value #(
+              class = class_name
+              method = method_information-name
+              parameters = method_information-parameters ) into table method_definitions.
           endif.
         endloop.
       endif.
     endloop.
   endmethod.
 
+  method load_method_from_parent.
+    data(parent_procedures) = code_provider->get_procedures(
+    code_provider->object_to_comp_unit( value #( type = 'CLAS' name = parent ) ) ).
+    loop at parent_procedures->* assigning field-symbol(<parent_declaration>)
+        where id-kind = if_ci_atc_source_code_provider=>procedure_kinds-class_definition.
+      loop at <parent_declaration>-statements assigning field-symbol(<parent_method_declaration>)
+          where keyword = 'METHODS' or keyword = 'CLASS-METHODS'.
+        if <parent_method_declaration>-tokens[ 2 ]-lexeme = method.
+          method_definition = analyzer->parse_method_definition( <parent_method_declaration> ).
+        endif.
+      endloop.
+    endloop.
+  endmethod.
 
   method get_local_variables.
     loop at procedure-statements assigning field-symbol(<statement>).
@@ -206,12 +221,14 @@ CLASS /CC4A/AVOID_SELF_REFERENCE IMPLEMENTATION.
     code_provider = data_provider->get_code_provider( ).
     analyzer = /cc4a/abap_analyzer=>create( ).
     data(procedures) = code_provider->get_procedures( code_provider->object_to_comp_unit( object ) ).
+    data(method_definitions) = value ty_method_definitions( ).
     loop at procedures->* assigning field-symbol(<procedure>).
-      insert lines of get_clsses_w_methods_and_paras( <procedure> ) into table classes_w_methods_and_paras.
+      collect_method_definitions(
+        exporting procedure = <procedure> changing method_definitions = method_definitions ).
     endloop.
     loop at procedures->* assigning <procedure> where id-kind eq if_ci_atc_source_code_provider=>procedure_kinds-method.
       insert lines of
-        analyze_procedure( procedure = <procedure> classes_w_methods_and_paras = classes_w_methods_and_paras )
+        analyze_procedure( procedure = <procedure> method_definitions = method_definitions )
       into table findings.
     endloop.
   endmethod.

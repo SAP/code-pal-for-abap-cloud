@@ -34,6 +34,12 @@ interface /cc4a/if_abap_analyzer
       kind type ty_parameter_kind,
     end of ty_method_parameter.
   types ty_method_parameters type hashed table of ty_method_parameter with unique key name.
+  types:
+    begin of ty_method_definition,
+      name type string,
+      is_redefinition type abap_bool,
+      parameters type ty_method_parameters,
+    end of ty_method_definition.
 
 
   methods find_key_words
@@ -111,5 +117,5 @@ interface /cc4a/if_abap_analyzer
     returning value(is_logical_connective) type abap_bool.
   methods parse_method_definition
     importing statement type if_ci_atc_source_code_provider=>ty_statement
-    returning value(method_parameters) type ty_method_parameters.
+    returning value(method_definition) type ty_method_definition.
 endinterface.

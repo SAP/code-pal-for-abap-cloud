@@ -281,6 +281,11 @@ class /cc4a/abap_analyzer implementation.
       return.
     endif.
     data(current_kind) = /cc4a/if_abap_analyzer=>parameter_kind-importing.
+    method_definition-name = statement-tokens[ 2 ]-lexeme.
+    if lines( statement-tokens ) >= 3 and statement-tokens[ 3 ]-lexeme = 'REDEFINITION'.
+      method_definition-is_redefinition = abap_true.
+      return.
+    endif.
     loop at statement-tokens assigning field-symbol(<token>).
       data(token_idx) = sy-tabix.
       if <token>-references is initial.
@@ -299,14 +304,17 @@ class /cc4a/abap_analyzer implementation.
             if parameter_token_length > 10 and <parameter_token>-lexeme(10) = 'REFERENCE('.
               data(reference_offset) = parameter_token_length - 11.
               insert value #(
-                name = <parameter_token>-lexeme+10(reference_offset) kind = current_kind ) into table method_parameters.
+                name = <parameter_token>-lexeme+10(reference_offset)
+                kind = current_kind ) into table method_definition-parameters.
             elseif parameter_token_length > 6 and <parameter_token>-lexeme(6) = 'VALUE('.
               data(value_offset) = parameter_token_length - 7.
               insert value #(
-                name = <parameter_token>-lexeme+6(value_offset) kind = current_kind ) into table method_parameters.
+                name = <parameter_token>-lexeme+6(value_offset)
+                kind = current_kind ) into table method_definition-parameters.
             else.
               insert value #(
-                name = <parameter_token>-lexeme kind = current_kind ) into table method_parameters.
+                name = <parameter_token>-lexeme
+                kind = current_kind ) into table method_definition-parameters.
             endif.
         endcase.
       endif.

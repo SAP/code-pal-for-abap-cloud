@@ -84,3 +84,18 @@ class impl_interface implementation.
   endmethod.
 
 endclass.
+
+class inheriting_from_global definition inheriting from /cc4a/test_avoid_self_ref_sup.
+  public section.
+    methods super_meth redefinition.
+  private section.
+    data imp type i.
+endclass.
+
+CLASS inheriting_from_global IMPLEMENTATION.
+
+  METHOD super_meth.
+    me->imp = imp.
+  ENDMETHOD.
+
+ENDCLASS.

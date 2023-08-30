@@ -300,38 +300,56 @@ CLASS method_definitions IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
       act = analyzer->parse_method_definition(
+        shared=>tokenize( `methods meth redefinition .` ) )
+      exp = value /cc4a/if_abap_analyzer=>ty_method_definition(
+        name = `METH`
+        is_redefinition = abap_true ) ).
+    cl_abap_unit_assert=>assert_equals(
+      act = analyzer->parse_method_definition(
+        shared=>tokenize( `methods meth .` ) )
+      exp = value /cc4a/if_abap_analyzer=>ty_method_definition(
+        name = `METH` ) ).
+    cl_abap_unit_assert=>assert_equals(
+      act = analyzer->parse_method_definition(
         shared=>tokenize( `methods meth importing par type i .` ) )
-      exp = value /cc4a/if_abap_analyzer=>ty_method_parameters(
-        ( name = `PAR` kind = /cc4a/if_abap_analyzer=>parameter_kind-importing ) ) ).
+      exp = value /cc4a/if_abap_analyzer=>ty_method_definition(
+        name = `METH`
+        parameters = value #( ( name = `PAR` kind = /cc4a/if_abap_analyzer=>parameter_kind-importing ) ) ) ).
     cl_abap_unit_assert=>assert_equals(
       act = analyzer->parse_method_definition(
         shared=>tokenize( `methods meth importing reference(par) type i .` ) )
-      exp = value /cc4a/if_abap_analyzer=>ty_method_parameters(
-        ( name = `PAR` kind = /cc4a/if_abap_analyzer=>parameter_kind-importing ) ) ).
+      exp = value /cc4a/if_abap_analyzer=>ty_method_definition(
+        name = `METH`
+        parameters = value #( ( name = `PAR` kind = /cc4a/if_abap_analyzer=>parameter_kind-importing ) ) ) ).
     cl_abap_unit_assert=>assert_equals(
       act = analyzer->parse_method_definition(
         shared=>tokenize( `methods meth exporting par type i .` ) )
-      exp = value /cc4a/if_abap_analyzer=>ty_method_parameters(
-        ( name = `PAR` kind = /cc4a/if_abap_analyzer=>parameter_kind-exporting ) ) ).
+      exp = value /cc4a/if_abap_analyzer=>ty_method_definition(
+        name = `METH`
+        parameters = value #( ( name = `PAR` kind = /cc4a/if_abap_analyzer=>parameter_kind-exporting ) ) ) ).
     cl_abap_unit_assert=>assert_equals(
       act = analyzer->parse_method_definition(
         shared=>tokenize( `methods meth changing par type i .` ) )
-      exp = value /cc4a/if_abap_analyzer=>ty_method_parameters(
-        ( name = `PAR` kind = /cc4a/if_abap_analyzer=>parameter_kind-changing ) ) ).
+      exp = value /cc4a/if_abap_analyzer=>ty_method_definition(
+        name = `METH`
+        parameters = value #( ( name = `PAR` kind = /cc4a/if_abap_analyzer=>parameter_kind-changing ) ) ) ).
     cl_abap_unit_assert=>assert_equals(
       act = analyzer->parse_method_definition(
         shared=>tokenize( `methods meth changing par type i .` ) )
-      exp = value /cc4a/if_abap_analyzer=>ty_method_parameters(
-        ( name = `PAR` kind = /cc4a/if_abap_analyzer=>parameter_kind-changing ) ) ).
+      exp = value /cc4a/if_abap_analyzer=>ty_method_definition(
+        name = `METH`
+        parameters = value #( ( name = `PAR` kind = /cc4a/if_abap_analyzer=>parameter_kind-changing ) ) ) ).
     cl_abap_unit_assert=>assert_equals(
       act = analyzer->parse_method_definition(
         shared=>tokenize(
           `methods meth importing imp type i exporting reference(exp) type i changing ch type i returning value(ret) type i.` ) )
-      exp = value /cc4a/if_abap_analyzer=>ty_method_parameters(
-        ( name = `IMP` kind = /cc4a/if_abap_analyzer=>parameter_kind-importing )
-        ( name = `EXP` kind = /cc4a/if_abap_analyzer=>parameter_kind-exporting )
-        ( name = `CH` kind = /cc4a/if_abap_analyzer=>parameter_kind-changing )
-        ( name = `RET` kind = /cc4a/if_abap_analyzer=>parameter_kind-returning ) ) ).
+      exp = value /cc4a/if_abap_analyzer=>ty_method_definition(
+        name = `METH`
+        parameters = value #(
+          ( name = `IMP` kind = /cc4a/if_abap_analyzer=>parameter_kind-importing )
+          ( name = `EXP` kind = /cc4a/if_abap_analyzer=>parameter_kind-exporting )
+          ( name = `CH` kind = /cc4a/if_abap_analyzer=>parameter_kind-changing )
+          ( name = `RET` kind = /cc4a/if_abap_analyzer=>parameter_kind-returning ) ) ) ).
   ENDMETHOD.
 
 ENDCLASS.

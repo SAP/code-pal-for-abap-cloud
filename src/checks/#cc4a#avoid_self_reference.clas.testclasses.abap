@@ -132,9 +132,6 @@ class test implementation.
     data(local_finding_2) = value if_ci_atc_check=>ty_location(
         object   = value #( type = 'PROG' name = '/CC4A/TEST_AVOID_SELF_REF=====CCIMP' )
         position = value #( line = 37 column = 4 ) ).
-    data(local_finding_3) = value if_ci_atc_check=>ty_location(
-        object   = value #( type = 'PROG' name = '/CC4A/TEST_AVOID_SELF_REF=====CCIMP' )
-        position = value #( line = 58 column = 4 ) ).
     data(local_finding_4) = value if_ci_atc_check=>ty_location(
         object   = value #( type = 'PROG' name = '/CC4A/TEST_AVOID_SELF_REF=====CCIMP' )
         position = value #( line = 63 column = 4 ) ).
@@ -362,13 +359,6 @@ class test implementation.
                 location = local_finding_2
                 code = value #(
                 ( `ATT1 = 2 .` ) ) ) ) )
-            ( code = /cc4a/avoid_self_reference=>finding_codes-self_reference
-                location = local_finding_3
-                quickfixes = value #( (
-                quickfix_code = /cc4a/avoid_self_reference=>quickfix_codes-self_reference
-                location = local_finding_3
-                code = value #(
-                ( `ATT3 = 'Hugo' .` ) ) ) ) )
             ( code = /cc4a/avoid_self_reference=>finding_codes-self_reference
                 location = local_finding_4
                 quickfixes = value #( (

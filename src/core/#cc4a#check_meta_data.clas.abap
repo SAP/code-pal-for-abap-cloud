@@ -4,7 +4,7 @@ class /cc4a/check_meta_data definition
   create private.
 
   public section.
-    interfaces if_ci_atc_check_meta_data.
+    interfaces /cc4a/if_check_meta_data.
 
     types:
       begin of enum ty_checked_types structure checked_types,
@@ -38,7 +38,7 @@ class /cc4a/check_meta_data definition
 
     class-methods create
       importing meta_data type ty_meta_data
-      returning value(result) type ref to if_ci_atc_check_meta_data.
+      returning value(result) type ref to /cc4a/if_check_meta_data.
     methods constructor
       importing meta_data type ty_meta_data.
 
@@ -46,11 +46,11 @@ class /cc4a/check_meta_data definition
 
   private section.
     data meta_data type ty_meta_data.
-ENDCLASS.
+endclass.
 
 
 
-CLASS /CC4A/CHECK_META_DATA IMPLEMENTATION.
+class /cc4a/check_meta_data implementation.
 
 
   method constructor.
@@ -65,6 +65,9 @@ CLASS /CC4A/CHECK_META_DATA IMPLEMENTATION.
       create data value type handle type_handle.
       value->* = <attribute>-value->*.
       <attribute>-value = value.
+    endloop.
+    loop at me->meta_data-finding_codes assigning field-symbol(<finding_code>).
+      <finding_code>-pseudo_comment = |CI_{ <finding_code>-pseudo_comment }|.
     endloop.
   endmethod.
 
@@ -110,4 +113,13 @@ CLASS /CC4A/CHECK_META_DATA IMPLEMENTATION.
   method if_ci_atc_check_meta_data~uses_checksums.
     uses_checksums = abap_true.
   endmethod.
-ENDCLASS.
+
+
+  method /cc4a/if_check_meta_data~has_valid_pseudo_comment.
+    data(pseudo_comment) = meta_data-finding_codes[ code = finding_code ]-pseudo_comment.
+    has_valid_pseudo_comment = xsdbool(
+      line_exists( statement-pseudo_comments[ table_line = pseudo_comment ] ) or
+      line_exists( statement-pseudo_comments[ table_line = pseudo_comment+3 ] ) ).
+  endmethod.
+
+endclass.

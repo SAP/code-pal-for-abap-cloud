@@ -6,19 +6,22 @@ class /cc4a/avoid_self_reference definition
   public section.
     interfaces if_ci_atc_check.
 
-    constants finding_code type if_ci_atc_check=>ty_finding_code value 'UNCSELFREF'.
+    constants:
+      begin of finding_codes,
+        self_reference type if_ci_atc_check=>ty_finding_code value 'UNCSELFREF',
+      end of finding_codes.
 
     constants:
       begin of quickfix_codes,
         self_reference type cl_ci_atc_quickfixes=>ty_quickfix_code value 'RMVSELFREF',
       end of quickfix_codes.
 
+    methods constructor.
+
   protected section.
   private section.
     constants pseudo_comment type string value 'SELF_REF'.
 
-    data code_provider     type ref to if_ci_atc_source_code_provider.
-    data assistant_factory type ref to cl_ci_atc_assistant_factory.
 
     types: begin of ty_method_w_class_and_paras,
              class_name      type string,
@@ -30,6 +33,9 @@ class /cc4a/avoid_self_reference definition
     types ty_local_variable_names type standard table of string with empty key.
     types ty_local_variable_positions type standard table of i with empty key.
 
+    data code_provider     type ref to if_ci_atc_source_code_provider.
+    data assistant_factory type ref to cl_ci_atc_assistant_factory.
+    data meta_data type ref to /cc4a/if_check_meta_data.
     data classes_w_methods_and_paras type ty_classes_w_methods_and_paras.
 
     methods analyze_procedure
@@ -91,10 +97,12 @@ CLASS /CC4A/AVOID_SELF_REFERENCE IMPLEMENTATION.
               procedure_id = procedure-id
               statements = value #( from = statement_index to = statement_index ) ) )
             code = remove_self_reference( statement = <statement> variable_positions = reference_variable_positions ) ).
-        insert value #( code = finding_code
+        insert value #( code = finding_codes-self_reference
             location = code_provider->get_statement_location( <statement> )
             checksum = code_provider->get_statement_checksum( <statement> )
-            has_pseudo_comment = xsdbool( line_exists( <statement>-pseudo_comments[ table_line = pseudo_comment ] ) )
+            has_pseudo_comment = meta_data->has_valid_pseudo_comment(
+              statement = <statement>
+              finding_code = finding_codes-self_reference )
             details = assistant_factory->create_finding_details( )->attach_quickfixes( available_quickfixes )
             ) into table findings.
       endif.
@@ -197,15 +205,18 @@ CLASS /CC4A/AVOID_SELF_REFERENCE IMPLEMENTATION.
 
 
   method if_ci_atc_check~get_meta_data.
+    meta_data = me->meta_data.
+  endmethod.
+
+  method constructor.
     meta_data = /cc4a/check_meta_data=>create(
       value #( checked_types = /cc4a/check_meta_data=>checked_types-abap_programs
           description = 'Find unnecessary self-references'(des)
           remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
           finding_codes = value #(
-            ( code = finding_code pseudo_comment = pseudo_comment text = 'Unnecessary self-reference'(dus) ) )
+            ( code = finding_codes-self_reference pseudo_comment = pseudo_comment text = 'Unnecessary self-reference'(dus) ) )
           quickfix_codes = value #(
-            ( code = quickfix_codes-self_reference short_text = 'Remove self-reference'(qrs) ) )
-        ) ).
+            ( code = quickfix_codes-self_reference short_text = 'Remove self-reference'(qrs) ) ) ) ).
   endmethod.
 
 

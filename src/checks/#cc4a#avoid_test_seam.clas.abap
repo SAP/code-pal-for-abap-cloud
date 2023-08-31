@@ -6,7 +6,12 @@ class /cc4a/avoid_test_seam definition
   public section.
     interfaces if_ci_atc_check.
 
-    constants finding_code type if_ci_atc_check=>ty_finding_code value 'TESTSEAMUS'.
+    constants:
+      begin of finding_codes,
+        test_seam type if_ci_atc_check=>ty_finding_code value 'TESTSEAMUS',
+      end of finding_codes.
+
+    methods constructor.
 
   protected section.
   private section.
@@ -14,25 +19,44 @@ class /cc4a/avoid_test_seam definition
 
     data code_provider     type ref to if_ci_atc_source_code_provider.
     data assistant_factory type ref to cl_ci_atc_assistant_factory.
+    data meta_data type ref to /cc4a/if_check_meta_data.
 
     methods analyze_procedure
       importing procedure       type if_ci_atc_source_code_provider=>ty_procedure
       returning value(findings) type if_ci_atc_check=>ty_findings.
-endclass.
+ENDCLASS.
 
 
 
-class /cc4a/avoid_test_seam implementation.
+CLASS /CC4A/AVOID_TEST_SEAM IMPLEMENTATION.
+
+
+  method analyze_procedure.
+    loop at procedure-statements assigning field-symbol(<statement>) where keyword eq 'TEST-SEAM' ##PRIMKEY[KEYWORD].
+      insert value #( code = finding_codes-test_seam
+      location = code_provider->get_statement_location( <statement> )
+      checksum = code_provider->get_statement_checksum( <statement> )
+      has_pseudo_comment = meta_data->has_valid_pseudo_comment(
+        statement = <statement>
+        finding_code = finding_codes-test_seam )
+      ) into table findings.
+    endloop.
+  endmethod.
+
 
   method if_ci_atc_check~get_meta_data.
+    meta_data = me->meta_data.
+  endmethod.
+
+  method constructor.
     meta_data = /cc4a/check_meta_data=>create(
       value #( checked_types = /cc4a/check_meta_data=>checked_types-abap_programs
           description = 'Usage of TEST-SEAM'(des)
           remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
           finding_codes = value #(
-            ( code = finding_code pseudo_comment = pseudo_comment text = 'Usage of TEST-SEAM'(uot) ) )
-        ) ).
+            ( code = finding_codes-test_seam pseudo_comment = pseudo_comment text = 'Usage of TEST-SEAM'(uot) ) ) ) ).
   endmethod.
+
 
   method if_ci_atc_check~run.
     code_provider = data_provider->get_code_provider( ).
@@ -42,22 +66,13 @@ class /cc4a/avoid_test_seam implementation.
     endloop.
   endmethod.
 
+
   method if_ci_atc_check~set_assistant_factory.
     assistant_factory = factory.
   endmethod.
 
+
   method if_ci_atc_check~verify_prerequisites.
 
   endmethod.
-
-  method analyze_procedure.
-    loop at procedure-statements assigning field-symbol(<statement>) where keyword eq 'TEST-SEAM' ##PRIMKEY[KEYWORD].
-      insert value #( code = finding_code
-      location = code_provider->get_statement_location( <statement> )
-      checksum = code_provider->get_statement_checksum( <statement> )
-      has_pseudo_comment = xsdbool( line_exists( <statement>-pseudo_comments[ table_line = pseudo_comment ] ) )
-      ) into table findings.
-    endloop.
-  endmethod.
-
-endclass.
+ENDCLASS.

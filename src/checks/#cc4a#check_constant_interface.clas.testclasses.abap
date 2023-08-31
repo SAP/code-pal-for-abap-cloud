@@ -33,7 +33,7 @@ class ltcl_ implementation.
                                    type = co_test_object-object_type_2 )
       asserter_config   = value #( quickfixes                 = abap_false
                                    remove_findings_with_pcoms = abap_true )
-      expected_findings = value #( ( code       = /cc4a/check_constant_interface=>message_codes-cons_intf
+      expected_findings = value #( ( code       = /cc4a/check_constant_interface=>finding_codes-cons_intf
                                      location   = finding_1_loc ) ) ).
 
   endmethod.
@@ -56,9 +56,9 @@ class ltcl_ implementation.
                                    type = co_test_object-object_type_1 )
       asserter_config   = value #( quickfixes                 = abap_false
                                    remove_findings_with_pcoms = abap_true )
-      expected_findings = value #( ( code       = /cc4a/check_constant_interface=>message_codes-cons_intf
+      expected_findings = value #( ( code       = /cc4a/check_constant_interface=>finding_codes-cons_intf
                                      location   = finding_1_loc )
-                                   ( code       = /cc4a/check_constant_interface=>message_codes-cons_intf
+                                   ( code       = /cc4a/check_constant_interface=>finding_codes-cons_intf
                                      location   = finding_2_loc ) ) ).
 
   endmethod.

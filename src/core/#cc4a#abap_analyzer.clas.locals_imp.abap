@@ -1,9 +1,9 @@
 *"* use this source file for the definition and implementation of
 *"* local helper classes, interface definitions and type
 *"* declarations
-class lcl_analyze_db_statement definition deferred.
-class /cc4a/abap_analyzer definition local friends lcl_analyze_db_statement.
-class lcl_analyze_db_statement definition final.
+class db_statement_analyzer definition deferred.
+class /cc4a/abap_analyzer definition local friends db_statement_analyzer.
+class db_statement_analyzer definition final.
   public section.
 
     methods constructor
@@ -47,7 +47,7 @@ class lcl_analyze_db_statement definition final.
     data dbtab_name           type string.
     data include_subqueries   type abap_bool.
 endclass.
-class lcl_analyze_db_statement implementation.
+class db_statement_analyzer implementation.
 
   method constructor.
     me->statement = statement.

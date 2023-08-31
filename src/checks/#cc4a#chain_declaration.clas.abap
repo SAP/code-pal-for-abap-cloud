@@ -6,8 +6,15 @@ class /cc4a/chain_declaration definition
   public section.
     interfaces if_ci_atc_check.
 
-    constants finding_code type if_ci_atc_check=>ty_finding_code value 'CHAINDECL'.
-    constants quickfix_code type cl_ci_atc_quickfixes=>ty_quickfix_code value 'PREFINLDCL'.
+    constants:
+      begin of finding_codes,
+        chain_declaration type if_ci_atc_check=>ty_finding_code value 'CHAINDECL',
+      end of finding_codes.
+    constants:
+      begin of quickfix_codes,
+        resolve_chain type cl_ci_atc_quickfixes=>ty_quickfix_code value 'PREFINLDCL',
+      end of quickfix_codes.
+    methods constructor.
   protected section.
   private section.
     constants pseudo_comment type string value 'CHAIN_DECL_USAG'.
@@ -19,6 +26,8 @@ class /cc4a/chain_declaration definition
 
     data code_provider     type ref to if_ci_atc_source_code_provider.
     data assistant_factory type ref to cl_ci_atc_assistant_factory.
+    data meta_data type ref to /cc4a/if_check_meta_data.
+
     methods analyze_procedure
       importing procedure       type if_ci_atc_source_code_provider=>ty_procedure
       returning value(findings) type if_ci_atc_check=>ty_findings.
@@ -71,13 +80,16 @@ CLASS /CC4A/CHAIN_DECLARATION IMPLEMENTATION.
         nxt_relevant_stmnt_position = relevant_stmt_information-next_relevant_stmt_position.
         if relevant_stmt_information-chained_stmts_for_quickfix is not initial.
           data(available_quickfixes) = assistant_factory->create_quickfixes( ).
-          data(quick_fix) = available_quickfixes->create_quickfix( quickfix_code ).
+          data(quick_fix) = available_quickfixes->create_quickfix( quickfix_codes-resolve_chain ).
           data(quick_fix_stmt_index) = statement_index.
-          data(finding_has_pseudo_comment) = xsdbool(
-            line_exists( <statement>-pseudo_comments[ table_line = pseudo_comment ] ) ).
+          data(finding_has_pseudo_comment) = meta_data->has_valid_pseudo_comment(
+            statement = <statement>
+            finding_code = finding_codes-chain_declaration ).
           loop at relevant_stmt_information-chained_stmts_for_quickfix assigning field-symbol(<quickfix_stmt>).
-            if xsdbool( line_exists( <quickfix_stmt>-pseudo_comments[ table_line = pseudo_comment ] ) ) eq abap_true.
-              finding_has_pseudo_comment = abap_true.
+            if finding_has_pseudo_comment = abap_false.
+              finding_has_pseudo_comment = meta_data->has_valid_pseudo_comment(
+                statement = <quickfix_stmt>
+                finding_code = finding_codes-chain_declaration ).
             endif.
             data(quickfix_statements) = value if_ci_atc_source_code_provider=>ty_statements( ).
             if check_stmt_is_begin_of( <quickfix_stmt> ).
@@ -104,7 +116,7 @@ CLASS /CC4A/CHAIN_DECLARATION IMPLEMENTATION.
               quick_fix_stmt_index = quick_fix_stmt_index + 1.
             endif.
           endloop.
-          insert value #( code = finding_code
+          insert value #( code = finding_codes-chain_declaration
             location =
               code_provider->get_statement_location( relevant_stmt_information-chained_stmts_for_quickfix[ 2 ] )
             checksum =
@@ -221,16 +233,22 @@ CLASS /CC4A/CHAIN_DECLARATION IMPLEMENTATION.
 
 
   method if_ci_atc_check~get_meta_data.
+    meta_data = me->meta_data.
+  endmethod.
+
+
+  method constructor.
     meta_data = /cc4a/check_meta_data=>create(
       value #( checked_types = /cc4a/check_meta_data=>checked_types-abap_programs
           description = 'Avoid Chain Declaration'(des)
           remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
           finding_codes = value #(
-            ( code = finding_code pseudo_comment = pseudo_comment text = 'Usage of Chain Declaration'(ucd) ) )
+            ( code = finding_codes-chain_declaration
+              pseudo_comment = pseudo_comment
+              text = 'Usage of Chain Declaration'(ucd) ) )
           quickfix_codes = value #(
-            ( code = quickfix_code short_text = 'Replace Chain Declaration with Single Declaration'(qsd) ) ) ) ).
+            ( code = quickfix_codes-resolve_chain short_text = 'Replace Chain Declaration with Single Declaration'(qsd) ) ) ) ).
   endmethod.
-
 
   method if_ci_atc_check~run.
     code_provider = data_provider->get_code_provider( ).

@@ -45,18 +45,13 @@ class test implementation.
     cl_ci_atc_unit_driver=>create_asserter( )->check_and_assert(
               check             = new /cc4a/avoid_test_seam( )
               object            = value #( type = 'CLASS' name = test_class )
-              expected_findings = value #( ( code = /cc4a/avoid_test_seam=>finding_code
-                                         location = without_pseudo_comment_1 )
-                                         ( code = /cc4a/avoid_test_seam=>finding_code
-                                         location = without_pseudo_comment_2 )
-                                         ( code = /cc4a/avoid_test_seam=>finding_code
-                                         location = without_pseudo_comment_3 )
-                                         ( code = /cc4a/avoid_test_seam=>finding_code
-                                         location = with_pseudo_comment_1 )
-                                         ( code = /cc4a/avoid_test_seam=>finding_code
-                                         location = with_pseudo_comment_2 )
-                                         ( code = /cc4a/avoid_test_seam=>finding_code
-                                         location = with_pseudo_comment_3 ) )
+              expected_findings = value #( code = /cc4a/avoid_test_seam=>finding_codes-test_seam
+                                         ( location = without_pseudo_comment_1 )
+                                         ( location = without_pseudo_comment_2 )
+                                         ( location = without_pseudo_comment_3 )
+                                         ( location = with_pseudo_comment_1 )
+                                         ( location = with_pseudo_comment_2 )
+                                         ( location = with_pseudo_comment_3 ) )
               asserter_config   = value #( quickfixes = abap_false ) ).
   endmethod.
 

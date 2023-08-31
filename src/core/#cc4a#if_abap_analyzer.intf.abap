@@ -5,22 +5,43 @@
 interface /cc4a/if_abap_analyzer
   public .
 
-  types: begin of enum ty_bracket_type structure bracket_type,
-           no_bracket,
-           opening,
-           closing,
-           "! Closed and opening. Due to quirks in the ABAP tokenizer, a chained method call like
-           "! obj->method_1( )->method_2( ) produces a single token `)->method_2(` that is both a closing and an
-           "! opening bracket.
-           clopening,
-         end of enum ty_bracket_type structure bracket_type.
-
+  types:
+    begin of enum ty_bracket_type structure bracket_type,
+      no_bracket,
+      opening,
+      closing,
+      "! Closed and opening. Due to quirks in the ABAP tokenizer, a chained method call like
+      "! obj->method_1( )->method_2( ) produces a single token `)->method_2(` that is both a closing and an
+      "! opening bracket.
+      clopening,
+    end of enum ty_bracket_type structure bracket_type.
   types:
     begin of ty_db_statement,
       is_db          type abap_bool,
       dbtab          type string,
       dbtab_subquery type string,
     end of ty_db_statement.
+  types:
+    begin of enum ty_parameter_kind structure parameter_kind,
+      importing,
+      exporting,
+      changing,
+      returning,
+    end of enum ty_parameter_kind structure parameter_kind.
+  types:
+    begin of ty_method_parameter,
+      name type string,
+      kind type ty_parameter_kind,
+    end of ty_method_parameter.
+  types ty_method_parameters type hashed table of ty_method_parameter with unique key name.
+  types:
+    begin of ty_method_definition,
+      name type string,
+      is_redefinition type abap_bool,
+      parameters type ty_method_parameters,
+    end of ty_method_definition.
+
+
   methods find_key_words
     importing
       key_words       type string_table
@@ -94,4 +115,7 @@ interface /cc4a/if_abap_analyzer
   methods is_logical_connective
     importing token type if_ci_atc_source_code_provider=>ty_token
     returning value(is_logical_connective) type abap_bool.
+  methods parse_method_definition
+    importing statement type if_ci_atc_source_code_provider=>ty_statement
+    returning value(method_definition) type ty_method_definition.
 endinterface.

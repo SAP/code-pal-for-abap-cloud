@@ -8,7 +8,8 @@ class ltcl_test definition final for testing
       begin of co_test_object,
         object_type type if_ci_atc_check=>ty_object-type value 'CLAS',
         object_name type if_ci_atc_check=>ty_object-name value '/CC4A/TEST_EQUAL_SIGN_CHAINING',
-      end of co_test_object,
+      end of co_test_object.
+    constants:
       begin of co_test_method_name,
         finding_1 type cl_ci_atc_unit_driver=>ty_method_name value 'FINDING_1',
         finding_2 type cl_ci_atc_unit_driver=>ty_method_name value 'FINDING_2',

@@ -15,65 +15,90 @@ class /cc4a/test_check_in_loop definition
 class /cc4a/test_check_in_loop implementation.
 
   method without_pseudo_comments.
-    do 15 times.
-      data(random) = cl_abap_random_int=>create( seed = 3 min = 0 max = 10 )->get_next( ).
-      check random = 5 and random <> 1.              "#EC CHECK_IN_LOOP
+    " Checks with do
+    do 10 times.
+      check 1 = 1.
     enddo.
 
-    check 1 = 2.
+    data(a) = 125.
+    data(b) = 250.
 
-    while 5 <> cl_abap_random_int=>create( seed = 3 min = 0 max = 10 )->get_next( ).
-
-      if 3 = 2.
+    do 10 times.
+      if abap_true = abap_true.
+        if 1 = 3.
+          check a = b.
+        else.
+          check b = 3.
+        endif.
       endif.
+    enddo.
 
-      if 5 < 3.
-        if 3 <> 1000 . continue. endif.
-        while 3 < 4.
-          if 3 >= 1 . continue. endif.
-          if 3 = 1.
-            if 3 = 1.
-              if 3 = 1.
-                if 3 <> 1 . continue. endif.
-              endif.
-            endif.
-          endif.
-        endwhile.
+    " Checks with while
+    data(x) = 5.
+    data(y) = 15.
+
+    while abap_true = abap_false.
+      check x = y.
+
+      if 3 = 3.
+        check x <> 150.
       endif.
     endwhile.
 
-    data: lt_numbers type table of i,
-          lv_number  type i.
+    " Check with loop
+    types: begin of ty_table,
+             delflag type string,
+           end of ty_table.
 
-    do 10 times.
-      lv_number = sy-index.
-      append lv_number to lt_numbers.
-      check sy-index <> 10000.
-      check 1 = 2 and ( 3 < 5 ) or ( 3 <> xsdbool( 4 = 4 or 5 < sy-index ) ).
-    enddo.
-
-    loop at lt_numbers into lv_number.
-      check 'Number:' eq lv_number.
-    endloop.
-    loop at lt_numbers assigning field-symbol(<number>).
-      check <number> <> 3.
+    data itab type table of ty_table with empty key.
+    loop at itab assigning field-symbol(<tab>).
+      check <tab>-delflag = abap_true.
+      if a = x.
+        check <tab>-delflag <= abap_false.
+      endif.
     endloop.
 
-    types: begin of ty_tadir,
-             delflag type abap_bool,
-             " Add more fields here...
-           end of ty_tadir.
+    " Checks that shouldn't show quickfixes
+    check a = a.
 
-    data: tadir type table of ty_tadir.
+    if a = 3.
+      check b = a.
+    endif.
 
-    LOOP AT TADIR ASSIGNING FIELD-SYMBOL(<TADIR>).
-        check <tadir>-delflag = abap_true.
-      " Some more code...
-    endloop.
   endmethod.
 
 
   method with_pseudo_comments.
+
+    data(a) = 55.
+
+    if 3 = 2.
+      while 3 = a * 2.
+        check a = a.                                 "#EC CHECK_IN_LOOP
+      endwhile.
+    endif.
+
+    do a times.
+      if a = 3.
+        check 55 = a.                                "#EC CHECK_IN_LOOP
+      endif.
+    enddo.
+
+    types: begin of ty_table,
+             delflag type string,
+           end of ty_table.
+
+    data itab type table of ty_table with empty key.
+    while a = 1.
+      do a times.
+        loop at itab assigning field-symbol(<tab>).
+          check <tab>-delflag = abap_true.           "#EC CHECK_IN_LOOP
+          if a = a / 2.
+            check <tab>-delflag = abap_false.        "#EC CHECK_IN_LOOP
+          endif.
+        endloop.
+      enddo.
+    endwhile.
   endmethod.
 
 endclass.

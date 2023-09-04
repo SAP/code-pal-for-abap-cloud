@@ -4,14 +4,14 @@ public
   create public.
   public section.
     interfaces if_ci_atc_check.
-  protected section.
-  private section.
-    constants: pseudo_comment type string value `CHECK_IN_LOOP`,
-               finding_code type if_ci_atc_check=>ty_finding_code value 'C_I_L',
-               quickfix_code_with type cl_ci_atc_quickfixes=>ty_quickfix_code value `C_I_L_W`,
+    constants: pseudo_comment        type string value `CHECK_IN_LOOP`,
+               quickfix_code_with    type cl_ci_atc_quickfixes=>ty_quickfix_code value `C_I_L_W`,
                quickfix_code_without type cl_ci_atc_quickfixes=>ty_quickfix_code value `C_I_L_WO`,
-               quickfix_code_where type cl_ci_atc_quickfixes=>ty_quickfix_code value `C_I_L_LOOP`,
-               iteration_type type if_ci_atc_source_code_provider=>ty_block-type value if_ci_atc_source_code_provider=>block_type-iteration.
+               quickfix_code_where   type cl_ci_atc_quickfixes=>ty_quickfix_code value `C_I_L_LOOP`,
+               finding_code          type if_ci_atc_check=>ty_finding_code value 'C_I_L'.
+    protected section.
+    private section.
+    constants iteration_type type if_ci_atc_source_code_provider=>ty_block-type value if_ci_atc_source_code_provider=>block_type-iteration.
 
     data code_provider     type ref to if_ci_atc_source_code_provider.
     data assistant_factory type ref to cl_ci_atc_assistant_factory.
@@ -42,6 +42,7 @@ class /cc4a/check_in_loop implementation.
       data(block) = procedure-blocks[ <statement>-block ].
       data(found_iteration) = abap_false.
       data(is_type_of_loop) = abap_false.
+
       while block-parent <> 0.
         if block-type <> iteration_type.
           block = procedure-blocks[ block-parent ].
@@ -62,11 +63,8 @@ class /cc4a/check_in_loop implementation.
       endif.
 
       data(available_quickfix) = assistant_factory->create_quickfixes( ).
-
-      data(quickfix_with_multiple_line) = available_quickfix->create_quickfix( quickfix_code_with ).
       data(quickfix_without_multiple_line) = available_quickfix->create_quickfix( quickfix_code_without ).
-
-
+      data(quickfix_with_multiple_line) = available_quickfix->create_quickfix( quickfix_code_with ).
       data(tabix) = sy-tabix.
 
       "Use with multiple line change
@@ -157,11 +155,10 @@ class /cc4a/check_in_loop implementation.
 
     if use_multiple_lines = abap_true.
       flat_new_statement = analyzer->flatten_tokens( new_statement-tokens ) && `.`.
-      modified_statement = analyzer->break_into_lines( flat_new_statement ).
     else.
-      flat_new_statement = analyzer->flatten_tokens( new_statement-tokens ) && `.` && ` CONTINUE.` && ` ENDIF.`.
-      modified_statement = analyzer->break_into_lines( flat_new_statement ).
+      flat_new_statement = analyzer->flatten_tokens( new_statement-tokens ) && `.` && ` CONTINUE .` && ` ENDIF .`.
     endif.
+    modified_statement = analyzer->break_into_lines( flat_new_statement ).
   endmethod.
 
 

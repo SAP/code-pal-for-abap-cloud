@@ -53,8 +53,8 @@ class db_statement_analyzer implementation.
     me->statement = statement.
     me->start_idx = start_idx.
     me->analyzer = analyzer.
-    me->token_idx = start_idx.
-    me->check_if_dbtab = abap_true.
+    token_idx = start_idx.
+    check_if_dbtab = abap_true.
     me->include_subqueries = include_subqueries.
   endmethod.
 
@@ -98,7 +98,7 @@ class db_statement_analyzer implementation.
 
   method get_result.
 
-    result-is_db = me->is_db.
+    result-is_db = is_db.
 
 *   special case for obsolete READ and LOOP statements
     if dbtab_name is not initial and check_if_dbtab = abap_false.

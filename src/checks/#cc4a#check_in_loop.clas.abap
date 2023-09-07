@@ -11,99 +11,108 @@ public
                finding_code          type if_ci_atc_check=>ty_finding_code value 'C_I_L'.
     protected section.
     private section.
-    constants iteration_type type if_ci_atc_source_code_provider=>ty_block-type value if_ci_atc_source_code_provider=>block_type-iteration.
 
-    data code_provider     type ref to if_ci_atc_source_code_provider.
-    data assistant_factory type ref to cl_ci_atc_assistant_factory.
+      data code_provider     type ref to if_ci_atc_source_code_provider.
+      data assistant_factory type ref to cl_ci_atc_assistant_factory.
 
-    methods analyze_procedure
-      importing procedure       type if_ci_atc_source_code_provider=>ty_procedure
-      returning value(findings) type if_ci_atc_check=>ty_findings.
-    methods create_quickfix_code
-      importing statement                 type if_ci_atc_source_code_provider=>ty_statement
-                check_statement           type if_ci_atc_source_code_provider=>ty_statement optional
-                use_multiple_lines        type abap_bool
-                logical_operator          type string
-      returning value(modified_statement) type if_ci_atc_quickfix=>ty_code.
-    methods cut_of_variable
-       importing token_to_cut_off         type string
-       returning value(cut_off_token) type string.
+      methods analyze_procedure
+        importing procedure       type if_ci_atc_source_code_provider=>ty_procedure
+        returning value(findings) type if_ci_atc_check=>ty_findings.
+      methods create_quickfix_code
+        importing statement                 type if_ci_atc_source_code_provider=>ty_statement
+                  check_statement           type if_ci_atc_source_code_provider=>ty_statement optional
+                  use_multiple_lines        type abap_bool
+                  logical_operator          type string
+        returning value(modified_statement) type if_ci_atc_quickfix=>ty_code.
 
-endclass.
+      methods is_statement_in_iteration
+        importing procedure           type if_ci_atc_source_code_provider=>ty_procedure
+                  statement           type if_ci_atc_source_code_provider=>ty_statement
+        returning value(is_statement) type abap_bool.
+
+      methods is_type_of_loop
+        importing procedure      type if_ci_atc_source_code_provider=>ty_procedure
+                  statement      type if_ci_atc_source_code_provider=>ty_statement
+        returning value(is_loop) type abap_bool.
+
+      methods create_quickfixes
+        importing is_type_of_loop             type abap_bool
+                  procedure                   type if_ci_atc_source_code_provider=>ty_procedure
+                  statement                   type if_ci_atc_source_code_provider=>ty_statement
+        returning value(available_quickfixes) type ref to cl_ci_atc_quickfixes.
+
+      methods create_multiple_line_quickfix
+        importing quickfix  type ref to cl_ci_atc_quickfixes
+                  procedure type if_ci_atc_source_code_provider=>ty_procedure
+                  statement type if_ci_atc_source_code_provider=>ty_statement
+                  tabix     type i.
+
+      methods create_single_line_quickfix
+        importing quickfix  type ref to cl_ci_atc_quickfixes
+                  procedure type if_ci_atc_source_code_provider=>ty_procedure
+                  statement type if_ci_atc_source_code_provider=>ty_statement
+                  tabix     type i.
+
+      methods create_where_quickfix
+        importing quickfix  type ref to cl_ci_atc_quickfixes
+                  procedure type if_ci_atc_source_code_provider=>ty_procedure
+                  statement type if_ci_atc_source_code_provider=>ty_statement
+                  tabix     type i.
+
+
+      methods cut_of_variable
+        importing token_to_cut_off     type string
+        returning value(cut_off_token) type string.
+
+    endclass.
 
 
 
 class /cc4a/check_in_loop implementation.
 
-
-  method analyze_procedure.
-    loop at procedure-statements assigning field-symbol(<statement>) where keyword = `CHECK` ##PRIMKEY[KEYWORD].
-
-      data(block) = procedure-blocks[ <statement>-block ].
+ method is_statement_in_iteration.
+      data(block) = procedure-blocks[ statement-block ].
       data(found_iteration) = abap_false.
-      data(is_type_of_loop) = abap_false.
 
       while block-parent <> 0.
-        if block-type <> iteration_type.
+        if block-type <> if_ci_atc_source_code_provider=>block_type-iteration.
           block = procedure-blocks[ block-parent ].
           continue.
         endif.
 
         found_iteration = abap_true.
-        is_type_of_loop = xsdbool( block-statement_type = code_provider->statement_type-loop ).
         exit.
       endwhile.
 
       if block-parent = 0 and found_iteration = abap_false.
-        found_iteration = xsdbool( block-type = iteration_type ).
+        found_iteration = xsdbool( block-type = if_ci_atc_source_code_provider=>block_type-iteration ).
       endif.
 
-      if found_iteration = abap_false.
-        continue.
-      endif.
+      is_statement = found_iteration.
 
-      data(available_quickfix) = assistant_factory->create_quickfixes( ).
-      data(quickfix_without_multiple_line) = available_quickfix->create_quickfix( quickfix_code_without ).
-      data(quickfix_with_multiple_line) = available_quickfix->create_quickfix( quickfix_code_with ).
-      data(tabix) = sy-tabix.
+ endmethod.
 
-      "Use with multiple line change
-      quickfix_with_multiple_line->replace(
-          context = assistant_factory->create_quickfix_context(
-           value #( procedure_id = procedure-id statements = value #( from = tabix to = tabix ) ) )
-          code = create_quickfix_code( statement = <statement> logical_operator = `IF` use_multiple_lines = abap_true ) ).
+  method is_type_of_loop.
+    data(block) = procedure-blocks[ procedure-blocks[ statement-block ]-parent ].
+    data(is_in_iteration) = is_statement_in_iteration( procedure = procedure statement = statement ).
 
-      quickfix_with_multiple_line->insert_after(
-          context = assistant_factory->create_quickfix_context(
-           value #( procedure_id = procedure-id statements = value #( from = tabix to = tabix ) ) )
-          code = create_quickfix_code( statement = <statement> logical_operator = `ENDIF` use_multiple_lines = abap_true ) ).
+    if is_in_iteration = abap_false.
+      is_loop = abap_false.
+      return.
+    endif.
 
-      quickfix_with_multiple_line->insert_after(
-        context = assistant_factory->create_quickfix_context(
-         value #( procedure_id = procedure-id statements = value #( from = tabix to = tabix ) ) )
-        code = create_quickfix_code( statement = <statement> logical_operator = `CONTINUE` use_multiple_lines = abap_true ) ).
+    is_loop = xsdbool( block-statement_type = code_provider->statement_type-loop ).
+  endmethod.
 
-      "Use without multiple line change
-      quickfix_without_multiple_line->replace(
-          context = assistant_factory->create_quickfix_context(
-           value #( procedure_id = procedure-id statements = value #( from = tabix to = tabix ) ) )
-          code = create_quickfix_code( statement = <statement> logical_operator = `IF` use_multiple_lines = abap_false ) ).
 
-      "Add fix to put it into the where condition
-      if is_type_of_loop = abap_true.
-        data(quickfix_in_from) = available_quickfix->create_quickfix( quickfix_code_where ).
-        data(start_statement) = procedure-statements[ block-statements-from ].
+  method analyze_procedure.
+    loop at procedure-statements assigning field-symbol(<statement>) where keyword = `CHECK` ##PRIMKEY[KEYWORD].
+    if is_statement_in_iteration( procedure = procedure statement = <statement> ) = abap_false.
+      continue.
+    endif.
 
-        quickfix_in_from->replace(
-          context = assistant_factory->create_quickfix_context(
-           value #( procedure_id = procedure-id statements = value #( from = block-statements-from to = block-statements-from ) ) )
-          code = create_quickfix_code( statement = start_statement check_statement = <statement> logical_operator = `WHERE` use_multiple_lines = abap_false ) ).
+     data(available_quickfixes) = create_quickfixes( is_type_of_loop =  is_type_of_loop( procedure = procedure statement = <statement> ) procedure = procedure statement = <statement> ).
 
-        quickfix_in_from->replace(
-          context = assistant_factory->create_quickfix_context(
-           value #( procedure_id = procedure-id statements = value #( from = tabix to = tabix ) ) )
-          code = value #( ) ).
-      endif.
 
       insert value #( code = finding_code
         location = value #(
@@ -113,14 +122,76 @@ class /cc4a/check_in_loop implementation.
             column = code_provider->get_statement_location( <statement> )-position-column ) )
         checksum = code_provider->get_statement_checksum( <statement> )
         has_pseudo_comment = xsdbool( line_exists( <statement>-pseudo_comments[ table_line = pseudo_comment ] ) )
-        details = assistant_factory->create_finding_details( )->attach_quickfixes( available_quickfix )
+        details = assistant_factory->create_finding_details( )->attach_quickfixes( available_quickfixes )
         ) into table findings.
     endloop.
   endmethod.
 
+  method create_quickfixes.
+
+    data(quickfixes) = assistant_factory->create_quickfixes( ).
+    data(tabix) = sy-tabix.
+    data(block) = procedure-blocks[ statement-block ].
+
+    create_multiple_line_quickfix( quickfix = quickfixes procedure = procedure statement = statement tabix = tabix ).
+
+    create_single_line_quickfix( quickfix = quickfixes procedure = procedure statement = statement tabix = tabix ).
+
+
+    if is_type_of_loop( procedure = procedure statement = statement ) = abap_true.
+      create_where_quickfix( quickfix = quickfixes procedure = procedure statement = statement tabix = tabix ).
+    endif.
+
+    available_quickfixes = quickfixes.
+
+  endmethod.
+
+  method create_multiple_line_quickfix.
+     data(quickfix_for_multiple_line) = quickfix->create_quickfix( quickfix_code_with ).
+     quickfix_for_multiple_line->replace(
+        context = assistant_factory->create_quickfix_context(
+         value #( procedure_id = procedure-id statements = value #( from = tabix to = tabix ) ) )
+        code = create_quickfix_code( statement = statement logical_operator = `IF` use_multiple_lines = abap_true ) ).
+
+    quickfix_for_multiple_line->insert_after(
+        context = assistant_factory->create_quickfix_context(
+         value #( procedure_id = procedure-id statements = value #( from = tabix to = tabix ) ) )
+        code = create_quickfix_code( statement = statement logical_operator = `ENDIF` use_multiple_lines = abap_true ) ).
+
+    quickfix_for_multiple_line->insert_after(
+      context = assistant_factory->create_quickfix_context(
+       value #( procedure_id = procedure-id statements = value #( from = tabix to = tabix ) ) )
+      code = create_quickfix_code( statement = statement logical_operator = `CONTINUE` use_multiple_lines = abap_true ) ).
+  endmethod.
+
+  method create_single_line_quickfix.
+      data(quickfix_for_one_line) = quickfix->create_quickfix( quickfix_code_without ).
+      quickfix_for_one_line->replace(
+        context = assistant_factory->create_quickfix_context(
+         value #( procedure_id = procedure-id statements = value #( from = tabix to = tabix ) ) )
+        code = create_quickfix_code( statement = statement logical_operator = `IF` use_multiple_lines = abap_false ) ).
+  endmethod.
+
+  method create_where_quickfix.
+    data(quickfix_for_where) = quickfix->create_quickfix( quickfix_code_where ).
+    data(block) = procedure-blocks[ procedure-blocks[ statement-block ]-parent ].
+
+    data(start_statement) = procedure-statements[ block-statements-from ].
+    quickfix_for_where->replace(
+      context = assistant_factory->create_quickfix_context(
+       value #( procedure_id = procedure-id statements = value #( from = block-statements-from to = block-statements-from ) ) )
+      code = create_quickfix_code( statement = start_statement check_statement = statement logical_operator = `WHERE` use_multiple_lines = abap_false ) ).
+
+    quickfix_for_where->replace(
+      context = assistant_factory->create_quickfix_context(
+       value #( procedure_id = procedure-id statements = value #( from = tabix to = tabix ) ) )
+      code = value #( ) ).
+  endmethod.
+
   method create_quickfix_code.
     data(new_statement) = statement.
-    data(analyzer) = /cc4a/abap_analyzer=>create( ).
+
+    data(analyzer) = /cc4a/abap_analyzer=>create(  ).
 
     if logical_operator = `WHERE`.
       data(bool_expression) = ``.
@@ -173,14 +244,14 @@ class /cc4a/check_in_loop implementation.
   method if_ci_atc_check~get_meta_data.
     meta_data = /cc4a/check_meta_data=>create(
     value #( checked_types = /cc4a/check_meta_data=>checked_types-abap_programs
-        description = 'Prefer IF-Statement over CHECK-Statement'
+        description = 'Prefer IF-Statement over CHECK-Statement'(des)
         remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
         finding_codes = value #(
-          ( code = finding_code pseudo_comment = pseudo_comment text = 'Usage of CHECK condition' ) )
+          ( code = finding_code pseudo_comment = pseudo_comment text = 'Usage of CHECK condition'(usg) ) )
         quickfix_codes = value #(
-          ( code = quickfix_code_with short_text = 'Replace CHECK condition with IF condition using MULTIPLE lines' )
-          ( code = quickfix_code_without short_text = 'Replace CHECK condition with IF condition using ONE line' )
-          ( code = quickfix_code_where short_text = 'Replace CHECK condition with a WHERE Statment in the loop' ) ) ) ).
+          ( code = quickfix_code_with short_text = 'Replace CHECK condition with IF condition using MULTIPLE lines'(mld)  )
+          ( code = quickfix_code_without short_text = 'Replace CHECK condition with IF condition using ONE line'(sld) )
+          ( code = quickfix_code_where short_text = 'Replace CHECK condition with a WHERE Statment in the loop'(wld) ) ) ) ).
   endmethod.
 
   method if_ci_atc_check~set_assistant_factory.

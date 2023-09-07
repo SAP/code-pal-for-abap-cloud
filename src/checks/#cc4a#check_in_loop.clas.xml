@@ -12,6 +12,38 @@
     <UNICODE>X</UNICODE>
     <WITH_UNIT_TESTS>X</WITH_UNIT_TESTS>
    </VSEOCLASS>
+   <TPOOL>
+    <item>
+     <ID>I</ID>
+     <KEY>DES</KEY>
+     <ENTRY>Prefer IF-Statement over CHECK-Statement</ENTRY>
+     <LENGTH>88</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>MLD</KEY>
+     <ENTRY>Replace CHECK condition with IF condition using MULTIPLE lines</ENTRY>
+     <LENGTH>88</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>SLD</KEY>
+     <ENTRY>Replace CHECK condition with IF condition using ONE line</ENTRY>
+     <LENGTH>88</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>USG</KEY>
+     <ENTRY>Usage of CHECK condition</ENTRY>
+     <LENGTH>88</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>WLD</KEY>
+     <ENTRY>Replace CHECK condition with a WHERE Statment in the loop</ENTRY>
+     <LENGTH>88</LENGTH>
+    </item>
+   </TPOOL>
   </asx:values>
  </asx:abap>
 </abapGit>

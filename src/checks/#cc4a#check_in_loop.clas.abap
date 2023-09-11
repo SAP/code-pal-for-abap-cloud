@@ -4,12 +4,20 @@ public
   create public.
   public section.
     interfaces if_ci_atc_check.
-    constants: pseudo_comment        type string value `CHECK_IN_LOOP`,
-               quickfix_code_with    type cl_ci_atc_quickfixes=>ty_quickfix_code value `C_I_L_W`,
-               quickfix_code_without type cl_ci_atc_quickfixes=>ty_quickfix_code value `C_I_L_WO`,
-               quickfix_code_where   type cl_ci_atc_quickfixes=>ty_quickfix_code value `C_I_L_LOOP`,
-               finding_code          type if_ci_atc_check=>ty_finding_code value 'C_I_L'.
-    protected section.
+    constants: begin of quickfix_codes,
+                 with_multiple_lines type cl_ci_atc_quickfixes=>ty_quickfix_code value `C_I_L_W`,
+                 one_line_change     type cl_ci_atc_quickfixes=>ty_quickfix_code value `C_I_L_WO`,
+                 where_change        type cl_ci_atc_quickfixes=>ty_quickfix_code value `C_I_L_LOOP`,
+               end of quickfix_codes.
+    constants:
+      begin of pseudo_comment,
+        check_in_loop type string value 'CHECK_IN_LOOP',
+      end of pseudo_comment.
+    constants:
+      begin of finding_codes,
+        check_in_loop type if_ci_atc_check=>ty_finding_code value 'C_I_L',
+      end of finding_codes.
+protected section.
     private section.
 
       data code_provider     type ref to if_ci_atc_source_code_provider.
@@ -30,13 +38,13 @@ public
                   statement           type if_ci_atc_source_code_provider=>ty_statement
         returning value(is_statement) type abap_bool.
 
-      methods is_type_of_loop
+      methods is_first_iteration_loop
         importing procedure      type if_ci_atc_source_code_provider=>ty_procedure
                   statement      type if_ci_atc_source_code_provider=>ty_statement
         returning value(is_loop) type abap_bool.
 
       methods create_quickfixes
-        importing is_type_of_loop             type abap_bool
+        importing is_first_iteration_loop     type abap_bool
                   procedure                   type if_ci_atc_source_code_provider=>ty_procedure
                   statement                   type if_ci_atc_source_code_provider=>ty_statement
         returning value(available_quickfixes) type ref to cl_ci_atc_quickfixes.
@@ -92,38 +100,30 @@ class /cc4a/check_in_loop implementation.
 
  endmethod.
 
-  method is_type_of_loop.
+  method is_first_iteration_loop.
     data(block) = procedure-blocks[ procedure-blocks[ statement-block ]-parent ].
-    data(is_in_iteration) = is_statement_in_iteration( procedure = procedure statement = statement ).
-
-    if is_in_iteration = abap_false.
-      is_loop = abap_false.
-      return.
-    endif.
-
     is_loop = xsdbool( block-statement_type = code_provider->statement_type-loop ).
   endmethod.
 
 
   method analyze_procedure.
     loop at procedure-statements assigning field-symbol(<statement>) where keyword = `CHECK` ##PRIMKEY[KEYWORD].
-    if is_statement_in_iteration( procedure = procedure statement = <statement> ) = abap_false.
-      continue.
-    endif.
+      if is_statement_in_iteration( procedure = procedure statement = <statement> ).
 
-     data(available_quickfixes) = create_quickfixes( is_type_of_loop =  is_type_of_loop( procedure = procedure statement = <statement> ) procedure = procedure statement = <statement> ).
+        data(available_quickfixes) = create_quickfixes( is_first_iteration_loop = is_first_iteration_loop( procedure = procedure statement = <statement> ) procedure = procedure statement = <statement> ).
 
 
-      insert value #( code = finding_code
-        location = value #(
-          object = code_provider->get_statement_location( <statement> )-object
-          position = value #(
-            line = code_provider->get_statement_location( <statement> )-position-line
-            column = code_provider->get_statement_location( <statement> )-position-column ) )
-        checksum = code_provider->get_statement_checksum( <statement> )
-        has_pseudo_comment = xsdbool( line_exists( <statement>-pseudo_comments[ table_line = pseudo_comment ] ) )
-        details = assistant_factory->create_finding_details( )->attach_quickfixes( available_quickfixes )
-        ) into table findings.
+        insert value #( code = finding_codes-check_in_loop
+          location = value #(
+            object = code_provider->get_statement_location( <statement> )-object
+            position = value #(
+              line = code_provider->get_statement_location( <statement> )-position-line
+              column = code_provider->get_statement_location( <statement> )-position-column ) )
+          checksum = code_provider->get_statement_checksum( <statement> )
+          has_pseudo_comment = xsdbool( line_exists( <statement>-pseudo_comments[ table_line = pseudo_comment-check_in_loop ] ) )
+          details = assistant_factory->create_finding_details( )->attach_quickfixes( available_quickfixes )
+          ) into table findings.
+      endif.
     endloop.
   endmethod.
 
@@ -131,14 +131,13 @@ class /cc4a/check_in_loop implementation.
 
     data(quickfixes) = assistant_factory->create_quickfixes( ).
     data(tabix) = sy-tabix.
-    data(block) = procedure-blocks[ statement-block ].
 
     create_multiple_line_quickfix( quickfix = quickfixes procedure = procedure statement = statement tabix = tabix ).
 
     create_single_line_quickfix( quickfix = quickfixes procedure = procedure statement = statement tabix = tabix ).
 
 
-    if is_type_of_loop( procedure = procedure statement = statement ) = abap_true.
+    if is_first_iteration_loop( procedure = procedure statement = statement ) = abap_true.
       create_where_quickfix( quickfix = quickfixes procedure = procedure statement = statement tabix = tabix ).
     endif.
 
@@ -147,7 +146,7 @@ class /cc4a/check_in_loop implementation.
   endmethod.
 
   method create_multiple_line_quickfix.
-     data(quickfix_for_multiple_line) = quickfix->create_quickfix( quickfix_code_with ).
+     data(quickfix_for_multiple_line) = quickfix->create_quickfix( quickfix_codes-with_multiple_lines ).
      quickfix_for_multiple_line->replace(
         context = assistant_factory->create_quickfix_context(
          value #( procedure_id = procedure-id statements = value #( from = tabix to = tabix ) ) )
@@ -165,7 +164,7 @@ class /cc4a/check_in_loop implementation.
   endmethod.
 
   method create_single_line_quickfix.
-      data(quickfix_for_one_line) = quickfix->create_quickfix( quickfix_code_without ).
+      data(quickfix_for_one_line) = quickfix->create_quickfix( quickfix_codes-one_line_change ).
       quickfix_for_one_line->replace(
         context = assistant_factory->create_quickfix_context(
          value #( procedure_id = procedure-id statements = value #( from = tabix to = tabix ) ) )
@@ -173,7 +172,7 @@ class /cc4a/check_in_loop implementation.
   endmethod.
 
   method create_where_quickfix.
-    data(quickfix_for_where) = quickfix->create_quickfix( quickfix_code_where ).
+    data(quickfix_for_where) = quickfix->create_quickfix( quickfix_codes-where_change ).
     data(block) = procedure-blocks[ procedure-blocks[ statement-block ]-parent ].
 
     data(start_statement) = procedure-statements[ block-statements-from ].
@@ -247,11 +246,11 @@ class /cc4a/check_in_loop implementation.
         description = 'Prefer IF-Statement over CHECK-Statement'(des)
         remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
         finding_codes = value #(
-          ( code = finding_code pseudo_comment = pseudo_comment text = 'Usage of CHECK condition'(usg) ) )
+          ( code = finding_codes-check_in_loop pseudo_comment = pseudo_comment-check_in_loop text = 'Usage of CHECK condition'(usg) ) )
         quickfix_codes = value #(
-          ( code = quickfix_code_with short_text = 'Replace CHECK condition with IF condition using MULTIPLE lines'(mld)  )
-          ( code = quickfix_code_without short_text = 'Replace CHECK condition with IF condition using ONE line'(sld) )
-          ( code = quickfix_code_where short_text = 'Replace CHECK condition with a WHERE Statment in the loop'(wld) ) ) ) ).
+          ( code = quickfix_codes-with_multiple_lines short_text = 'Replace CHECK condition with IF condition using MULTIPLE lines'(mld)  )
+          ( code = quickfix_codes-one_line_change short_text = 'Replace CHECK condition with IF condition using ONE line'(sld) )
+          ( code = quickfix_codes-where_change short_text = 'Replace CHECK condition with a WHERE Statment in the loop'(wld) ) ) ) ).
   endmethod.
 
   method if_ci_atc_check~set_assistant_factory.

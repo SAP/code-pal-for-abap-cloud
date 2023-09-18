@@ -47,12 +47,12 @@ class /cc4a/test_check_in_loop implementation.
 
     " Check with loop
     types: begin of ty_table,
-             delflag type string,
+             delflag type abap_bool,
            end of ty_table.
 
     data itab type table of ty_table with empty key.
     loop at itab assigning field-symbol(<tab>).
-      check <tab>-delflag = abap_true.
+      check  <tab>-delflag = abap_true.
       if a = x.
         check <tab>-delflag <= abap_false.
       endif.

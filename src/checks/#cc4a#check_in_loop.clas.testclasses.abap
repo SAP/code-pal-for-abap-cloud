@@ -84,10 +84,10 @@ class test implementation.
                                          code = /cc4a/check_in_loop=>finding_codes-check_in_loop
                                          location = without_pseudo_comment_1
                                           quickfixes = value #(
-                                          ( quickfix_code = /cc4a/check_in_loop=>quickfix_codes-one_line_change
+                                          ( quickfix_code = /cc4a/check_in_loop=>quickfix_codes-single_line_quickfix
                                           location = without_pseudo_comment_1
                                           code = value #( ( `IF 1 <> 1 . CONTINUE . ENDIF .` ) ) )
-                                          ( quickfix_code = /cc4a/check_in_loop=>quickfix_codes-with_multiple_lines
+                                          ( quickfix_code = /cc4a/check_in_loop=>quickfix_codes-multiple_line_quickfix
                                           location = without_pseudo_comment_1
                                           code = value #(
                                           ( `IF 1 <> 1 .` )
@@ -101,10 +101,10 @@ class test implementation.
                                           code = /cc4a/check_in_loop=>finding_codes-check_in_loop
                                          location = without_pseudo_comment_2
                                           quickfixes = value #(
-                                          ( quickfix_code = /cc4a/check_in_loop=>quickfix_codes-one_line_change
+                                          ( quickfix_code = /cc4a/check_in_loop=>quickfix_codes-single_line_quickfix
                                           location = without_pseudo_comment_2
                                           code = value #( ( `IF A <> B . CONTINUE . ENDIF .` ) ) )
-                                          ( quickfix_code = /cc4a/check_in_loop=>quickfix_codes-with_multiple_lines
+                                          ( quickfix_code = /cc4a/check_in_loop=>quickfix_codes-multiple_line_quickfix
                                           location = without_pseudo_comment_2
                                           code = value #(
                                           ( `IF A <> B .` )
@@ -120,10 +120,10 @@ class test implementation.
                                           code = /cc4a/check_in_loop=>finding_codes-check_in_loop
                                          location = without_pseudo_comment_3
                                           quickfixes = value #(
-                                          ( quickfix_code = /cc4a/check_in_loop=>quickfix_codes-one_line_change
+                                          ( quickfix_code = /cc4a/check_in_loop=>quickfix_codes-single_line_quickfix
                                           location = without_pseudo_comment_3
                                           code = value #( ( `IF B <> 3 . CONTINUE . ENDIF .` ) ) )
-                                          ( quickfix_code = /cc4a/check_in_loop=>quickfix_codes-with_multiple_lines
+                                          ( quickfix_code = /cc4a/check_in_loop=>quickfix_codes-multiple_line_quickfix
                                           location = without_pseudo_comment_3
                                           code = value #(
                                           ( `IF B <> 3 .` )
@@ -137,10 +137,10 @@ class test implementation.
                                           code = /cc4a/check_in_loop=>finding_codes-check_in_loop
                                          location = without_pseudo_comment_4
                                           quickfixes = value #(
-                                          ( quickfix_code = /cc4a/check_in_loop=>quickfix_codes-one_line_change
+                                          ( quickfix_code = /cc4a/check_in_loop=>quickfix_codes-single_line_quickfix
                                           location = without_pseudo_comment_4
                                           code = value #( ( `IF X <> Y . CONTINUE . ENDIF .` ) ) )
-                                          ( quickfix_code = /cc4a/check_in_loop=>quickfix_codes-with_multiple_lines
+                                          ( quickfix_code = /cc4a/check_in_loop=>quickfix_codes-multiple_line_quickfix
                                           location = without_pseudo_comment_4
                                           code = value #(
                                           ( `IF X <> Y .` )
@@ -155,10 +155,10 @@ class test implementation.
                                           code = /cc4a/check_in_loop=>finding_codes-check_in_loop
                                          location = without_pseudo_comment_5
                                           quickfixes = value #(
-                                          ( quickfix_code = /cc4a/check_in_loop=>quickfix_codes-one_line_change
+                                          ( quickfix_code = /cc4a/check_in_loop=>quickfix_codes-single_line_quickfix
                                           location = without_pseudo_comment_5
                                           code = value #( ( `IF X = 150 . CONTINUE . ENDIF .` ) ) )
-                                          ( quickfix_code = /cc4a/check_in_loop=>quickfix_codes-with_multiple_lines
+                                          ( quickfix_code = /cc4a/check_in_loop=>quickfix_codes-multiple_line_quickfix
                                           location = without_pseudo_comment_5
                                           code = value #(
                                           ( `IF X = 150 .` )
@@ -172,10 +172,10 @@ class test implementation.
                                           code = /cc4a/check_in_loop=>finding_codes-check_in_loop
                                          location = without_pseudo_comment_6
                                           quickfixes = value #(
-                                          ( quickfix_code = /cc4a/check_in_loop=>quickfix_codes-one_line_change
+                                          ( quickfix_code = /cc4a/check_in_loop=>quickfix_codes-single_line_quickfix
                                           location = without_pseudo_comment_6
                                           code = value #( ( `IF <TAB>-DELFLAG <> ABAP_TRUE . CONTINUE . ENDIF .` ) ) )
-                                          ( quickfix_code = /cc4a/check_in_loop=>quickfix_codes-with_multiple_lines
+                                          ( quickfix_code = /cc4a/check_in_loop=>quickfix_codes-multiple_line_quickfix
                                           location = without_pseudo_comment_6
                                           code = value #(
                                           ( `IF <TAB>-DELFLAG <> ABAP_TRUE .` )
@@ -187,7 +187,7 @@ class test implementation.
                                           ( `ENDLOOP .` )
                                            )
                                           )
-                                          ( quickfix_code = /cc4a/check_in_loop=>quickfix_codes-where_change
+                                          ( quickfix_code = /cc4a/check_in_loop=>quickfix_codes-where_quickfix
                                           location = without_pseudo_comment_6_where
                                           code = value #(
                                           ( `LOOP AT ITAB ASSIGNING FIELD-SYMBOL(<TAB>) WHERE DELFLAG = ABAP_TRUE .` )
@@ -198,10 +198,10 @@ class test implementation.
                                           code = /cc4a/check_in_loop=>finding_codes-check_in_loop
                                          location = without_pseudo_comment_7
                                           quickfixes = value #(
-                                          ( quickfix_code = /cc4a/check_in_loop=>quickfix_codes-one_line_change
+                                          ( quickfix_code = /cc4a/check_in_loop=>quickfix_codes-single_line_quickfix
                                           location = without_pseudo_comment_7
                                           code = value #( ( `IF <TAB>-DELFLAG > ABAP_FALSE . CONTINUE . ENDIF .` ) ) )
-                                          ( quickfix_code = /cc4a/check_in_loop=>quickfix_codes-with_multiple_lines
+                                          ( quickfix_code = /cc4a/check_in_loop=>quickfix_codes-multiple_line_quickfix
                                           location = without_pseudo_comment_7
                                           code = value #(
                                           ( `IF <TAB>-DELFLAG > ABAP_FALSE .` )

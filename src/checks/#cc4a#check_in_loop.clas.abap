@@ -88,25 +88,25 @@ protected section.
 
 
 
-CLASS /CC4A/CHECK_IN_LOOP IMPLEMENTATION.
+class /cc4a/check_in_loop implementation.
 
 
- method statement_is_in_iteration.
-   data(block) = procedure-blocks[ statement-block ].
+  method statement_is_in_iteration.
+    data(block) = procedure-blocks[ statement-block ].
 
-   while block-parent <> 0 and is_iteration = abap_false.
-     if block-type = if_ci_atc_source_code_provider=>block_type-iteration.
-       is_iteration = abap_true.
-     else.
-       block = procedure-blocks[ block-parent ].
-     endif.
-   endwhile.
+    while block-parent <> 0 and is_iteration = abap_false.
+      if block-type = if_ci_atc_source_code_provider=>block_type-iteration.
+        is_iteration = abap_true.
+      else.
+        block = procedure-blocks[ block-parent ].
+      endif.
+    endwhile.
 
-   if block-parent = 0 and is_iteration = abap_false.
-     is_iteration = xsdbool( block-type = if_ci_atc_source_code_provider=>block_type-iteration ).
-   endif.
+    if block-parent = 0 and is_iteration = abap_false.
+      is_iteration = xsdbool( block-type = if_ci_atc_source_code_provider=>block_type-iteration ).
+    endif.
 
- endmethod.
+  endmethod.
 
 
   method is_first_iteration_loop.
@@ -149,13 +149,17 @@ CLASS /CC4A/CHECK_IN_LOOP IMPLEMENTATION.
     if first_iteration_is_loop = abap_true.
       data(variable_name) = get_variable_of_bracket( procedure = procedure check_statement = statement ).
       data(variable_is_in_check) = abap_false.
+      data(mutliple_expressions) = abap_false.
       loop at statement-tokens assigning field-symbol(<token>).
+        if <token>-lexeme eq `AND` or <token>-lexeme eq `OR`.
+          mutliple_expressions = abap_true.
+          continue.
+        endif.
         if contains( val = <token>-lexeme sub = variable_name ).
           variable_is_in_check = abap_true.
-          exit.
         endif.
       endloop.
-      if variable_is_in_check = abap_true.
+      if variable_is_in_check = abap_true and mutliple_expressions = abap_false. "methoden aufruf, verschachtelte boolische ausdrücke für where xsdbool z.B. nicht möglich
         create_where_quickfix( quickfix = quickfixes procedure = procedure statement = statement variable_name = variable_name tabix = tabix ).
       endif.
     endif.
@@ -166,22 +170,21 @@ CLASS /CC4A/CHECK_IN_LOOP IMPLEMENTATION.
 
 
   method create_multiple_line_quickfix.
-     data(quickfix_for_multiple_line) = quickfix->create_quickfix( quickfix_codes-multiple_line_quickfix ).
+    data(quickfix_for_multiple_line) = quickfix->create_quickfix( quickfix_codes-multiple_line_quickfix ).
 
-     quickfix_for_multiple_line->replace(
-        context = assistant_factory->create_quickfix_context(
-         value #( procedure_id = procedure-id statements = value #( from = tabix to = tabix ) ) )
-        code = create_quickfix_code( statement = statement quickfix_type = `MULTIPLE` ) ).
+    quickfix_for_multiple_line->replace(
+       context = assistant_factory->create_quickfix_context(
+        value #( procedure_id = procedure-id statements = value #( from = tabix to = tabix ) ) )
+       code = create_quickfix_code( statement = statement quickfix_type = `MULTIPLE` ) ).
   endmethod.
 
-
   method create_single_line_quickfix.
-      data(quickfix_for_one_line) = quickfix->create_quickfix( quickfix_codes-single_line_quickfix ).
+    data(quickfix_for_one_line) = quickfix->create_quickfix( quickfix_codes-single_line_quickfix ).
 
-      quickfix_for_one_line->replace(
-        context = assistant_factory->create_quickfix_context(
-         value #( procedure_id = procedure-id statements = value #( from = tabix to = tabix ) ) )
-        code = create_quickfix_code( statement = statement quickfix_type = `SINGLE` ) ).
+    quickfix_for_one_line->replace(
+      context = assistant_factory->create_quickfix_context(
+       value #( procedure_id = procedure-id statements = value #( from = tabix to = tabix ) ) )
+      code = create_quickfix_code( statement = statement quickfix_type = `SINGLE` ) ).
   endmethod.
 
 
@@ -201,13 +204,36 @@ CLASS /CC4A/CHECK_IN_LOOP IMPLEMENTATION.
       code = value #( ) ).
   endmethod.
 
-  method negate_statement.
+
+  method negate_statement.   "Zu kompliziert ingorieren sprich not ( bool_expression )
     data(statement_to_negate) = statement.
-    loop at statement_to_negate-tokens assigning field-symbol(<token>).
-      if analyzer->token_is_comparison_operator( token = <token> ).
-        <token>-lexeme = analyzer->negate_comparison_operator( comparison_operator = <token>-lexeme ).
+    data(currently_in_bracket) = abap_false.
+    data(use_not) = abap_false.
+    data(amount_of_concatenation) = 0.
+
+    loop at statement_to_negate-tokens assigning field-symbol(<use_not_token>).
+      if analyzer->is_bracket( <use_not_token> ) eq analyzer->bracket_type-opening.
+        use_not = abap_true.
+        exit.
+      else.
+        if <use_not_token>-lexeme eq `AND` or <use_not_token>-lexeme eq `OR`.
+          use_not = xsdbool( amount_of_concatenation > 0 ).
+          amount_of_concatenation += 1.
+          continue.
+        endif.
       endif.
     endloop.
+    loop at statement_to_negate-tokens assigning field-symbol(<token>).
+      if currently_in_bracket = abap_false and use_not = abap_false.
+        if analyzer->token_is_comparison_operator( token = <token> ).
+          <token>-lexeme = analyzer->negate_comparison_operator( comparison_operator = <token>-lexeme ).
+        endif.
+      endif.
+    endloop.
+    if use_not = abap_true.
+      insert value #( lexeme = `NOT (` ) into statement_to_negate-tokens index 2.
+      insert value #( lexeme = ` )` ) into statement_to_negate-tokens index lines( statement_to_negate-tokens ) + 1.
+    endif.
     new_statement = statement_to_negate.
   endmethod.
 
@@ -307,4 +333,4 @@ CLASS /CC4A/CHECK_IN_LOOP IMPLEMENTATION.
     endloop.
   endmethod.
 
-ENDCLASS.
+endclass.

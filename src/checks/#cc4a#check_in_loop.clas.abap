@@ -17,74 +17,74 @@ public
       begin of finding_codes,
         check_in_loop type if_ci_atc_check=>ty_finding_code value 'C_I_L',
       end of finding_codes.
-protected section.
-    private section.
+  protected section.
+  private section.
 
-      data code_provider     type ref to if_ci_atc_source_code_provider.
-      data assistant_factory type ref to cl_ci_atc_assistant_factory.
-      methods analyze_procedure
-        importing procedure       type if_ci_atc_source_code_provider=>ty_procedure
-        returning value(findings) type if_ci_atc_check=>ty_findings.
-      methods create_quickfix_code
-        importing statement                 type if_ci_atc_source_code_provider=>ty_statement
-                  check_statement           type if_ci_atc_source_code_provider=>ty_statement optional
-                  variable_name             type string optional
-                  quickfix_type             type string
-        returning value(modified_statement) type if_ci_atc_quickfix=>ty_code.
+    data code_provider     type ref to if_ci_atc_source_code_provider.
+    data assistant_factory type ref to cl_ci_atc_assistant_factory.
+    methods analyze_procedure
+      importing procedure       type if_ci_atc_source_code_provider=>ty_procedure
+      returning value(findings) type if_ci_atc_check=>ty_findings.
+    methods create_quickfix_code
+      importing statement                 type if_ci_atc_source_code_provider=>ty_statement
+                check_statement           type if_ci_atc_source_code_provider=>ty_statement optional
+                variable_name             type string optional
+                quickfix_type             type string
+      returning value(modified_statement) type if_ci_atc_quickfix=>ty_code.
 
-      methods statement_is_in_iteration
-        importing procedure           type if_ci_atc_source_code_provider=>ty_procedure
-                  statement           type if_ci_atc_source_code_provider=>ty_statement
-        returning value(is_iteration) type abap_bool.
+    methods statement_is_in_iteration
+      importing procedure           type if_ci_atc_source_code_provider=>ty_procedure
+                statement           type if_ci_atc_source_code_provider=>ty_statement
+      returning value(is_iteration) type abap_bool.
 
-      methods is_first_iteration_loop
-        importing procedure      type if_ci_atc_source_code_provider=>ty_procedure
-                  statement      type if_ci_atc_source_code_provider=>ty_statement
-        returning value(is_loop) type abap_bool.
+    methods is_first_iteration_loop
+      importing procedure      type if_ci_atc_source_code_provider=>ty_procedure
+                statement      type if_ci_atc_source_code_provider=>ty_statement
+      returning value(is_loop) type abap_bool.
 
-      methods create_quickfixes
-        importing first_iteration_is_loop     type abap_bool
-                  procedure                   type if_ci_atc_source_code_provider=>ty_procedure
-                  statement                   type if_ci_atc_source_code_provider=>ty_statement
-        returning value(available_quickfixes) type ref to cl_ci_atc_quickfixes.
+    methods create_quickfixes
+      importing first_iteration_is_loop     type abap_bool
+                procedure                   type if_ci_atc_source_code_provider=>ty_procedure
+                statement                   type if_ci_atc_source_code_provider=>ty_statement
+      returning value(available_quickfixes) type ref to cl_ci_atc_quickfixes.
 
-      methods create_multiple_line_quickfix
-        importing quickfix  type ref to cl_ci_atc_quickfixes
-                  procedure type if_ci_atc_source_code_provider=>ty_procedure
-                  statement type if_ci_atc_source_code_provider=>ty_statement
-                  tabix     type i.
+    methods create_multiple_line_quickfix
+      importing quickfix  type ref to cl_ci_atc_quickfixes
+                procedure type if_ci_atc_source_code_provider=>ty_procedure
+                statement type if_ci_atc_source_code_provider=>ty_statement
+                tabix     type i.
 
-      methods create_single_line_quickfix
-        importing quickfix  type ref to cl_ci_atc_quickfixes
-                  procedure type if_ci_atc_source_code_provider=>ty_procedure
-                  statement type if_ci_atc_source_code_provider=>ty_statement
-                  tabix     type i.
+    methods create_single_line_quickfix
+      importing quickfix  type ref to cl_ci_atc_quickfixes
+                procedure type if_ci_atc_source_code_provider=>ty_procedure
+                statement type if_ci_atc_source_code_provider=>ty_statement
+                tabix     type i.
 
-      methods create_where_quickfix
-        importing quickfix      type ref to cl_ci_atc_quickfixes
-                  procedure     type if_ci_atc_source_code_provider=>ty_procedure
-                  statement     type if_ci_atc_source_code_provider=>ty_statement
-                  variable_name type string
-                  tabix         type i.
-
-
-      methods cut_of_variable
-        importing token_to_cut_off     type string
-        returning value(cut_off_token) type string.
-
-      methods negate_statement
-        importing statement            type if_ci_atc_source_code_provider=>ty_statement
-                  analyzer             type ref to /cc4a/if_abap_analyzer
-
-        returning value(new_statement) type if_ci_atc_source_code_provider=>ty_statement.
-
-      methods get_variable_of_bracket
-        importing procedure               type if_ci_atc_source_code_provider=>ty_procedure
-                  check_statement         type if_ci_atc_source_code_provider=>ty_statement
-        returning value(name_of_variable) type string.
+    methods create_where_quickfix
+      importing quickfix      type ref to cl_ci_atc_quickfixes
+                procedure     type if_ci_atc_source_code_provider=>ty_procedure
+                statement     type if_ci_atc_source_code_provider=>ty_statement
+                variable_name type string
+                tabix         type i.
 
 
-    endclass.
+    methods cut_of_variable
+      importing token_to_cut_off     type string
+      returning value(cut_off_token) type string.
+
+    methods negate_statement
+      importing statement            type if_ci_atc_source_code_provider=>ty_statement
+                analyzer             type ref to /cc4a/if_abap_analyzer
+
+      returning value(new_statement) type if_ci_atc_source_code_provider=>ty_statement.
+
+    methods get_variable_of_bracket
+      importing procedure               type if_ci_atc_source_code_provider=>ty_procedure
+                check_statement         type if_ci_atc_source_code_provider=>ty_statement
+      returning value(name_of_variable) type string.
+
+
+endclass.
 
 
 
@@ -159,7 +159,7 @@ class /cc4a/check_in_loop implementation.
           variable_is_in_check = abap_true.
         endif.
       endloop.
-      if variable_is_in_check = abap_true and mutliple_expressions = abap_false. "methoden aufruf, verschachtelte boolische ausdrücke für where xsdbool z.B. nicht möglich
+      if variable_is_in_check = abap_true and mutliple_expressions = abap_false.
         create_where_quickfix( quickfix = quickfixes procedure = procedure statement = statement variable_name = variable_name tabix = tabix ).
       endif.
     endif.
@@ -205,7 +205,7 @@ class /cc4a/check_in_loop implementation.
   endmethod.
 
 
-  method negate_statement.   "Zu kompliziert ingorieren sprich not ( bool_expression )
+  method negate_statement.
     data(statement_to_negate) = statement.
     data(currently_in_bracket) = abap_false.
     data(use_not) = abap_false.

@@ -122,6 +122,10 @@ CLASS test IMPLEMENTATION.
                                ( `IDX = LINE_INDEX( ITAB[ KEY NAME COMPONENTS OBJ_NAME = 'BLABLA' ] ).` ) ) ) ) )
 
      ( code = /cc4a/modern_language=>c_code_line_exists
+       location = VALUE #( object = test_read position = VALUE #( line = 27 column = 4 ) )
+       has_pseudo_comment = abap_true  )
+
+     ( code = /cc4a/modern_language=>c_code_line_exists
        location = VALUE #( object = test_read position = VALUE #( line = 34 column = 4 ) )
        quickfixes = VALUE #( (
          quickfix_code = /cc4a/modern_language=>c_qf_line_exists
@@ -136,11 +140,19 @@ CLASS test IMPLEMENTATION.
          code_lines = VALUE #( ( `idx = sy-tabix.` ) ) ) ) )
 
      ( code = /cc4a/modern_language=>c_code_line_exists
+       location = VALUE #( object = test_read position = VALUE #( line = 37 column = 4 ) )
+       has_pseudo_comment = abap_true  )
+
+     ( code = /cc4a/modern_language=>c_code_line_exists
        location = VALUE #( object = test_read position = VALUE #( line = 41 column = 4 ) )
        quickfixes = VALUE #( (
          quickfix_code = /cc4a/modern_language=>c_qf_line_exists
          span = VALUE #( object = test_read from = 41 to = 44 )
          code_lines = VALUE #( ( `DATA(BLUE) = xsdbool( NOT line_exists( ITAB[ KEY NAME COMPONENTS OBJ_NAME = 'BLUE' ] ) ).` ) ) ) ) )
+
+     ( code = /cc4a/modern_language=>c_code_line_exists
+       location = VALUE #( object = test_read position = VALUE #( line = 46 column = 4 ) )
+       has_pseudo_comment = abap_true  )
 
      ( code = /cc4a/modern_language=>c_code_line_exists
        location = VALUE #( object = test_read position = VALUE #( line = 52 column = 4 ) )
@@ -163,6 +175,8 @@ CLASS test IMPLEMENTATION.
          span = VALUE #( object = test_read from = 62 to = 64 )
          code_lines = VALUE #( ( `IF  line_index( ITAB[ PGMID  =  'R3TR'  ] ) <>  0 .` ) ) ) ) )
 
+
+
      ( code = /cc4a/modern_language=>c_code_line_exists
        location = VALUE #( object = test_read position = VALUE #( line = 67 column = 4 ) )
        has_pseudo_comment = abap_true
@@ -171,6 +185,18 @@ CLASS test IMPLEMENTATION.
          span = VALUE #( object = test_read from = 67 to = 69 )
          code_lines = VALUE #( ( `IF  line_index( ITAB[ PGMID  =  'R3TR'  ] ) <>  0 .` ) ) ) ) )
 
+     ( code = /cc4a/modern_language=>c_code_line_exists
+       location = VALUE #( object = test_read position = VALUE #( line = 73 column = 4 ) )
+       has_pseudo_comment = abap_true )
+
+    ( code = /cc4a/modern_language=>c_code_line_exists
+       location = VALUE #( object = test_read position = VALUE #( line = 76 column = 4 ) )
+       has_pseudo_comment = abap_true )
+
+
+     ( code = /cc4a/modern_language=>c_code_line_exists
+       location = VALUE #( object = test_read position = VALUE #( line = 81 column = 4 ) )
+       has_pseudo_comment = abap_true  )
 
      ( code = /cc4a/modern_language=>c_code_line_exists
        location = VALUE #( object = test_loop position = VALUE #( line = 4 column = 4 ) )

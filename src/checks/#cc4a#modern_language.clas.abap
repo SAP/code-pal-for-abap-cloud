@@ -350,6 +350,7 @@ CLASS /cc4a/modern_language IMPLEMENTATION.
     IF key_idx = 0.
       RETURN.
     ELSE.
+
       DATA(start_idx) = analyzer->find_clause_index(  tokens = statement-tokens clause = 'COMPONENTS'
                                                       start_index = key_idx + 1 ).
       IF start_idx = 0. "with key...
@@ -362,8 +363,14 @@ CLASS /cc4a/modern_language IMPLEMENTATION.
       IF to_idx <= 0.
         to_idx = lines( statement-tokens ).
       ENDIF.
-      append_tokens( EXPORTING tokens = statement-tokens from_idx = start_idx to_idx = to_idx
-                     CHANGING result = key ).
+      IF statement-tokens[ key_idx + 2 ]-lexeme = '='.
+        key = 'TABLE_LINE'.
+        append_tokens( EXPORTING tokens = statement-tokens from_idx = key_idx + 2 to_idx = to_idx
+                       CHANGING result = key ).
+      ELSE.
+        append_tokens( EXPORTING tokens = statement-tokens from_idx = start_idx to_idx = to_idx
+                       CHANGING result = key ).
+      ENDIF.
       keylen = to_idx - start_idx + 1.
 
     ENDIF.
@@ -378,6 +385,10 @@ CLASS /cc4a/modern_language IMPLEMENTATION.
       CHANGING findings = findings ).
       RETURN.
     ENDIF.
+    DATA(quickfixable) = abap_true.
+*    if statement-tokens[ key_idx + 2 ]-lexeme = '='.
+*      quickfixable = abap_false.
+*    endif.
     DATA(table) = statement-tokens[ 3 ]-lexeme.
     IF table CP '*[]'.
       DATA(len) = strlen( table ) - 2.
@@ -413,20 +424,27 @@ CLASS /cc4a/modern_language IMPLEMENTATION.
 
       IF sytabix_idx <> 0.
         IF sytabix_idx > 1 AND <statement>-tokens[ sytabix_idx - 1 ]-lexeme = '&&'.
-          RETURN.
+          quickfixable = abap_false.
+          EXIT.
         ENDIF.
         IF sytabix_idx > 1 AND <statement>-tokens[ sytabix_idx - 1 ]-references IS INITIAL
         AND <statement>-tokens[ sytabix_idx - 1 ]-lexeme = 'LIKE'
         AND <statement>-keyword = 'DATA'.
-          RETURN.
+          quickfixable = abap_false.
+          EXIT.
         ENDIF.
         CASE <statement>-keyword.
           WHEN 'MOVE'.
             analyze_move( EXPORTING procedure = procedure statement_index = tabix IMPORTING changed_line = code_line_index ).
             REPLACE FIRST OCCURRENCE OF 'SY-TABIX' IN code_line_index WITH |line_index( { table }[ { key } ] )| ##NO_TEXT.
             APPEND code_line_index TO code_lines.
-          WHEN 'MESSAGE'.
-            RETURN.
+          WHEN 'MESSAGE' OR 'PERFORM' OR '+CALL_MACRO'.
+            quickfixable = abap_false.
+            EXIT.
+          WHEN 'SET'.
+            IF <statement>-tokens[ 2 ]-references IS INITIAL AND <statement>-tokens[ 2 ]-lexeme = 'BIT'.
+              quickfixable = abap_false.
+            ENDIF.
           WHEN OTHERS.
             IF if_sysubrc <> 2.
               code_line_index = analyzer->flatten_tokens( tokens = <statement>-tokens ).
@@ -439,19 +457,22 @@ CLASS /cc4a/modern_language IMPLEMENTATION.
         ENDCASE.
       ELSEIF if_sysubrc <> 0 AND tabix > statement_index + 1.
         IF <statement>-keyword = 'CALL' OR <statement>-keyword = '+CALL_METHOD'.
-          RETURN.
+          quickfixable = abap_false.
+          EXIT.
         ENDIF.
         CASE if_sysubrc.
           WHEN 1.
             token_idx = analyzer->find_clause_index( tokens = <statement>-tokens clause = '=' ).
             IF token_idx = 0 OR <statement>-tokens[ token_idx + 1 ]-lexeme <> 'ABAP_TRUE'.
-              RETURN.
+              quickfixable = abap_false.
+              EXIT.
             ENDIF.
           WHEN 2.
             token_idx = analyzer->find_clause_index( tokens = <statement>-tokens clause = '=' ).
             IF token_idx = 0 OR <statement>-tokens[ token_idx + 1 ]-lexeme <> 'ABAP_FALSE'
             OR procedure-statements[ tabix + 1 ]-keyword <> 'ENDIF'.
-              RETURN.
+              quickfixable = abap_false.
+              EXIT.
             ENDIF.
         ENDCASE.
         append_tokens( EXPORTING tokens = <statement>-tokens to_idx = token_idx - 1 CHANGING result = code_line_exists ).
@@ -467,7 +488,7 @@ CLASS /cc4a/modern_language IMPLEMENTATION.
       ENDIF.
     ENDLOOP.
 
-    IF code_line_index IS NOT INITIAL OR code_line_exists IS NOT INITIAL.
+    IF quickfixable = abap_true AND ( code_line_index IS NOT INITIAL OR code_line_exists IS NOT INITIAL ).
       DATA(quickfixes) = assistant_factory->create_quickfixes( ).
       DATA(quickfix) = quickfixes->create_quickfix( c_qf_line_exists ).
 
@@ -482,6 +503,14 @@ CLASS /cc4a/modern_language IMPLEMENTATION.
          code = c_code_line_exists
          pseudo_comment = c_ps_line_exists
          quickfixes = quickfixes
+      CHANGING findings = findings ).
+    ELSE.
+      add_finding(
+      EXPORTING
+         procedure = procedure
+         statement_index = statement_index
+         code = c_code_line_exists
+         pseudo_comment = c_ps_line_exists
       CHANGING findings = findings ).
     ENDIF.
 
@@ -541,14 +570,31 @@ CLASS /cc4a/modern_language IMPLEMENTATION.
         token_idx = and_idx + 1.
       ENDIF.
     ENDDO.
-
+    DATA(quickfixable) = abap_true.
     LOOP AT procedure-statements FROM statement_index + 1 ASSIGNING FIELD-SYMBOL(<statement>).
+      DATA(tabix) = sy-tabix.
       CASE <statement>-keyword.
         WHEN 'ENDLOOP'.
           DATA(end_idx) = sy-tabix.
           EXIT.
         WHEN 'EXIT'.
           DATA(contains_exit) = abap_true.
+        WHEN 'MOVE'.
+          IF line_exists( <statement>-tokens[ lexeme = 'SY-TABIX' ] ).
+            analyze_move( EXPORTING procedure = procedure statement_index = tabix IMPORTING changed_line = code_line_index ).
+            REPLACE FIRST OCCURRENCE OF 'SY-TABIX' IN code_line_index WITH |line_index( { table }[ { key } ] )| ##NO_TEXT.
+            APPEND code_line_index TO code_lines.
+          ENDIF.
+        WHEN 'MESSAGE' OR 'PERFORM' OR '+CALL_MACRO'.
+          IF line_exists( <statement>-tokens[ lexeme = 'SY-TABIX' ] ).
+            quickfixable = abap_false.
+            EXIT.
+          ENDIF.
+        WHEN 'SET'.
+          IF line_exists( <statement>-tokens[ lexeme = 'SY-TABIX' ] )
+            AND <statement>-tokens[ 2 ]-references IS INITIAL AND <statement>-tokens[ 2 ]-lexeme = 'BIT'.
+            quickfixable = abap_false.
+          ENDIF.
         WHEN OTHERS.
           IF line_exists( <statement>-tokens[ lexeme = 'SY-TABIX' ] ).
             LOOP AT <statement>-tokens ASSIGNING <token>.
@@ -594,7 +640,7 @@ CLASS /cc4a/modern_language IMPLEMENTATION.
        procedure = procedure
        statement_index = statement_index
        code = c_code_line_exists
-       pseudo_comment = c_ps_deprecated_key
+       pseudo_comment = c_ps_line_exists
        quickfixes = quickfixes
     CHANGING findings = findings ).
 
@@ -604,6 +650,7 @@ CLASS /cc4a/modern_language IMPLEMENTATION.
   METHOD analyze_create_object.
     DATA code_line TYPE string.
     DATA(statement) = procedure-statements[ statement_index ].
+    data(replace_data) = abap_true.
 
     IF analyzer->find_clause_index( tokens = statement-tokens clause = 'TYPE' ) <> 0
     OR analyzer->find_clause_index( tokens = statement-tokens clause = 'AREA HANDLE' ) <> 0
@@ -617,7 +664,8 @@ CLASS /cc4a/modern_language IMPLEMENTATION.
 *   self reference is working with create object but not with new
     LOOP AT statement-tokens ASSIGNING FIELD-SYMBOL(<token>) FROM 4 WHERE lexeme CP |{ object_name }*| AND references IS NOT INITIAL.
       LOOP AT <token>-references TRANSPORTING NO FIELDS WHERE full_name CP |{ full_name }*|.
-        RETURN.
+        replace_data = abap_false.
+        exit.
       ENDLOOP.
     ENDLOOP.
 *   find data statement
@@ -630,7 +678,7 @@ CLASS /cc4a/modern_language IMPLEMENTATION.
         IF type_idx = 0.
           RETURN.
         ENDIF.
-        IF data_idx = statement_index - 1.
+        IF replace_data = abap_true AND data_idx = statement_index - 1.
           DATA(type_name) = <statement>-tokens[ type_idx + 3 ]-lexeme.
           code_line = |DATA({ object_name }) = NEW { type_name }( |.
           DATA(from_idx) = data_idx.
@@ -642,6 +690,13 @@ CLASS /cc4a/modern_language IMPLEMENTATION.
       data_idx -= 1.
     ENDWHILE.
     IF code_line IS INITIAL.
+      add_finding(
+      EXPORTING
+         procedure = procedure
+         statement_index = statement_index
+         code = c_code_prefer_new
+         pseudo_comment = c_ps_prefer_new
+      CHANGING findings = findings ).
       RETURN.
     ENDIF.
     DATA(exporting_idx) = analyzer->find_clause_index( tokens = statement-tokens clause = 'EXPORTING' ).
@@ -871,6 +926,7 @@ CLASS /cc4a/modern_language IMPLEMENTATION.
     DATA code_line TYPE string.
     DATA(quickfixes) = assistant_factory->create_quickfixes( ).
     DATA(quickfix) = quickfixes->create_quickfix( c_qf_text_assembly ).
+    DATA(quickfixable) = abap_true.
     TRY.
         LOOP AT statement-tokens ASSIGNING FIELD-SYMBOL(<token>) WHERE lexeme = '&&'.
           DATA(tabix) = sy-tabix.
@@ -879,7 +935,7 @@ CLASS /cc4a/modern_language IMPLEMENTATION.
 *             store old code_line
               code_line = |{ code_line }\||.
               IF strlen( code_line ) >= c_max_line_length - 1.
-                DATA(no_quickfixes) = abap_true.
+                quickfixable = abap_false.
                 EXIT.
               ELSE.
                 quickfix->replace(
@@ -901,10 +957,10 @@ CLASS /cc4a/modern_language IMPLEMENTATION.
           end_idx = tabix + 1.
           last_idx = tabix + 1.
         ENDLOOP.
-        IF no_quickfixes = abap_false AND code_line IS NOT INITIAL.
+        IF quickfixable = abap_true AND code_line IS NOT INITIAL.
           code_line = |{ code_line }\||.
           IF strlen( code_line ) >= c_max_line_length - 1.
-            no_quickfixes = abap_true.
+            quickfixable = abap_false.
           ELSE.
             quickfix->replace(
                 context = assistant_factory->create_quickfix_context(
@@ -915,9 +971,9 @@ CLASS /cc4a/modern_language IMPLEMENTATION.
           ENDIF.
         ENDIF.
       CATCH lcx_error.
-        no_quickfixes = abap_true.
+        quickfixable = abap_false.
     ENDTRY.
-    IF no_quickfixes = abap_true.
+    IF quickfixable = abap_false.
       CLEAR quickfixes.
     ENDIF.
     add_finding(

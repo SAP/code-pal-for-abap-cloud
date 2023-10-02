@@ -131,7 +131,7 @@ class test implementation.
               check             = new /cc4a/chain_declaration( )
               object            = value #( type = 'CLAS' name = test_class )
               expected_findings = value #(
-                code =  /cc4a/chain_declaration=>finding_codes-chain_declaration
+                code = /cc4a/chain_declaration=>finding_codes-chain_declaration
                 ( location = section_finding_1
                     quickfixes = value #( (
                     quickfix_code = /cc4a/chain_declaration=>quickfix_codes-resolve_chain

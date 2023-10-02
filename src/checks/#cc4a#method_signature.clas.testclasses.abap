@@ -9,25 +9,6 @@ class test definition final for testing
         object_type type if_ci_atc_check=>ty_object-type value 'CLAS',
         object_name type if_ci_atc_check=>ty_object-name value '/CC4A/TEST_METHOD_SIGNATURE',
       end of co_test_object.
-    constants:
-      begin of co_test_method_name,
-        finding_1  type cl_ci_atc_unit_driver=>ty_method_name value 'PUBLIC_INST_NOT_INTERFACE_METH',
-        finding_2  type cl_ci_atc_unit_driver=>ty_method_name value 'MULTI_OUPUT_PARAMS_TYPES_1',
-        finding_3  type cl_ci_atc_unit_driver=>ty_method_name value 'MULTI_OUPUT_PARAMS_TYPES_1',
-        finding_4  type cl_ci_atc_unit_driver=>ty_method_name value 'MULTI_OUPUT_PARAMS_TYPES_2',
-        finding_5  type cl_ci_atc_unit_driver=>ty_method_name value 'MULTI_OUPUT_PARAMS_TYPES_2',
-        finding_6  type cl_ci_atc_unit_driver=>ty_method_name value 'MULTI_OUPUT_PARAMS_TYPES_3',
-        finding_7  type cl_ci_atc_unit_driver=>ty_method_name value 'MULTI_OUPUT_PARAMS_1',
-        finding_8  type cl_ci_atc_unit_driver=>ty_method_name value 'MULTI_OUPUT_PARAMS_2',
-        finding_9  type cl_ci_atc_unit_driver=>ty_method_name value 'MULTI_OUPUT_PARAMS_3',
-        finding_10 type cl_ci_atc_unit_driver=>ty_method_name value 'MULTI_OUPUT_PARAMS_3',
-        finding_11 type cl_ci_atc_unit_driver=>ty_method_name value 'SINGLE_EXPORT_PARAM',
-        finding_12 type cl_ci_atc_unit_driver=>ty_method_name value 'INPUT_PARAM_BOOL_1',
-        finding_13 type cl_ci_atc_unit_driver=>ty_method_name value 'INPUT_PARAM_BOOL_2',
-        finding_14 type cl_ci_atc_unit_driver=>ty_method_name value 'INPUT_PARAM_BOOL_3',
-        finding_15 type cl_ci_atc_unit_driver=>ty_method_name value 'DO_ONE_OR_THE_OTHER',
-        finding_16 type cl_ci_atc_unit_driver=>ty_method_name value 'GET_RESULT',
-      end of co_test_method_name.
 
     methods execute_test_class for testing raising cx_static_check.
 endclass.

@@ -139,7 +139,7 @@ CLASS /CC4A/AVOID_SELF_REFERENCE IMPLEMENTATION.
           if <statement>-keyword eq 'ENDCLASS'.
             exit.
           endif.
-          loop at <statement>-tokens assigning field-symbol(<token>) where lexeme eq 'INHERITING'.
+          loop at <statement>-tokens transporting no fields where lexeme eq 'INHERITING'.
             if <statement>-tokens[ sy-tabix + 1 ]-lexeme eq 'FROM'.
               data(parent_class) = <statement>-tokens[ sy-tabix + 2 ]-lexeme.
             endif.

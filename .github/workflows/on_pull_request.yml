@@ -1,6 +1,6 @@
 name: CI (on pull request)
 
-on: [push, pull_request]
+on: pull_request_target
 
 permissions: 
   checks: write

@@ -22,7 +22,7 @@
     <item>
      <ID>I</ID>
      <KEY>DES</KEY>
-     <ENTRY>Avoid data base access in unit tests</ENTRY>
+     <ENTRY>Database access in unit tests</ENTRY>
      <LENGTH>88</LENGTH>
     </item>
    </TPOOL>

@@ -246,7 +246,8 @@ CLASS /CC4A/CHAIN_DECLARATION IMPLEMENTATION.
             pseudo_comment = pseudo_comment
             text = 'Usage of Chain Declaration'(ucd) ) )
         quickfix_codes = value #(
-          ( code = quickfix_codes-resolve_chain short_text = 'Replace Chain Declaration with Single Declaration'(qsd) ) ) ) ).
+          ( code = quickfix_codes-resolve_chain 
+            short_text = 'Replace Chain Declaration with Single Declaration'(qsd) ) ) ) ).
   endmethod.
 
   method if_ci_atc_check~run.

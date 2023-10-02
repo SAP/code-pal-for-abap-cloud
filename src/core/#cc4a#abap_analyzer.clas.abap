@@ -308,11 +308,10 @@ CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
     while lines( tokens ) > 0.
       case <token>-lexeme.
         when `|`.
+          delete tokens index 1.
           if inside_braces = abap_true.
-            delete tokens index 1.
             flat &&= |\|{ _flatten_template( changing tokens = tokens ) }\| |.
           else.
-            delete tokens index 1.
             return.
           endif.
 

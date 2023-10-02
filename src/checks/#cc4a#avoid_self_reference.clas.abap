@@ -175,12 +175,15 @@ CLASS /CC4A/AVOID_SELF_REFERENCE IMPLEMENTATION.
   method constructor.
     meta_data = /cc4a/check_meta_data=>create(
       value #( checked_types = /cc4a/check_meta_data=>checked_types-abap_programs
-          description = 'Find unnecessary self-references'(des)
-          remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
-          finding_codes = value #(
-            ( code = finding_codes-self_reference pseudo_comment = pseudo_comment text = 'Unnecessary self-reference'(dus) ) )
-          quickfix_codes = value #(
-            ( code = quickfix_codes-self_reference short_text = 'Remove self-reference'(qrs) ) ) ) ).
+        description = 'Find unnecessary self-references'(des)
+        remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
+        finding_codes = value #(
+          ( code = finding_codes-self_reference 
+            pseudo_comment = pseudo_comment 
+            text = 'Unnecessary self-reference'(dus) ) )
+        quickfix_codes = value #(
+          ( code = quickfix_codes-self_reference 
+            short_text = 'Remove self-reference'(qrs) ) ) ) ).
   endmethod.
 
 

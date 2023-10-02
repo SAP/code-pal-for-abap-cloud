@@ -245,9 +245,12 @@ CLASS /CC4A/PREFER_IS_NOT IMPLEMENTATION.
         description = 'Prefer IS NOT to NOT IS'(des)
         remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
         finding_codes = value #(
-          ( code = finding_codes-misplaced_not pseudo_comment = pseudo_comment text = 'Usage of NOT IS condition'(nic) ) )
+          ( code = finding_codes-misplaced_not 
+            pseudo_comment = pseudo_comment 
+            text = 'Usage of NOT IS condition'(nic) ) )
         quickfix_codes = value #(
-          ( code = quickfix_code short_text = 'Replace NOT IS condition with IS NOT'(qin) ) ) ) ).
+          ( code = quickfix_code 
+            short_text = 'Replace NOT IS condition with IS NOT'(qin) ) ) ) ).
   endmethod.
 
 

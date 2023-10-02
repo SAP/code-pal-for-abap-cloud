@@ -67,8 +67,6 @@ ENDCLASS.
 
 
 CLASS /CC4A/AVOID_SELF_REFERENCE IMPLEMENTATION.
-
-
   method analyze_procedure.
     data(local_variable_names) = get_local_variables( procedure ).
     data(class_name) = substring_before( val = procedure-id-name sub = '=' ).
@@ -84,15 +82,19 @@ CLASS /CC4A/AVOID_SELF_REFERENCE IMPLEMENTATION.
     else.
       if method_name ca '~'.
         split method_name at '~' into data(implemented_interface) method_name.
-        data(interface_procedures) =
-          code_provider->get_procedures(
-            code_provider->object_to_comp_unit( value #( type = 'INTF' name = implemented_interface ) ) ).
-        loop at interface_procedures->*[ 1 ]-statements assigning field-symbol(<method_statement>)
-            where keyword = 'METHODS' or keyword = 'CLASS-METHODS'.
-          if <method_statement>-tokens[ 2 ]-lexeme = method_name.
-            method_parameters = analyzer->parse_method_definition( <method_statement> )-parameters.
-          endif.
-        endloop.
+        if line_exists( method_definitions[ class = implemented_interface method = method_name ] ).
+          method_parameters = method_definitions[ class = implemented_interface method = method_name ]-parameters.
+        else.
+          data(interface_procedures) =
+            code_provider->get_procedures(
+              code_provider->object_to_comp_unit( value #( type = 'INTF' name = implemented_interface ) ) ).
+          loop at interface_procedures->*[ 1 ]-statements assigning field-symbol(<method_statement>)
+              where keyword = 'METHODS' or keyword = 'CLASS-METHODS'.
+            if <method_statement>-tokens[ 2 ]-lexeme = method_name.
+              method_parameters = analyzer->parse_method_definition( <method_statement> )-parameters.
+            endif.
+          endloop.
+        endif.
       endif.
     endif.
     loop at procedure-statements assigning field-symbol(<statement>).
@@ -124,30 +126,30 @@ CLASS /CC4A/AVOID_SELF_REFERENCE IMPLEMENTATION.
             has_pseudo_comment = meta_data->has_valid_pseudo_comment(
               statement = <statement>
               finding_code = finding_codes-self_reference )
-            details = assistant_factory->create_finding_details( )->attach_quickfixes( available_quickfixes )
-            ) into table findings.
+            details = assistant_factory->create_finding_details( )->attach_quickfixes( available_quickfixes ) )
+            into table findings.
       endif.
     endloop.
   endmethod.
 
-
   method collect_method_definitions.
-    loop at procedure-statements assigning field-symbol(<class_statement>) where keyword eq 'CLASS' ##PRIMKEY[KEYWORD].
+    loop at procedure-statements assigning field-symbol(<class_statement>)
+        where keyword = 'CLASS' or keyword = 'INTERFACE' ##primkey[keyword].
       data(statement_index) = sy-tabix.
-      if line_exists( <class_statement>-tokens[ lexeme = 'DEFINITION' ] ).
+      if <class_statement>-keyword = 'INTERFACE' or line_exists( <class_statement>-tokens[ lexeme = 'DEFINITION' ] ).
         loop at procedure-statements assigning field-symbol(<statement>) from statement_index.
-          if <statement>-keyword eq 'ENDCLASS'.
+          if <statement>-keyword = 'ENDCLASS' or <statement>-keyword = 'ENDINTERFACE'.
             exit.
           endif.
-          loop at <statement>-tokens transporting no fields where lexeme eq 'INHERITING'.
-            if <statement>-tokens[ sy-tabix + 1 ]-lexeme eq 'FROM'.
+          loop at <statement>-tokens transporting no fields where lexeme = 'INHERITING'.
+            if <statement>-tokens[ sy-tabix + 1 ]-lexeme = 'FROM'.
               data(parent_class) = <statement>-tokens[ sy-tabix + 2 ]-lexeme.
             endif.
           endloop.
-          if <statement>-keyword eq 'CLASS'.
+          if <statement>-keyword = 'CLASS' or <statement>-keyword = 'INTERFACE'.
             data(class_name) = <statement>-tokens[ 2 ]-lexeme.
           endif.
-          if <statement>-keyword eq 'METHODS' or <statement>-keyword eq 'CLASS-METHODS'.
+          if <statement>-keyword = 'METHODS' or <statement>-keyword = 'CLASS-METHODS'.
             data(method_information) = analyzer->parse_method_definition( <statement> ).
             if method_information-is_redefinition = abap_true.
               if line_exists( method_definitions[ class = parent_class method = method_information-name ] ).
@@ -169,19 +171,18 @@ CLASS /CC4A/AVOID_SELF_REFERENCE IMPLEMENTATION.
     endloop.
   endmethod.
 
-  method load_method_from_parent.
-    data(parent_procedures) = code_provider->get_procedures(
-    code_provider->object_to_comp_unit( value #( type = 'CLAS' name = parent ) ) ).
-    loop at parent_procedures->* assigning field-symbol(<parent_declaration>)
-        where id-kind = if_ci_atc_source_code_provider=>procedure_kinds-class_definition.
-      loop at <parent_declaration>-statements assigning field-symbol(<parent_method_declaration>)
-          where keyword = 'METHODS' or keyword = 'CLASS-METHODS'.
-        if <parent_method_declaration>-tokens[ 2 ]-lexeme = method.
-          method_definition = analyzer->parse_method_definition( <parent_method_declaration> ).
-        endif.
-      endloop.
-    endloop.
+
+  method constructor.
+    meta_data = /cc4a/check_meta_data=>create(
+      value #( checked_types = /cc4a/check_meta_data=>checked_types-abap_programs
+          description = 'Find unnecessary self-references'(des)
+          remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
+          finding_codes = value #(
+            ( code = finding_codes-self_reference pseudo_comment = pseudo_comment text = 'Unnecessary self-reference'(dus) ) )
+          quickfix_codes = value #(
+            ( code = quickfix_codes-self_reference short_text = 'Remove self-reference'(qrs) ) ) ) ).
   endmethod.
+
 
   method get_local_variables.
     loop at procedure-statements assigning field-symbol(<statement>).
@@ -203,17 +204,6 @@ CLASS /CC4A/AVOID_SELF_REFERENCE IMPLEMENTATION.
 
   method if_ci_atc_check~get_meta_data.
     meta_data = me->meta_data.
-  endmethod.
-
-  method constructor.
-    meta_data = /cc4a/check_meta_data=>create(
-      value #( checked_types = /cc4a/check_meta_data=>checked_types-abap_programs
-          description = 'Find unnecessary self-references'(des)
-          remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
-          finding_codes = value #(
-            ( code = finding_codes-self_reference pseudo_comment = pseudo_comment text = 'Unnecessary self-reference'(dus) ) )
-          quickfix_codes = value #(
-            ( code = quickfix_codes-self_reference short_text = 'Remove self-reference'(qrs) ) ) ) ).
   endmethod.
 
 
@@ -241,6 +231,21 @@ CLASS /CC4A/AVOID_SELF_REFERENCE IMPLEMENTATION.
 
   method if_ci_atc_check~verify_prerequisites.
 
+  endmethod.
+
+
+  method load_method_from_parent.
+    data(parent_procedures) = code_provider->get_procedures(
+    code_provider->object_to_comp_unit( value #( type = 'CLAS' name = parent ) ) ).
+    loop at parent_procedures->* assigning field-symbol(<parent_declaration>)
+        where id-kind = if_ci_atc_source_code_provider=>procedure_kinds-class_definition.
+      loop at <parent_declaration>-statements assigning field-symbol(<parent_method_declaration>)
+          where keyword = 'METHODS' or keyword = 'CLASS-METHODS'.
+        if <parent_method_declaration>-tokens[ 2 ]-lexeme = method.
+          method_definition = analyzer->parse_method_definition( <parent_method_declaration> ).
+        endif.
+      endloop.
+    endloop.
   endmethod.
 
 

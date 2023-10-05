@@ -45,13 +45,8 @@ class /cc4a/prefer_methods implementation.
   endmethod.
 
   method get_rfc_enabled.
-    data(rfc_scope) = io_function_module->content(  )->get(  )-rfc_scope->value.
-
-    if rfc_scope is initial.
-      is_rfc_enabled = abap_false.
-    else.
-    endif.
-
+    data(rfc_contract) = io_function_module->content(  )->get_rfc_interface_contract(  ).
+    is_rfc_enabled = xsdbool( rfc_contract is not initial ).
   endmethod.
 
   method analyze_procedure.
@@ -59,22 +54,23 @@ class /cc4a/prefer_methods implementation.
       if <statement>-keyword = `CALL`.
         data(function_name) = get_function_name( full_token = <statement>-tokens[ 3 ]-lexeme ).
         if function_name is not initial.
-          data(lo_function_module) = xco_cp_abap=>function_module( iv_name = |{ function_name }| ).
-          if get_rfc_enabled( io_function_module = lo_function_module ) = abap_true.
+          data(function_module) = xco_cp_abap=>function_module( iv_name = |{ function_name }| ).
+          data(is_rfc_enabled) = get_rfc_enabled( io_function_module = function_module ).
+          if is_rfc_enabled = abap_true.
+            continue.
           endif.
         endif.
-      else.
-        insert value #( code = finding_codes-prefer_methods
-        location = value #(
-          object = code_provider->get_statement_location( <statement> )-object
-          position = value #(
-            line = code_provider->get_statement_location( <statement> )-position-line
-            column = code_provider->get_statement_location( <statement> )-position-column ) )
-        checksum = code_provider->get_statement_checksum( <statement> )
-         has_pseudo_comment = xsdbool( line_exists( <statement>-pseudo_comments[ table_line = pseudo_comment-avoid_form ] ) )
-        details = assistant_factory->create_finding_details( )->attach_quickfixes( value #(  ) )
-        ) into table findings.
       endif.
+      insert value #( code = finding_codes-prefer_methods
+      location = value #(
+        object = code_provider->get_statement_location( <statement> )-object
+        position = value #(
+          line = code_provider->get_statement_location( <statement> )-position-line
+          column = code_provider->get_statement_location( <statement> )-position-column ) )
+      checksum = code_provider->get_statement_checksum( <statement> )
+       has_pseudo_comment = xsdbool( line_exists( <statement>-pseudo_comments[ table_line = pseudo_comment-avoid_form ] ) )
+      details = assistant_factory->create_finding_details( )->attach_quickfixes( value #(  ) )
+      ) into table findings.
     endloop.
   endmethod.
 

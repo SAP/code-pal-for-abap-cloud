@@ -76,8 +76,12 @@ protected section.
       importing procedure               type if_ci_atc_source_code_provider=>ty_procedure
                 check_statement         type if_ci_atc_source_code_provider=>ty_statement
       returning value(name_of_variable) type string.
-  endclass.
-class /cc4a/check_in_iteration implementation.
+ENDCLASS.
+
+
+
+CLASS /CC4A/CHECK_IN_ITERATION IMPLEMENTATION.
+
 
   method statement_is_in_iteration.
     data(block) = procedure-blocks[ statement-block ].
@@ -95,10 +99,12 @@ class /cc4a/check_in_iteration implementation.
     endif.
   endmethod.
 
+
   method is_first_iteration_loop.
     data(block) = procedure-blocks[ procedure-blocks[ statement-block ]-parent ].
     is_loop = xsdbool( block-statement_type = code_provider->statement_type-loop ).
   endmethod.
+
 
   method analyze_procedure.
     loop at procedure-statements assigning field-symbol(<statement>) where keyword = `CHECK` ##PRIMKEY[KEYWORD].
@@ -118,6 +124,7 @@ class /cc4a/check_in_iteration implementation.
       endif.
     endloop.
   endmethod.
+
 
   method create_quickfixes.
     data(quickfixes) = assistant_factory->create_quickfixes( ).
@@ -155,6 +162,7 @@ class /cc4a/check_in_iteration implementation.
        code = create_quickfix_code( statement = statement quickfix_type = `MULTIPLE` ) ).
   endmethod.
 
+
   method create_where_quickfix.
     data(where_quickfix) = quickfix->create_quickfix( quickfix_codes-where_quickfix ).
     data(block) = procedure-blocks[ procedure-blocks[ statement-block ]-parent ].
@@ -182,7 +190,7 @@ class /cc4a/check_in_iteration implementation.
         use_not = abap_true.
         exit.
       else.
-        if <token>-lexeme eq `AND` or <token>-lexeme eq `OR`.
+        if <token>-lexeme = `AND` or <token>-lexeme = `OR`.
           use_not = xsdbool( amount_of_concatenation > 0 ).
           amount_of_concatenation += 1.
           continue.
@@ -192,6 +200,15 @@ class /cc4a/check_in_iteration implementation.
     if use_not = abap_false.
       loop at statement_to_negate-tokens assigning <token>.
         if analyzer->token_is_comparison_operator( token = <token> ).
+        if <token>-lexeme = `IS` and statement_to_negate-tokens[ sy-tabix + 1 ]-lexeme = `NOT`.
+          clear statement_to_negate-tokens[ sy-tabix + 1 ]-lexeme.
+          delete statement_to_negate-tokens index sy-tabix + 1.
+          continue.
+        elseif <token>-lexeme = `NOT` and statement_to_negate-tokens[ sy-tabix + 1 ]-lexeme = `IN`.
+          clear <token>-lexeme.
+          delete statement_to_negate-tokens index sy-tabix.
+          continue.
+        endif.
           <token>-lexeme = analyzer->negate_comparison_operator( comparison_operator = <token>-lexeme ).
         endif.
       endloop.
@@ -201,6 +218,7 @@ class /cc4a/check_in_iteration implementation.
     endif.
     new_statement = statement_to_negate.
   endmethod.
+
 
   method create_quickfix_code.
     data(new_statement) = statement.
@@ -248,6 +266,7 @@ class /cc4a/check_in_iteration implementation.
     endif.
   endmethod.
 
+
   method if_ci_atc_check~run.
     code_provider = data_provider->get_code_provider(   ).
     data(procedures) = code_provider->get_procedures( code_provider->object_to_comp_unit( object ) ).
@@ -255,6 +274,7 @@ class /cc4a/check_in_iteration implementation.
       insert lines of analyze_procedure( <procedure> ) into table findings.
     endloop.
   endmethod.
+
 
   method if_ci_atc_check~get_meta_data.
     meta_data = /cc4a/check_meta_data=>create(
@@ -268,13 +288,16 @@ class /cc4a/check_in_iteration implementation.
           ( code = quickfix_codes-where_quickfix short_text = 'Replace CHECK condition with a WHERE condition in loop'(wld) ) ) ) ).
   endmethod.
 
+
   method if_ci_atc_check~set_assistant_factory.
     assistant_factory = factory.
   endmethod.
 
+
   method if_ci_atc_check~verify_prerequisites.
 
   endmethod.
+
 
   method cut_of_variable.
     data(index) = find( sub = '-' val = token_to_cut_off ).
@@ -283,6 +306,7 @@ class /cc4a/check_in_iteration implementation.
       cut_off_token = substring( val = token_to_cut_off off = index + 1 ).
     endif.
   endmethod.
+
 
   method get_variable_of_bracket.
     data(parent_block) = procedure-blocks[ procedure-blocks[ check_statement-block ]-parent ].
@@ -300,5 +324,4 @@ class /cc4a/check_in_iteration implementation.
       name_of_variable = ` `.
     endif.
   endmethod.
-
-endclass.
+ENDCLASS.

@@ -18,7 +18,7 @@ public
       begin of finding_codes,
         check_in_iteration type if_ci_atc_check=>ty_finding_code value 'C_I_I',
       end of finding_codes.
-protected section.
+  protected section.
   private section.
     data code_provider     type ref to if_ci_atc_source_code_provider.
     data assistant_factory type ref to cl_ci_atc_assistant_factory.
@@ -76,12 +76,8 @@ protected section.
       importing procedure               type if_ci_atc_source_code_provider=>ty_procedure
                 check_statement         type if_ci_atc_source_code_provider=>ty_statement
       returning value(name_of_variable) type string.
-ENDCLASS.
-
-
-
-CLASS /CC4A/CHECK_IN_ITERATION IMPLEMENTATION.
-
+endclass.
+class /cc4a/check_in_iteration implementation.
 
   method statement_is_in_iteration.
     data(block) = procedure-blocks[ statement-block ].
@@ -200,15 +196,13 @@ CLASS /CC4A/CHECK_IN_ITERATION IMPLEMENTATION.
     if use_not = abap_false.
       loop at statement_to_negate-tokens assigning <token>.
         if analyzer->token_is_comparison_operator( token = <token> ).
-        if <token>-lexeme = `IS` and statement_to_negate-tokens[ sy-tabix + 1 ]-lexeme = `NOT`.
-          clear statement_to_negate-tokens[ sy-tabix + 1 ]-lexeme.
-          delete statement_to_negate-tokens index sy-tabix + 1.
-          continue.
-        elseif <token>-lexeme = `NOT` and statement_to_negate-tokens[ sy-tabix + 1 ]-lexeme = `IN`.
-          clear <token>-lexeme.
-          delete statement_to_negate-tokens index sy-tabix.
-          continue.
-        endif.
+          if <token>-lexeme = `IS` and statement_to_negate-tokens[ sy-tabix + 1 ]-lexeme = `NOT`.
+            delete statement_to_negate-tokens index sy-tabix + 1.
+            continue.
+          elseif <token>-lexeme = `NOT` and statement_to_negate-tokens[ sy-tabix + 1 ]-lexeme = `IN`.
+            delete statement_to_negate-tokens index sy-tabix.
+            continue.
+          endif.
           <token>-lexeme = analyzer->negate_comparison_operator( comparison_operator = <token>-lexeme ).
         endif.
       endloop.
@@ -324,4 +318,4 @@ CLASS /CC4A/CHECK_IN_ITERATION IMPLEMENTATION.
       name_of_variable = ` `.
     endif.
   endmethod.
-ENDCLASS.
+endclass.

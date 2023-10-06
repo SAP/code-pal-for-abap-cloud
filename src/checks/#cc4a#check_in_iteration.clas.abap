@@ -181,15 +181,24 @@ class /cc4a/check_in_iteration implementation.
     data(use_not) = abap_false.
     data(amount_of_concatenation) = 0.
     data(is_bool_function) = abap_false.
+    data(token_index) = 1.
+    data(is_in_bracket) = abap_false.
+    data(start_bracket) = -1.
+    data(end_bracket) = -1.
 
     loop at statement_to_negate-tokens assigning field-symbol(<token>).
+      is_in_bracket = xsdbool( sy-tabix > start_bracket and sy-tabix < end_bracket ).
       if <token>-lexeme = `XSDBOOL(` or <token>-lexeme = `BOOLC(` or <token>-lexeme = `BOOLX(`.
         is_bool_function = abap_true.
       endif.
       if analyzer->is_bracket( <token> ) eq analyzer->bracket_type-opening or amount_of_concatenation > 1.
+        if analyzer->is_bracket( <token> ) eq analyzer->bracket_type-opening.
+          start_bracket = sy-tabix.
+          end_bracket = analyzer->calculate_bracket_end( statement = statement_to_negate bracket_position = sy-tabix ).
+        endif.
         use_not = abap_true.
       else.
-        if <token>-lexeme = `AND` or <token>-lexeme = `OR`.
+        if ( <token>-lexeme = `AND` or <token>-lexeme = `OR` ) and is_in_bracket = abap_false.
           use_not = xsdbool( amount_of_concatenation > 0 ).
           amount_of_concatenation += 1.
           continue.
@@ -200,12 +209,8 @@ class /cc4a/check_in_iteration implementation.
       use_not = abap_false.
     endif.
     if use_not = abap_false.
-      data(end_of_bracket) = 0.
       loop at statement_to_negate-tokens assigning <token>.
-      if analyzer->is_bracket( <token> ) eq analyzer->bracket_type-opening.
-        end_of_bracket = analyzer->calculate_bracket_end( statement = statement_to_negate bracket_position = sy-tabix ).
-      endif.
-        if analyzer->token_is_comparison_operator( token = <token> ) and end_of_bracket < sy-tabix.
+        if analyzer->token_is_comparison_operator( token = <token> ) and ( sy-tabix > end_bracket or sy-tabix < start_bracket ).
           if <token>-lexeme = `IS` and statement_to_negate-tokens[ sy-tabix + 1 ]-lexeme = `NOT`.
             delete statement_to_negate-tokens index sy-tabix + 1.
             continue.

@@ -272,7 +272,7 @@ class test implementation.
                                           ( quickfix_code = /cc4a/check_in_iteration=>quickfix_codes-if_quickfix
                                           location = without_pseudo_comment_10
                                           code = value #(
-                                          ( `IF NOT ( XSDBOOL( 1 > 3 ) = ABAP_TRUE  ) .` )
+                                          ( `IF XSDBOOL( 1 > 3 ) <> ABAP_TRUE .` )
                                           ( `CONTINUE .` )
                                           ( `ENDIF .` )
                                           ( `ENDLOOP .` )

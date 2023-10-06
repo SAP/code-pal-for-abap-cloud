@@ -180,11 +180,14 @@ class /cc4a/check_in_iteration implementation.
     data(statement_to_negate) = statement.
     data(use_not) = abap_false.
     data(amount_of_concatenation) = 0.
+    data(is_bool_function) = abap_false.
 
     loop at statement_to_negate-tokens assigning field-symbol(<token>).
+      if <token>-lexeme = `XSDBOOL(` or <token>-lexeme = `BOOLC(` or <token>-lexeme = `BOOLX(`.
+        is_bool_function = abap_true.
+      endif.
       if analyzer->is_bracket( <token> ) eq analyzer->bracket_type-opening or amount_of_concatenation > 1.
         use_not = abap_true.
-        exit.
       else.
         if <token>-lexeme = `AND` or <token>-lexeme = `OR`.
           use_not = xsdbool( amount_of_concatenation > 0 ).
@@ -193,9 +196,16 @@ class /cc4a/check_in_iteration implementation.
         endif.
       endif.
     endloop.
+    if is_bool_function = abap_true and amount_of_concatenation = 0.
+      use_not = abap_false.
+    endif.
     if use_not = abap_false.
+      data(end_of_bracket) = 0.
       loop at statement_to_negate-tokens assigning <token>.
-        if analyzer->token_is_comparison_operator( token = <token> ).
+      if analyzer->is_bracket( <token> ) eq analyzer->bracket_type-opening.
+        end_of_bracket = analyzer->calculate_bracket_end( statement = statement_to_negate bracket_position = sy-tabix ).
+      endif.
+        if analyzer->token_is_comparison_operator( token = <token> ) and end_of_bracket < sy-tabix.
           if <token>-lexeme = `IS` and statement_to_negate-tokens[ sy-tabix + 1 ]-lexeme = `NOT`.
             delete statement_to_negate-tokens index sy-tabix + 1.
             continue.

@@ -4,12 +4,6 @@ class test definition final for testing
 
   private section.
     constants test_class type c length 30 value '/CC4A/TEST_PREFER_METHODS'.
-    constants:
-      begin of test_class_methods,
-        without_pseudo_comments type c length 30 value 'WITHOUT_PSEUDO_COMMENTS',
-        with_pseudo_comments    type c length 30 value 'WITH_PSEUDO_COMMENTS',
-      end of test_class_methods.
-
     methods execute_test_class for testing raising cx_static_check.
 endclass.
 

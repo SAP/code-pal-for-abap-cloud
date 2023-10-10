@@ -31,11 +31,7 @@ class /cc4a/prefer_methods definition
     methods get_function_name
       importing full_token           type string
       returning value(function_name) type string.
-
-
 endclass.
-
-
 
 class /cc4a/prefer_methods implementation.
 
@@ -56,7 +52,7 @@ class /cc4a/prefer_methods implementation.
       data(findings_pseudo_comment) = pseudo_comment-avoid_form.
       data(finding_code) = finding_codes-avoid_form.
 
-      if <statement>-keyword = `CALL`.
+      if <statement>-keyword = `CALL` and procedure-statements[ sy-tabix ]-tokens[ 2 ]-lexeme = `FUNCTION`.
         data(function_name) = get_function_name( full_token = <statement>-tokens[ 3 ]-lexeme ).
         data(function_module) = xco_cp_abap=>function_module( iv_name = |{ function_name }| ).
         try.

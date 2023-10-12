@@ -18,19 +18,32 @@ public
       begin of finding_codes,
         check_in_iteration type if_ci_atc_check=>ty_finding_code value 'C_I_I',
       end of finding_codes.
+
+    methods constructor.
   protected section.
   private section.
     data code_provider     type ref to if_ci_atc_source_code_provider.
     data assistant_factory type ref to cl_ci_atc_assistant_factory.
+    data meta_data         type ref to /cc4a/if_check_meta_data.
+
+    types: begin of negate_structure,
+             use_not               type abap_bool,
+             comperasion_operators type standard table of i with non-unique default key,
+           end of negate_structure.
+
 
     methods analyze_procedure
       importing procedure       type if_ci_atc_source_code_provider=>ty_procedure
       returning value(findings) type if_ci_atc_check=>ty_findings.
-    methods create_quickfix_code
+
+    methods create_quickfix_code_for_where
       importing statement                 type if_ci_atc_source_code_provider=>ty_statement
-                check_statement           type if_ci_atc_source_code_provider=>ty_statement optional
-                variable_name             type string optional
-                quickfix_type             type string
+                check_statement           type if_ci_atc_source_code_provider=>ty_statement
+                variable_name             type string
+      returning value(modified_statement) type if_ci_atc_quickfix=>ty_code.
+
+    methods create_quickfix_code_for_if
+      importing statement                 type if_ci_atc_source_code_provider=>ty_statement
       returning value(modified_statement) type if_ci_atc_quickfix=>ty_code.
 
     methods statement_is_in_iteration
@@ -38,15 +51,10 @@ public
                 statement           type if_ci_atc_source_code_provider=>ty_statement
       returning value(is_iteration) type abap_bool.
 
-    methods is_first_iteration_loop
-      importing procedure      type if_ci_atc_source_code_provider=>ty_procedure
-                statement      type if_ci_atc_source_code_provider=>ty_statement
-      returning value(is_loop) type abap_bool.
-
     methods create_quickfixes
-      importing first_iteration_is_loop     type abap_bool
-                procedure                   type if_ci_atc_source_code_provider=>ty_procedure
+      importing procedure                   type if_ci_atc_source_code_provider=>ty_procedure
                 statement                   type if_ci_atc_source_code_provider=>ty_statement
+                statement_position          type i
       returning value(available_quickfixes) type ref to cl_ci_atc_quickfixes.
 
     methods create_if_continue_quickfix
@@ -59,23 +67,27 @@ public
       importing quickfix           type ref to cl_ci_atc_quickfixes
                 procedure          type if_ci_atc_source_code_provider=>ty_procedure
                 statement          type if_ci_atc_source_code_provider=>ty_statement
-                variable_name      type string
+                target_variable    type string
                 statement_position type i.
 
-
-    methods cut_of_variable
-      importing token_to_cut_off     type string
-      returning value(cut_off_token) type string.
+    methods extract_component
+      importing token_to_cut_off type string
+      returning value(component) type string.
 
     methods negate_statement
       importing statement            type if_ci_atc_source_code_provider=>ty_statement
                 analyzer             type ref to /cc4a/if_abap_analyzer
       returning value(new_statement) type if_ci_atc_source_code_provider=>ty_statement.
 
-    methods get_variable_of_bracket
-      importing procedure               type if_ci_atc_source_code_provider=>ty_procedure
-                check_statement         type if_ci_atc_source_code_provider=>ty_statement
+    methods get_target_variable_of_loop
+      importing loop_statement          type if_ci_atc_source_code_provider=>ty_statement
       returning value(name_of_variable) type string.
+
+    methods analyze_logical_negate_part
+      importing statement_to_negate  type if_ci_atc_source_code_provider=>ty_statement
+                analyzer             type ref to /cc4a/if_abap_analyzer
+      returning value(negate_struct) type negate_structure.
+
 endclass.
 class /cc4a/check_in_iteration implementation.
 
@@ -95,17 +107,10 @@ class /cc4a/check_in_iteration implementation.
     endif.
   endmethod.
 
-
-  method is_first_iteration_loop.
-    data(block) = procedure-blocks[ procedure-blocks[ statement-block ]-parent ].
-    is_loop = xsdbool( block-statement_type = code_provider->statement_type-loop ).
-  endmethod.
-
-
   method analyze_procedure.
     loop at procedure-statements assigning field-symbol(<statement>) where keyword = `CHECK` ##PRIMKEY[KEYWORD].
       if statement_is_in_iteration( procedure = procedure statement = <statement> ).
-        data(available_quickfixes) = create_quickfixes( first_iteration_is_loop = is_first_iteration_loop( procedure = procedure statement = <statement> ) procedure = procedure statement = <statement> ).
+        data(available_quickfixes) = create_quickfixes( procedure = procedure statement = <statement> statement_position = sy-tabix ).
 
         insert value #( code = finding_codes-check_in_iteration
           location = value #(
@@ -114,7 +119,7 @@ class /cc4a/check_in_iteration implementation.
               line = code_provider->get_statement_location( <statement> )-position-line
               column = code_provider->get_statement_location( <statement> )-position-column ) )
           checksum = code_provider->get_statement_checksum( <statement> )
-          has_pseudo_comment = xsdbool( line_exists( <statement>-pseudo_comments[ table_line = pseudo_comment-check_in_iteration ] ) )
+          has_pseudo_comment = meta_data->has_valid_pseudo_comment( statement = <statement> finding_code = finding_codes-check_in_iteration )
           details = assistant_factory->create_finding_details( )->attach_quickfixes( available_quickfixes )
           ) into table findings.
       endif.
@@ -124,25 +129,27 @@ class /cc4a/check_in_iteration implementation.
 
   method create_quickfixes.
     data(quickfixes) = assistant_factory->create_quickfixes( ).
-    data(tabix) = sy-tabix.
+    data(tabix) = statement_position.
 
     create_if_continue_quickfix( quickfix = quickfixes procedure = procedure statement = statement statement_position = tabix ).
 
-    if first_iteration_is_loop = abap_true.
-      data(variable_name) = get_variable_of_bracket( procedure = procedure check_statement = statement ).
+    data(parent_block_of_statement) = procedure-blocks[ procedure-blocks[ statement-block ]-parent ].
+    if xsdbool( parent_block_of_statement-statement_type = code_provider->statement_type-loop ) = abap_true.
+      data(target_variable) = get_target_variable_of_loop( loop_statement = procedure-statements[ parent_block_of_statement-statements-from ] ).
       data(variable_is_in_check) = abap_false.
-      data(mutliple_expressions) = abap_false.
+      data(multiple_expressions) = abap_false.
+
       loop at statement-tokens assigning field-symbol(<token>).
         if <token>-lexeme eq `AND` or <token>-lexeme eq `OR`.
-          mutliple_expressions = abap_true.
+          multiple_expressions = abap_true.
           continue.
         endif.
-        if contains( val = <token>-lexeme sub = variable_name ).
+        if contains( val = <token>-lexeme sub = |{ target_variable }-| ).
           variable_is_in_check = abap_true.
         endif.
       endloop.
-      if variable_is_in_check = abap_true and mutliple_expressions = abap_false.
-        create_where_quickfix( quickfix = quickfixes procedure = procedure statement = statement variable_name = variable_name statement_position = tabix ).
+      if variable_is_in_check = abap_true and multiple_expressions = abap_false.
+        create_where_quickfix( quickfix = quickfixes procedure = procedure statement = statement target_variable = target_variable statement_position = tabix ).
       endif.
     endif.
 
@@ -155,7 +162,7 @@ class /cc4a/check_in_iteration implementation.
     quickfix_for_multiple_line->replace(
        context = assistant_factory->create_quickfix_context(
         value #( procedure_id = procedure-id statements = value #( from = statement_position to = statement_position ) ) )
-       code = create_quickfix_code( statement = statement quickfix_type = `MULTIPLE` ) ).
+       code = create_quickfix_code_for_if( statement = statement ) ).
   endmethod.
 
 
@@ -167,7 +174,7 @@ class /cc4a/check_in_iteration implementation.
     where_quickfix->replace(
       context = assistant_factory->create_quickfix_context(
        value #( procedure_id = procedure-id statements = value #( from = block-statements-from to = block-statements-from ) ) )
-      code = create_quickfix_code( statement = start_statement check_statement = statement variable_name = variable_name quickfix_type = `WHERE` ) ).
+      code = create_quickfix_code_for_where( statement = start_statement check_statement = statement variable_name = target_variable ) ).
 
     where_quickfix->replace(
       context = assistant_factory->create_quickfix_context(
@@ -175,109 +182,107 @@ class /cc4a/check_in_iteration implementation.
       code = value #( ) ).
   endmethod.
 
-
-  method negate_statement.
-    data(statement_to_negate) = statement.
-    data(use_not) = abap_false.
-    data(amount_of_concatenation) = 0.
-    data(is_bool_function) = abap_false.
-    data(is_in_bracket) = abap_false.
-    data(start_bracket) = -1.
-    data(end_bracket) = -1.
+  method analyze_logical_negate_part.
     data(token_index) = 1.
-
+    data table_for_comparison_operators type standard table of i.
+    data(amount_of_concatenation) = 0.
+    data(use_not) = abap_false.
     loop at statement_to_negate-tokens transporting no fields where lexeme is not initial.
-      data(next_token) = statement_to_negate-tokens[ token_index ].
-      if next_token-lexeme = `XSDBOOL(` or next_token-lexeme = `BOOLC(` or next_token-lexeme = `BOOLX(`.
-        is_bool_function = abap_true.
+      data(current_token) = statement_to_negate-tokens[ token_index ].
+      if analyzer->is_bracket( current_token ) eq analyzer->bracket_type-opening.
+        token_index = analyzer->calculate_bracket_end( statement = statement_to_negate bracket_position = token_index ).
+        continue.
       endif.
-      if analyzer->is_bracket( next_token ) eq analyzer->bracket_type-opening or amount_of_concatenation > 1.
-        if analyzer->is_bracket( next_token ) eq analyzer->bracket_type-opening.
-          start_bracket = sy-tabix.
-          token_index = analyzer->calculate_bracket_end( statement = statement_to_negate bracket_position = token_index ).
-          end_bracket = token_index.
-          continue.
+      if current_token-lexeme = `AND` or current_token-lexeme = `OR`.
+        if amount_of_concatenation > 1.
+          use_not = abap_true.
+          exit.
         endif.
-        use_not = abap_true.
-      else.
-        if ( next_token-lexeme = `AND` or next_token-lexeme = `OR` ).
-          use_not = xsdbool( amount_of_concatenation > 0 ).
-          amount_of_concatenation += 1.
-          continue.
-        endif.
+        amount_of_concatenation += 1.
+      endif.
+      if analyzer->token_is_comparison_operator( token = current_token ).
+        insert token_index into table_for_comparison_operators index lines( table_for_comparison_operators ) + 1.
       endif.
       if token_index <> lines( statement_to_negate-tokens ).
         token_index += 1.
       endif.
     endloop.
-    if is_bool_function = abap_true and amount_of_concatenation = 0.
-      use_not = abap_false.
-    endif.
-    if use_not = abap_false.
-      loop at statement_to_negate-tokens assigning field-symbol(<token>).
-        if analyzer->token_is_comparison_operator( token = <token> ) and ( sy-tabix > end_bracket or sy-tabix < start_bracket ).
-          if <token>-lexeme = `IS` and statement_to_negate-tokens[ sy-tabix + 1 ]-lexeme = `NOT`.
-            delete statement_to_negate-tokens index sy-tabix + 1.
-            continue.
-          elseif <token>-lexeme = `NOT` and statement_to_negate-tokens[ sy-tabix + 1 ]-lexeme = `IN`.
-            delete statement_to_negate-tokens index sy-tabix.
-            continue.
-          endif.
-          <token>-lexeme = analyzer->negate_comparison_operator( comparison_operator = <token>-lexeme ).
+
+    negate_struct-use_not = use_not.
+    negate_struct-comperasion_operators = table_for_comparison_operators.
+  endmethod.
+  method negate_statement.
+
+    data(logic_negate) = analyze_logical_negate_part( analyzer = analyzer statement_to_negate = statement ).
+
+    data(statement_to_negate) = statement.
+
+    if logic_negate-use_not = abap_false.
+      loop at logic_negate-comperasion_operators into data(operator_index).
+        data(token_to_negate) = statement_to_negate-tokens[ operator_index ].
+        if token_to_negate-lexeme = `IS` and statement_to_negate-tokens[ sy-tabix + 1 ]-lexeme = `NOT`.
+          delete statement_to_negate-tokens index sy-tabix + 1.
+          continue.
+        elseif token_to_negate-lexeme = `NOT` and statement_to_negate-tokens[ sy-tabix + 1 ]-lexeme = `IN`.
+          delete statement_to_negate-tokens index sy-tabix.
+          continue.
         endif.
+        token_to_negate-lexeme = analyzer->negate_comparison_operator( comparison_operator = token_to_negate-lexeme ).
+        statement_to_negate-tokens[ operator_index ] = token_to_negate.
       endloop.
     else.
       insert value #( lexeme = `NOT (` ) into statement_to_negate-tokens index 2.
       insert value #( lexeme = ` )` ) into statement_to_negate-tokens index lines( statement_to_negate-tokens ) + 1.
     endif.
+
     new_statement = statement_to_negate.
   endmethod.
 
-
-  method create_quickfix_code.
+  method create_quickfix_code_for_if.
     data(new_statement) = statement.
     data(analyzer) = /cc4a/abap_analyzer=>create(  ).
-    if quickfix_type <> `WHERE`.
-      new_statement-keyword = `IF`.
-      new_statement-tokens[ 1 ]-lexeme = `IF`.
-    endif.
-    case quickfix_type.
-      when `MULTIPLE`.
-        data(flat_new_statement) = analyzer->flatten_tokens( negate_statement( analyzer = analyzer statement = new_statement )-tokens ) && `.`.
-      when `WHERE`.
-        data(bool_expression) = ``.
-        data(cut_of_var) = ``.
-        loop at check_statement-tokens assigning field-symbol(<token_information>) where lexeme <> `CHECK`.
-          if contains( val = <token_information>-lexeme sub = variable_name ).
-            cut_of_var = cut_of_variable( token_to_cut_off = <token_information>-lexeme ).
-            bool_expression = bool_expression && ` ` &&  cut_of_var.
-          else.
-            bool_expression = bool_expression && ` ` && <token_information>-lexeme.
-          endif.
-        endloop.
-        data(location_of_var) = find( sub = cut_of_var val = bool_expression ).
-        if location_of_var <> 1.
-          split bool_expression at space into table data(bool_expressions).
-          data(copy_of_expressions) = bool_expressions.
-          data(entries_of_expression) = lines( bool_expressions ).
-          do entries_of_expression times.
-            bool_expressions[ sy-index ] = copy_of_expressions[ entries_of_expression - sy-index + 1 ].
-          enddo.
-          bool_expression = ``.
-          loop at bool_expressions into data(expression).
-            if expression = ` `.
-              continue.
-            endif.
-            bool_expression = bool_expression && ` ` && expression.
-          endloop.
-        endif.
-        flat_new_statement = analyzer->flatten_tokens( new_statement-tokens ) && `WHERE` && bool_expression && '.'.
-    endcase.
+
+    new_statement-keyword = `IF`.
+    new_statement-tokens[ 1 ]-lexeme = `IF`.
+
+    data(flat_new_statement) = analyzer->flatten_tokens( negate_statement( analyzer = analyzer statement = new_statement )-tokens ) && `.`.
     modified_statement = analyzer->break_into_lines( flat_new_statement ).
-    if quickfix_type eq `MULTIPLE`.
-      insert `CONTINUE .` into modified_statement index 2.
-      insert `ENDIF .` into modified_statement index 3.
+
+    insert `CONTINUE .` into modified_statement index 2.
+    insert `ENDIF .` into modified_statement index 3.
+  endmethod.
+
+  method create_quickfix_code_for_where.
+    data(new_statement) = statement.
+    data(analyzer) = /cc4a/abap_analyzer=>create(  ).
+    data(bool_expression) = ``.
+    data(cut_of_var) = ``.
+    loop at check_statement-tokens assigning field-symbol(<token_information>) where lexeme <> `CHECK`.
+      if contains( val = <token_information>-lexeme sub = variable_name ).
+        cut_of_var = extract_component( token_to_cut_off = <token_information>-lexeme ).
+        bool_expression = bool_expression && ` ` &&  cut_of_var.
+      else.
+        bool_expression = bool_expression && ` ` && <token_information>-lexeme.
+      endif.
+    endloop.
+    data(location_of_var) = find( sub = cut_of_var val = bool_expression ).
+    if location_of_var <> 1.
+      split bool_expression at space into table data(bool_expressions).
+      data(copy_of_expressions) = bool_expressions.
+      data(entries_of_expression) = lines( bool_expressions ).
+      do entries_of_expression times.
+        bool_expressions[ sy-index ] = copy_of_expressions[ entries_of_expression - sy-index + 1 ].
+      enddo.
+      bool_expression = ``.
+      loop at bool_expressions into data(expression).
+        if expression = ` `.
+          continue.
+        endif.
+        bool_expression = bool_expression && ` ` && expression.
+      endloop.
     endif.
+    data(flat_new_statement) = analyzer->flatten_tokens( new_statement-tokens ) && `WHERE` && bool_expression && '.'.
+    modified_statement = analyzer->break_into_lines( flat_new_statement ).
   endmethod.
 
 
@@ -290,16 +295,20 @@ class /cc4a/check_in_iteration implementation.
   endmethod.
 
 
-  method if_ci_atc_check~get_meta_data.
+  method constructor.
     meta_data = /cc4a/check_meta_data=>create(
-    value #( checked_types = /cc4a/check_meta_data=>checked_types-abap_programs
-        description = 'Avoid using of CHECK-statement'(des)
-        remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
-        finding_codes = value #(
-          ( code = finding_codes-check_in_iteration pseudo_comment = pseudo_comment-check_in_iteration text = 'Usage of CHECK-statement'(usg) ) )
-        quickfix_codes = value #(
-          ( code = quickfix_codes-if_quickfix short_text = 'Replace CHECK condition with IF condition'(icc) )
-          ( code = quickfix_codes-where_quickfix short_text = 'Replace CHECK condition with a WHERE condition in loop'(wld) ) ) ) ).
+  value #( checked_types = /cc4a/check_meta_data=>checked_types-abap_programs
+      description = 'Avoid using of CHECK-statement'(des)
+      remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
+      finding_codes = value #(
+        ( code = finding_codes-check_in_iteration pseudo_comment = pseudo_comment-check_in_iteration text = 'Usage of CHECK-statement'(usg) ) )
+      quickfix_codes = value #(
+        ( code = quickfix_codes-if_quickfix short_text = 'Replace CHECK condition with IF condition'(icc) )
+        ( code = quickfix_codes-where_quickfix short_text = 'Replace CHECK condition with a WHERE condition in loop'(wld) ) ) ) ).
+  endmethod.
+
+  method if_ci_atc_check~get_meta_data.
+    meta_data = me->meta_data.
   endmethod.
 
 
@@ -313,18 +322,16 @@ class /cc4a/check_in_iteration implementation.
   endmethod.
 
 
-  method cut_of_variable.
+  method extract_component.
     data(index) = find( sub = '-' val = token_to_cut_off ).
 
     if index > 0.
-      cut_off_token = substring( val = token_to_cut_off off = index + 1 ).
+      component = substring( val = token_to_cut_off off = index + 1 ).
     endif.
   endmethod.
 
 
-  method get_variable_of_bracket.
-    data(parent_block) = procedure-blocks[ procedure-blocks[ check_statement-block ]-parent ].
-    data(loop_statement) = procedure-statements[ parent_block-statements-from ].
+  method get_target_variable_of_loop.
     loop at loop_statement-tokens assigning field-symbol(<token>).
       if contains( val = <token>-lexeme sub = `DATA` ) or contains( val = <token>-lexeme sub = `FIELD-SYMBOL` ).
         data(first_bracket) = find( sub = `(` val = <token>-lexeme ).

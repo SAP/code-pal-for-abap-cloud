@@ -107,7 +107,7 @@ class test implementation.
 
     cl_ci_atc_unit_driver=>create_asserter( )->check_and_assert(
               check             = new /cc4a/check_in_iteration( )
-              object            = value #( type = 'CLASS' name = test_class )
+              object            = value #( type = 'CLAS' name = test_class )
               expected_findings = value #( (
                                          code = /cc4a/check_in_iteration=>finding_codes-check_in_iteration
                                          location = without_pseudo_comment_1

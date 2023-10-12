@@ -49,9 +49,6 @@ class /cc4a/prefer_methods implementation.
 
   method analyze_procedure.
     loop at procedure-statements assigning field-symbol(<statement>) where keyword = `FORM` or keyword = `CALL` ##PRIMKEY[KEYWORD].
-      data(findings_pseudo_comment) = pseudo_comment-avoid_form.
-      data(finding_code) = finding_codes-avoid_form.
-
       if <statement>-keyword = `CALL` and procedure-statements[ sy-tabix ]-tokens[ 2 ]-lexeme = `FUNCTION`.
         data(function_name) = get_function_name( full_token = <statement>-tokens[ 3 ]-lexeme ).
         data(function_module) = xco_cp_abap=>function_module( iv_name = |{ function_name }| ).
@@ -60,11 +57,12 @@ class /cc4a/prefer_methods implementation.
           if is_rfc_enabled = abap_true.
             continue.
           endif.
-        catch cx_xco_runtime_exception into data(e).
-
+        catch cx_xco_runtime_exception.
         endtry.
-        clear findings_pseudo_comment.
-        finding_code =  finding_codes-prefer_methods.
+        data(finding_code) = finding_codes-prefer_methods.
+      else.
+        finding_code = finding_codes-avoid_form.
+        data(findings_pseudo_comment) = pseudo_comment-avoid_form.
       endif.
 
       insert value #( code = finding_code
@@ -96,8 +94,7 @@ class /cc4a/prefer_methods implementation.
         finding_codes = value #(
           ( code = finding_codes-avoid_form pseudo_comment = pseudo_comment-avoid_form text = 'Avoid FORM routine'(afr) )
           ( code = finding_codes-prefer_methods text = 'Use classes and methods instead'(prm) ) )
-        quickfix_codes = value #(
-          ) ) ).
+        quickfix_codes = value #( ) ) ).
   endmethod.
 
   method if_ci_atc_check~set_assistant_factory.

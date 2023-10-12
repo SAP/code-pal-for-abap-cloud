@@ -7,7 +7,6 @@ class /cc4a/test_prefer_methods definition
   protected section.
   private section.
     methods without_pseudo_comments.
-    methods with_pseudo_comments.
   endclass.
 
 
@@ -15,10 +14,18 @@ class /cc4a/test_prefer_methods definition
 class /cc4a/test_prefer_methods implementation.
 
   method without_pseudo_comments.
-    call function ``.
-  endmethod.
 
-  method with_pseudo_comments.
+
+  call function 'ZJK_TEST_MODULE'.
+
+  call function 'ZJK_TEST_MODULE_RFC'.
+
+  call function ''.
+
+  call function `ZJK_TEST_MODULE_RFC`.
+
+  call function `ZJK_TEST_MODULE`.
+
 
   endmethod.
 

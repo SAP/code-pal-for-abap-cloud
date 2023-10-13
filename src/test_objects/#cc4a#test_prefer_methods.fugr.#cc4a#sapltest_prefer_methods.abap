@@ -28,3 +28,8 @@ call function ``.
 call function `/CC4A/RFC_DISABLED_MODULE`.
 
 endform.
+
+form pseudo_comment.                                       "#EC CI_FROM
+
+
+endform.

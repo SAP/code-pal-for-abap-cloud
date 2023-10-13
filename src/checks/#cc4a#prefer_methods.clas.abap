@@ -7,7 +7,7 @@ class /cc4a/prefer_methods definition
 
     constants:
       begin of pseudo_comment,
-        avoid_form type string value 'CI_FORM',
+        avoid_form type string value 'CI_FROM',
       end of pseudo_comment.
 
     constants:
@@ -15,10 +15,13 @@ class /cc4a/prefer_methods definition
         avoid_form type if_ci_atc_check=>ty_finding_code value 'C_FORM',
         prefer_methods type if_ci_atc_check=>ty_finding_code value 'C_METHODS',
       end of finding_codes.
+
+      methods constructor.
   protected section.
   private section.
     data code_provider     type ref to if_ci_atc_source_code_provider.
     data assistant_factory type ref to cl_ci_atc_assistant_factory.
+    data meta_data         type ref to /cc4a/if_check_meta_data.
 
     methods analyze_procedure
       importing procedure       type if_ci_atc_source_code_provider=>ty_procedure
@@ -64,7 +67,6 @@ class /cc4a/prefer_methods implementation.
         finding_code = finding_codes-avoid_form.
         data(findings_pseudo_comment) = pseudo_comment-avoid_form.
       endif.
-
       insert value #( code = finding_code
       location = value #(
         object = code_provider->get_statement_location( <statement> )-object
@@ -72,7 +74,7 @@ class /cc4a/prefer_methods implementation.
           line = code_provider->get_statement_location( <statement> )-position-line
           column = code_provider->get_statement_location( <statement> )-position-column ) )
       checksum = code_provider->get_statement_checksum( <statement> )
-       has_pseudo_comment = xsdbool( line_exists( <statement>-pseudo_comments[ table_line =  findings_pseudo_comment ] ) )
+          has_pseudo_comment = meta_data->has_valid_pseudo_comment( statement = <statement> finding_code = finding_code )
       details = assistant_factory->create_finding_details( )->attach_quickfixes( value #(  ) )
       ) into table findings.
     endloop.
@@ -86,8 +88,8 @@ class /cc4a/prefer_methods implementation.
     endloop.
   endmethod.
 
-  method if_ci_atc_check~get_meta_data.
-    meta_data = /cc4a/check_meta_data=>create(
+  method constructor.
+      meta_data = /cc4a/check_meta_data=>create(
     value #( checked_types = /cc4a/check_meta_data=>checked_types-abap_programs
         description = 'Prefer methods over other procedures'(des)
         remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
@@ -95,6 +97,10 @@ class /cc4a/prefer_methods implementation.
           ( code = finding_codes-avoid_form pseudo_comment = pseudo_comment-avoid_form text = 'Avoid FORM routine'(afr) )
           ( code = finding_codes-prefer_methods text = 'Use classes and methods instead'(prm) ) )
         quickfix_codes = value #( ) ) ).
+  endmethod.
+
+  method if_ci_atc_check~get_meta_data.
+     meta_data = me->meta_data.
   endmethod.
 
   method if_ci_atc_check~set_assistant_factory.

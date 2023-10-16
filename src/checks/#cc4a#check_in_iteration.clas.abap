@@ -201,7 +201,7 @@ class /cc4a/check_in_iteration implementation.
         amount_of_concatenation += 1.
       endif.
       if analyzer->token_is_comparison_operator( token = current_token ).
-        insert token_index into table positions_comparison_operators. "index lines( positions_comparison_operators ) + 1.
+        insert token_index into table positions_comparison_operators.
       endif.
       if token_index <> lines( statement_to_negate-tokens ).
         token_index += 1.

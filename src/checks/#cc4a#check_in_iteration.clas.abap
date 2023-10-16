@@ -83,7 +83,7 @@ public
       importing loop_statement          type if_ci_atc_source_code_provider=>ty_statement
       returning value(name_of_variable) type string.
 
-    methods analyze_logical_negate_part
+    methods determine_negation_kind
       importing statement_to_negate  type if_ci_atc_source_code_provider=>ty_statement
                 analyzer             type ref to /cc4a/if_abap_analyzer
       returning value(negate_struct) type negate_structure.
@@ -182,9 +182,9 @@ class /cc4a/check_in_iteration implementation.
       code = value #( ) ).
   endmethod.
 
-  method analyze_logical_negate_part.
+  method determine_negation_kind.
     data(token_index) = 1.
-    data table_for_comparison_operators type standard table of i.
+    data positions_comparison_operators type standard table of i.
     data(amount_of_concatenation) = 0.
     data(use_not) = abap_false.
     loop at statement_to_negate-tokens transporting no fields where lexeme is not initial.
@@ -201,34 +201,33 @@ class /cc4a/check_in_iteration implementation.
         amount_of_concatenation += 1.
       endif.
       if analyzer->token_is_comparison_operator( token = current_token ).
-        insert token_index into table_for_comparison_operators index lines( table_for_comparison_operators ) + 1.
+        insert token_index into table positions_comparison_operators. "index lines( positions_comparison_operators ) + 1.
       endif.
       if token_index <> lines( statement_to_negate-tokens ).
         token_index += 1.
       endif.
     endloop.
-
     negate_struct-use_not = use_not.
-    negate_struct-comperasion_operators = table_for_comparison_operators.
+    negate_struct-comperasion_operators = positions_comparison_operators.
   endmethod.
+
   method negate_statement.
 
-    data(logic_negate) = analyze_logical_negate_part( analyzer = analyzer statement_to_negate = statement ).
+    data(logic_negate) = determine_negation_kind( analyzer = analyzer statement_to_negate = statement ).
 
     data(statement_to_negate) = statement.
 
     if logic_negate-use_not = abap_false.
-      loop at logic_negate-comperasion_operators into data(operator_index).
-        data(token_to_negate) = statement_to_negate-tokens[ operator_index ].
-        if token_to_negate-lexeme = `IS` and statement_to_negate-tokens[ sy-tabix + 1 ]-lexeme = `NOT`.
-          delete statement_to_negate-tokens index sy-tabix + 1.
-          continue.
-        elseif token_to_negate-lexeme = `NOT` and statement_to_negate-tokens[ sy-tabix + 1 ]-lexeme = `IN`.
-          delete statement_to_negate-tokens index sy-tabix.
-          continue.
+      loop at logic_negate-comperasion_operators into data(operator_position).
+        data(token_to_negate) = statement_to_negate-tokens[ operator_position ].
+        if token_to_negate-lexeme = `IS` and statement_to_negate-tokens[ operator_position + 1 ]-lexeme = `NOT`.
+          delete statement_to_negate-tokens index operator_position + 1.
+        elseif token_to_negate-lexeme = `NOT` and statement_to_negate-tokens[ operator_position + 1 ]-lexeme = `IN`.
+          delete statement_to_negate-tokens index operator_position.
+        else.
+          token_to_negate-lexeme = analyzer->negate_comparison_operator( comparison_operator = token_to_negate-lexeme ).
+          statement_to_negate-tokens[ operator_position ] = token_to_negate.
         endif.
-        token_to_negate-lexeme = analyzer->negate_comparison_operator( comparison_operator = token_to_negate-lexeme ).
-        statement_to_negate-tokens[ operator_index ] = token_to_negate.
       endloop.
     else.
       insert value #( lexeme = `NOT (` ) into statement_to_negate-tokens index 2.

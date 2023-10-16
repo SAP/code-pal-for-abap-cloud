@@ -21,11 +21,11 @@ class /cc4a/abap_analyzer definition
         negated  type string,
       end of ty_negation.
     class-data negations type table of ty_negation.
-ENDCLASS.
+endclass.
 
 
 
-CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
+class /cc4a/abap_analyzer implementation.
 
 
   method /cc4a/if_abap_analyzer~break_into_lines.
@@ -194,12 +194,6 @@ CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
   endmethod.
 
 
-  method /cc4a/if_abap_analyzer~is_logical_connective.
-    is_logical_connective = xsdbool(
-      token-references is initial and ( token-lexeme = 'AND' or token-lexeme = 'OR' or token-lexeme = 'EQUIV' ) ).
-  endmethod.
-
-
   method /cc4a/if_abap_analyzer~is_token_keyword.
     result = abap_true.
     if token-references is not initial or token-lexeme <> keyword.
@@ -215,6 +209,74 @@ CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
     negated_comparison_operator = negations[ operator = comparison_operator ]-negated.
   endmethod.
 
+
+  method /cc4a/if_abap_analyzer~token_is_comparison_operator.
+    case token-lexeme.
+      when 'IS' or 'IN' or '>' or 'GT' or '<' or 'LT' or '>=' or 'GE' or '<=' or 'LE' or '=' or 'EQ' or '<>' or 'NE'.
+        is_operator = abap_true.
+      when others.
+        is_operator = abap_false.
+    endcase.
+  endmethod.
+
+
+  method create.
+    instance = new /cc4a/abap_analyzer( ).
+  endmethod.
+
+
+  method is_db_statement.
+    case statement-keyword.
+      when 'SELECT' or 'WITH' or 'DELETE' or 'UPDATE' or 'INSERT' or 'MODIFY' or 'READ' or 'LOOP'
+      or 'IMPORT' or 'EXPORT' or 'FETCH' or 'OPEN' or 'EXEC'.
+        if ( find_clause_index( tokens = statement-tokens clause = 'CONNECTION' ) <> 0
+             and (    statement-keyword = 'DELETE'
+                   or statement-keyword = 'UPDATE'
+                   or statement-keyword = 'INSERT'
+                   or statement-keyword = 'MODIFY' ) ).
+          result-is_db = abap_true.
+          if get_dbtab_name = abap_false.
+            return.
+          endif.
+        endif.
+      when others.
+        return.
+    endcase.
+    data(token_idx) = 2.
+    while lines( statement-tokens ) > token_idx and statement-tokens[ token_idx ]-lexeme cp '%_*('
+    and statement-tokens[ token_idx ]-references is initial.
+      token_idx += 3.
+    endwhile.
+    data(analyzer) = new db_statement_analyzer(
+       statement = statement
+       start_idx = token_idx
+       analyzer = me
+       include_subqueries = include_subqueries ).
+    result = analyzer->analyze( ).
+
+  endmethod.
+
+  method /cc4a/if_abap_analyzer~is_logical_connective.
+    is_logical_connective = xsdbool(
+      token-references is initial and ( token-lexeme = 'AND' or token-lexeme = 'OR' or token-lexeme = 'EQUIV' ) ).
+  endmethod.
+
+  method class_constructor.
+    negations = value #( ( operator = '>' negated = '<=' )
+                         ( operator = 'GT' negated = 'LE' )
+                         ( operator = '<' negated = '>=' )
+                         ( operator = 'LT' negated = 'GE' )
+                         ( operator = '=' negated = '<>' )
+                         ( operator = 'EQ' negated = 'NE' )
+                         ( operator = '<>' negated = '=' )
+                         ( operator = 'NE' negated = 'EQ' )
+                         ( operator = '<=' negated = '>' )
+                         ( operator = 'LE' negated = 'GT' )
+                         ( operator = '>=' negated = '<' )
+                         ( operator = 'GE' negated = 'LT' )
+                         ( operator = 'IS' negated = 'IS NOT' )
+                         ( operator = 'IN' negated = 'NOT IN' ) ).
+  endmethod.
 
   method /cc4a/if_abap_analyzer~parse_method_definition.
     if statement-keyword <> 'METHODS' and statement-keyword <> 'CLASS-METHODS'.
@@ -261,68 +323,5 @@ CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
     endloop.
   endmethod.
 
+endclass.
 
-  method /cc4a/if_abap_analyzer~token_is_comparison_operator.
-    case token-lexeme.
-      when 'IS' or 'IN' or '>' or 'GT' or '<' or 'LT' or '>=' or 'GE' or '<=' or 'LE' or '=' or 'EQ' or '<>' or 'NE'.
-        is_operator = abap_true.
-      when others.
-        is_operator = abap_false.
-    endcase.
-  endmethod.
-
-
-  method class_constructor.
-    negations = value #( ( operator = '>' negated = '<=' )
-                         ( operator = 'GT' negated = 'LE' )
-                         ( operator = '<' negated = '>=' )
-                         ( operator = 'LT' negated = 'GE' )
-                         ( operator = '=' negated = '<>' )
-                         ( operator = 'EQ' negated = 'NE' )
-                         ( operator = '<>' negated = '=' )
-                         ( operator = 'NE' negated = 'EQ' )
-                         ( operator = '<=' negated = '>' )
-                         ( operator = 'LE' negated = 'GT' )
-                         ( operator = '>=' negated = '<' )
-                         ( operator = 'GE' negated = 'LT' )
-                         ( operator = 'IS' negated = 'IS NOT' )
-                         ( operator = 'IN' negated = 'NOT IN' ) ).
-  endmethod.
-
-
-  method create.
-    instance = new /cc4a/abap_analyzer( ).
-  endmethod.
-
-
-  method is_db_statement.
-    case statement-keyword.
-      when 'SELECT' or 'WITH' or 'DELETE' or 'UPDATE' or 'INSERT' or 'MODIFY' or 'READ' or 'LOOP'
-      or 'IMPORT' or 'EXPORT' or 'FETCH' or 'OPEN' or 'EXEC'.
-        if ( find_clause_index( tokens = statement-tokens clause = 'CONNECTION' ) <> 0
-             and (    statement-keyword = 'DELETE'
-                   or statement-keyword = 'UPDATE'
-                   or statement-keyword = 'INSERT'
-                   or statement-keyword = 'MODIFY' ) ).
-          result-is_db = abap_true.
-          if get_dbtab_name = abap_false.
-            return.
-          endif.
-        endif.
-      when others.
-        return.
-    endcase.
-    data(token_idx) = 2.
-    while lines( statement-tokens ) > token_idx and statement-tokens[ token_idx ]-lexeme cp '%_*('
-    and statement-tokens[ token_idx ]-references is initial.
-      token_idx += 3.
-    endwhile.
-    data(analyzer) = new db_statement_analyzer(
-       statement = statement
-       start_idx = token_idx
-       analyzer = me
-       include_subqueries = include_subqueries ).
-    result = analyzer->analyze( ).
-
-  endmethod.
-ENDCLASS.

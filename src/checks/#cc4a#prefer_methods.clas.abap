@@ -7,7 +7,7 @@ class /cc4a/prefer_methods definition
 
     constants:
       begin of pseudo_comment,
-        avoid_form type string value 'CI_FROM',
+        avoid_form type string value 'CI_FORM',
       end of pseudo_comment.
 
     constants:
@@ -27,7 +27,7 @@ class /cc4a/prefer_methods definition
       importing procedure       type if_ci_atc_source_code_provider=>ty_procedure
       returning value(findings) type if_ci_atc_check=>ty_findings.
 
-    methods get_rfc_enabled
+    methods function_is_rfc_enabled
       importing io_function_module    type ref to if_xco_function_module
       returning value(is_rfc_enabled) type abap_bool.
 
@@ -35,7 +35,7 @@ endclass.
 
 class /cc4a/prefer_methods implementation.
 
-  method get_rfc_enabled.
+  method function_is_rfc_enabled.
     data(rfc_contract) = io_function_module->content(  )->get_rfc_interface_contract(  ).
     is_rfc_enabled = xsdbool( rfc_contract is not initial ).
   endmethod.
@@ -45,7 +45,7 @@ class /cc4a/prefer_methods implementation.
       if <statement>-keyword = `FUNCTION`.
         data(finding_code) = finding_codes-prefer_methods.
         data(function_module) = xco_cp_abap=>function_module( iv_name = |{ <statement>-tokens[ 2 ]-lexeme }| ).
-        if get_rfc_enabled( io_function_module = function_module ).
+        if function_is_rfc_enabled( io_function_module = function_module ).
           continue.
         endif.
       else.
@@ -59,7 +59,7 @@ class /cc4a/prefer_methods implementation.
           line = code_provider->get_statement_location( <statement> )-position-line
           column = code_provider->get_statement_location( <statement> )-position-column ) )
       checksum = code_provider->get_statement_checksum( <statement> )
-          has_pseudo_comment = meta_data->has_valid_pseudo_comment( statement = <statement> finding_code = finding_code )
+          has_pseudo_comment =  meta_data->has_valid_pseudo_comment( statement = <statement> finding_code = finding_code )
       details = assistant_factory->create_finding_details( )->attach_quickfixes( value #(  ) )
       ) into table findings.
     endloop.

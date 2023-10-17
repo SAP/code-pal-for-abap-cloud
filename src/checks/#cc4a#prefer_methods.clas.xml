@@ -28,7 +28,7 @@
     <item>
      <ID>I</ID>
      <KEY>PRM</KEY>
-     <ENTRY>Use classes and methods instead</ENTRY>
+     <ENTRY>Use classes and methods for modularization</ENTRY>
      <LENGTH>88</LENGTH>
     </item>
    </TPOOL>

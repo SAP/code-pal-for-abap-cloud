@@ -17,16 +17,6 @@
 form test_form.
 
 
-call function 'ZJK_TEST_MODULE_RFC'.
-
-call function ''.
-
-call function `/CC4A/RFC_ENABLED_MODULE`.
-
-call function ``.
-
-call function `/CC4A/RFC_DISABLED_MODULE`.
-
 endform.
 
 form pseudo_comment.                                       "#EC CI_FROM

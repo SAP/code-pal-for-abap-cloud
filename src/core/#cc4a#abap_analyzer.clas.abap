@@ -273,7 +273,9 @@ class /cc4a/abap_analyzer implementation.
                          ( operator = '<=' negated = '>' )
                          ( operator = 'LE' negated = 'GT' )
                          ( operator = '>=' negated = '<' )
-                         ( operator = 'GE' negated = 'LT' ) ).
+                         ( operator = 'GE' negated = 'LT' )
+                         ( operator = 'IS' negated = 'IS NOT' )
+                         ( operator = 'IN' negated = 'NOT IN' ) ).
   endmethod.
 
   method /cc4a/if_abap_analyzer~parse_method_definition.

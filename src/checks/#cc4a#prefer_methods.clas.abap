@@ -31,19 +31,9 @@ class /cc4a/prefer_methods definition
       importing io_function_module    type ref to if_xco_function_module
       returning value(is_rfc_enabled) type abap_bool.
 
-    methods get_function_name
-      importing full_token           type string
-      returning value(function_name) type string.
 endclass.
 
 class /cc4a/prefer_methods implementation.
-
-  method get_function_name.
-    data(copy_token) = full_token.
-    replace all occurrences of `'` in copy_token with ''.
-    replace all occurrences of '`' in copy_token with ''.
-    function_name = copy_token.
-  endmethod.
 
   method get_rfc_enabled.
     data(rfc_contract) = io_function_module->content(  )->get_rfc_interface_contract(  ).
@@ -51,18 +41,13 @@ class /cc4a/prefer_methods implementation.
   endmethod.
 
   method analyze_procedure.
-    loop at procedure-statements assigning field-symbol(<statement>) where keyword = `FORM` or keyword = `CALL` ##PRIMKEY[KEYWORD].
-      if <statement>-keyword = `CALL` and procedure-statements[ sy-tabix ]-tokens[ 2 ]-lexeme = `FUNCTION`.
-        data(function_name) = get_function_name( full_token = <statement>-tokens[ 3 ]-lexeme ).
-        data(function_module) = xco_cp_abap=>function_module( iv_name = |{ function_name }| ).
-        try.
-          data(is_rfc_enabled) = get_rfc_enabled( io_function_module = function_module ).
-          if is_rfc_enabled = abap_true.
-            continue.
-          endif.
-        catch cx_xco_runtime_exception.
-        endtry.
+    loop at procedure-statements assigning field-symbol(<statement>) where keyword = `FORM` or keyword = `FUNCTION` ##PRIMKEY[KEYWORD].
+      if <statement>-keyword = `FUNCTION`.
         data(finding_code) = finding_codes-prefer_methods.
+        data(function_module) = xco_cp_abap=>function_module( iv_name = |{ <statement>-tokens[ 2 ]-lexeme }| ).
+        if get_rfc_enabled( io_function_module = function_module ).
+          continue.
+        endif.
       else.
         finding_code = finding_codes-avoid_form.
         data(findings_pseudo_comment) = pseudo_comment-avoid_form.
@@ -95,7 +80,7 @@ class /cc4a/prefer_methods implementation.
         remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
         finding_codes = value #(
           ( code = finding_codes-avoid_form pseudo_comment = pseudo_comment-avoid_form text = 'Avoid FORM routine'(afr) )
-          ( code = finding_codes-prefer_methods text = 'Use classes and methods instead'(prm) ) )
+          ( code = finding_codes-prefer_methods text = 'Use classes and methods for modularization'(prm) ) )
         quickfix_codes = value #( ) ) ).
   endmethod.
 

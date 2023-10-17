@@ -28,7 +28,7 @@ public
 
     types: begin of negate_structure,
              use_not               type abap_bool,
-             comperasion_operators type standard table of i with non-unique default key,
+             comparison_operators type standard table of i with non-unique empty key,
            end of negate_structure.
 
 
@@ -208,7 +208,7 @@ class /cc4a/check_in_iteration implementation.
       endif.
     endloop.
     negate_struct-use_not = use_not.
-    negate_struct-comperasion_operators = positions_comparison_operators.
+    negate_struct-comparison_operators = positions_comparison_operators.
   endmethod.
 
   method negate_statement.
@@ -218,7 +218,7 @@ class /cc4a/check_in_iteration implementation.
     data(statement_to_negate) = statement.
 
     if logic_negate-use_not = abap_false.
-      loop at logic_negate-comperasion_operators into data(operator_position).
+      loop at logic_negate-comparison_operators into data(operator_position).
         data(token_to_negate) = statement_to_negate-tokens[ operator_position ].
         if token_to_negate-lexeme = `IS` and statement_to_negate-tokens[ operator_position + 1 ]-lexeme = `NOT`.
           delete statement_to_negate-tokens index operator_position + 1.
@@ -255,17 +255,16 @@ class /cc4a/check_in_iteration implementation.
     data(new_statement) = statement.
     data(analyzer) = /cc4a/abap_analyzer=>create(  ).
     data(bool_expression) = ``.
-    data(cut_of_var) = ``.
+    data(cut_off_component) = ``.
     loop at check_statement-tokens assigning field-symbol(<token_information>) where lexeme <> `CHECK`.
       if contains( val = <token_information>-lexeme sub = variable_name ).
-        cut_of_var = extract_component( token_to_cut_off = <token_information>-lexeme ).
-        bool_expression = bool_expression && ` ` &&  cut_of_var.
+        cut_off_component = extract_component( token_to_cut_off = <token_information>-lexeme ).
+        bool_expression = bool_expression && ` ` &&  cut_off_component.
       else.
         bool_expression = bool_expression && ` ` && <token_information>-lexeme.
       endif.
     endloop.
-    data(location_of_var) = find( sub = cut_of_var val = bool_expression ).
-    if location_of_var <> 1.
+    if find( sub = cut_off_component val = bool_expression ) <> 1.
       split bool_expression at space into table data(bool_expressions).
       data(copy_of_expressions) = bool_expressions.
       data(entries_of_expression) = lines( bool_expressions ).

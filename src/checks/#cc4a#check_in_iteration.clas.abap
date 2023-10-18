@@ -27,7 +27,7 @@ public
     data meta_data         type ref to /cc4a/if_check_meta_data.
 
     types: begin of negate_structure,
-             use_not               type abap_bool,
+             use_not              type abap_bool,
              comparison_operators type standard table of i with non-unique empty key,
            end of negate_structure.
 
@@ -254,31 +254,36 @@ class /cc4a/check_in_iteration implementation.
   method create_quickfix_code_for_where.
     data(new_statement) = statement.
     data(analyzer) = /cc4a/abap_analyzer=>create(  ).
-    data(bool_expression) = ``.
-    data(cut_off_component) = ``.
+    data where_condition_table type table of string with empty key.
+    data bool_expression type string.
+    data target_variable type string.
+
     loop at check_statement-tokens assigning field-symbol(<token_information>) where lexeme <> `CHECK`.
       if contains( val = <token_information>-lexeme sub = variable_name ).
-        cut_off_component = extract_component( token_to_cut_off = <token_information>-lexeme ).
-        bool_expression = bool_expression && ` ` &&  cut_off_component.
+        target_variable = extract_component( token_to_cut_off = <token_information>-lexeme ).
+        insert target_variable into where_condition_table index 1.
+      elseif analyzer->token_is_comparison_operator( token = <token_information> ).
+        if target_variable is initial.
+          insert <token_information>-lexeme into where_condition_table index 1.
+        else.
+          insert <token_information>-lexeme into where_condition_table index 2.
+        endif.
       else.
-        bool_expression = bool_expression && ` ` && <token_information>-lexeme.
+        if target_variable is initial.
+          insert <token_information>-lexeme into where_condition_table index 1.
+        else.
+          insert <token_information>-lexeme into where_condition_table index 3.
+        endif.
       endif.
     endloop.
-    if find( sub = cut_off_component val = bool_expression ) <> 1.
-      split bool_expression at space into table data(bool_expressions).
-      data(copy_of_expressions) = bool_expressions.
-      data(entries_of_expression) = lines( bool_expressions ).
-      do entries_of_expression times.
-        bool_expressions[ sy-index ] = copy_of_expressions[ entries_of_expression - sy-index + 1 ].
-      enddo.
-      bool_expression = ``.
-      loop at bool_expressions into data(expression).
-        if expression = ` `.
-          continue.
-        endif.
-        bool_expression = bool_expression && ` ` && expression.
-      endloop.
-    endif.
+
+    loop at where_condition_table into data(expression).
+      if expression = ` `.
+        continue.
+      endif.
+      bool_expression = bool_expression && ` ` && expression.
+    endloop.
+
     data(flat_new_statement) = analyzer->flatten_tokens( new_statement-tokens ) && `WHERE` && bool_expression && '.'.
     modified_statement = analyzer->break_into_lines( flat_new_statement ).
   endmethod.

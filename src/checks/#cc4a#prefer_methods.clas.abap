@@ -53,13 +53,9 @@ class /cc4a/prefer_methods implementation.
         data(findings_pseudo_comment) = pseudo_comment-avoid_form.
       endif.
       insert value #( code = finding_code
-      location = value #(
-        object = code_provider->get_statement_location( <statement> )-object
-        position = value #(
-          line = code_provider->get_statement_location( <statement> )-position-line
-          column = code_provider->get_statement_location( <statement> )-position-column ) )
+      location = code_provider->get_statement_location( <statement> )
       checksum = code_provider->get_statement_checksum( <statement> )
-          has_pseudo_comment =  meta_data->has_valid_pseudo_comment( statement = <statement> finding_code = finding_code )
+      has_pseudo_comment =  meta_data->has_valid_pseudo_comment( statement = <statement> finding_code = finding_code )
       details = assistant_factory->create_finding_details( )->attach_quickfixes( value #(  ) )
       ) into table findings.
     endloop.

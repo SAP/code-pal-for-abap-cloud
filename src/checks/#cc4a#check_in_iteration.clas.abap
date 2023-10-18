@@ -304,7 +304,7 @@ class /cc4a/check_in_iteration implementation.
       description = 'Avoid using of CHECK-statement'(des)
       remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
       finding_codes = value #(
-        ( code = finding_codes-check_in_iteration pseudo_comment = pseudo_comment-check_in_iteration text = 'Usage of CHECK-statement'(usg) ) )
+        ( code = finding_codes-check_in_iteration pseudo_comment = pseudo_comment-check_in_iteration text = 'Usage of CHECK statement'(usg) ) )
       quickfix_codes = value #(
         ( code = quickfix_codes-if_quickfix short_text = 'Replace CHECK condition with IF condition'(icc) )
         ( code = quickfix_codes-where_quickfix short_text = 'Replace CHECK condition with a WHERE condition in loop'(wld) ) ) ) ).

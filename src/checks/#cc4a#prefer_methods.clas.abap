@@ -57,6 +57,8 @@ class /cc4a/prefer_methods implementation.
       checksum = code_provider->get_statement_checksum( <statement> )
       has_pseudo_comment =  meta_data->has_valid_pseudo_comment( statement = <statement> finding_code = finding_code )
       details = assistant_factory->create_finding_details( )->attach_quickfixes( value #(  ) )
+      parameters = cond #( when finding_code = finding_codes-avoid_form
+                           then value #( param_1 = <statement>-tokens[ 2 ]-lexeme ) )
       ) into table findings.
     endloop.
   endmethod.
@@ -75,7 +77,7 @@ class /cc4a/prefer_methods implementation.
         description = 'Prefer methods over other procedures'(des)
         remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
         finding_codes = value #(
-          ( code = finding_codes-avoid_form pseudo_comment = pseudo_comment-avoid_form text = 'Avoid FORM routine'(afr) )
+          ( code = finding_codes-avoid_form pseudo_comment = pseudo_comment-avoid_form text = 'Usage of FORM routine &1'(ufr) )
           ( code = finding_codes-prefer_methods text = 'Use classes and methods for modularization'(prm) ) )
         quickfix_codes = value #( ) ) ).
   endmethod.

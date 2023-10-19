@@ -15,12 +15,6 @@
    <TPOOL>
     <item>
      <ID>I</ID>
-     <KEY>AFR</KEY>
-     <ENTRY>Avoid FORM routine</ENTRY>
-     <LENGTH>88</LENGTH>
-    </item>
-    <item>
-     <ID>I</ID>
      <KEY>DES</KEY>
      <ENTRY>Prefer methods over other procedures</ENTRY>
      <LENGTH>88</LENGTH>
@@ -29,6 +23,12 @@
      <ID>I</ID>
      <KEY>PRM</KEY>
      <ENTRY>Use classes and methods for modularization</ENTRY>
+     <LENGTH>88</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>UFR</KEY>
+     <ENTRY>Usage of FORM routine &amp;1</ENTRY>
      <LENGTH>88</LENGTH>
     </item>
    </TPOOL>

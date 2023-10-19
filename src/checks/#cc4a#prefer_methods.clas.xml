@@ -22,13 +22,13 @@
     <item>
      <ID>I</ID>
      <KEY>PRM</KEY>
-     <ENTRY>Use classes and methods for modularization</ENTRY>
+     <ENTRY>Definition of function module &amp;1</ENTRY>
      <LENGTH>88</LENGTH>
     </item>
     <item>
      <ID>I</ID>
      <KEY>UFR</KEY>
-     <ENTRY>Usage of FORM routine &amp;1</ENTRY>
+     <ENTRY>Definition of FORM routine &amp;1</ENTRY>
      <LENGTH>88</LENGTH>
     </item>
    </TPOOL>

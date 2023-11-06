@@ -62,6 +62,9 @@
           "value": "true"
         }
       ]
+    },
+    {
+      "checkName": "/CC4A/PREFER_METHODS"
     }
   ]
 }

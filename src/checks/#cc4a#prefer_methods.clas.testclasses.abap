@@ -5,7 +5,7 @@ class test definition final for testing
   private section.
     constants test_class type c length 30 value '/CC4A/TEST_PREFER_METHODS'.
     constants form_finding_class type c length 30 value '/CC4A/SAPLTEST_PREFER_METHODS'.
-    constants method_finding_class type c length 30 value '/CC4A/LTEST_PREFER_METHODS$02'.
+    constants method_finding_class type c length 30 value '/CC4A/LTEST_PREFER_METHODS$01'.
     methods execute_test_class for testing raising cx_static_check.
 endclass.
 

@@ -8,36 +8,111 @@ CLASS /cc4a/proper_bool_expression DEFINITION
 
     constants:
       begin of finding_codes,
-        test_seam type if_ci_atc_check=>ty_finding_code value 'IPBUSE',
+        test_boolean type if_ci_atc_check=>ty_finding_code value 'IPBUSE',
       end of finding_codes.
+
+     constants:
+      begin of quickfix_codes,
+        self_reference type cl_ci_atc_quickfixes=>ty_quickfix_code value 'RMVSELFREF',
+      end of quickfix_codes.
+
+
 
     methods constructor.
 
   protected section.
   private section.
-    constants pseudo_comment type string value 'TEST_SEAM_USAGE'.
+*    constants pseudo_comment type string value 'TEST_SEAM_USAGE'.
 
+
+          types: BEGIN OF boolstructure,
+             name type string,
+             local_variable type abap_bool,
+             end of boolstructure.
     data code_provider     type ref to if_ci_atc_source_code_provider.
     data assistant_factory type ref to cl_ci_atc_assistant_factory.
     data meta_data type ref to /cc4a/if_check_meta_data.
 
+
+     data booltable type table of boolstructure.
+     data procedure_number type i value 0.
+
     methods analyze_procedure
       importing procedure       type if_ci_atc_source_code_provider=>ty_procedure
       returning value(findings) type if_ci_atc_check=>ty_findings.
+
+    methods check_if_then_else
+      IMPORTING procedure type if_ci_atc_source_code_provider=>ty_procedure
+                statement_index type i
+                current_token type if_ci_atc_source_code_provider=>ty_token
+      changing  findings type  if_ci_atc_check=>ty_findings.
+
+
+
+    METHODS fill_booltable
+            IMPORTING current_statement type  if_ci_atc_source_code_provider=>ty_statement
+                      procedure_number type i.
+
+
+    METHODS check_correct_bool_usage
+      IMPORTING current_statement type  if_ci_atc_source_code_provider=>ty_statement
+                procedure type if_ci_atc_source_code_provider=>ty_procedure
+                statement_index type i
+      changing  findings type  if_ci_atc_check=>ty_findings.
+
+    METHODS  check_bool_initial
+            IMPORTING current_statement type  if_ci_atc_source_code_provider=>ty_statement
+                      procedure type if_ci_atc_source_code_provider=>ty_procedure
+                      statement_index type i
+            changing  findings type  if_ci_atc_check=>ty_findings.
+
+    METHODS exchangebool
+      importing statement type if_ci_atc_source_code_provider=>ty_statement
+                status type abap_bool
+                variable_position type i
+      returning value(modified_statement) type if_ci_atc_quickfix=>ty_code.
+
+    METHODS removeinitial
+       importing statement type if_ci_atc_source_code_provider=>ty_statement
+
+
+                variable_position  type i
+      returning value(modified_statement) type if_ci_atc_quickfix=>ty_code.
+
+    Methods insert_xsdbool
+       IMPORTING statement type if_ci_atc_source_code_provider=>ty_statement
+*              statement1 type if_ci_atc_source_code_provider=>ty_statement
+*       statement2 type if_ci_atc_source_code_provider=>ty_statement
+*       statement3 type if_ci_atc_source_code_provider=>ty_statement
+*       statement4 type if_ci_atc_source_code_provider=>ty_statement
+                variable_position  type i
+      returning value(modified_statement) type if_ci_atc_quickfix=>ty_code.
+
 ENDCLASS.
+
 
 
 
 CLASS /cc4a/proper_bool_expression IMPLEMENTATION.
   METHOD analyze_procedure.
-    loop at procedure-statements assigning field-symbol(<statement>) where keyword eq 'TEST-SEAM' ##PRIMKEY[KEYWORD].
-      insert value #( code = finding_codes-test_seam
-      location = code_provider->get_statement_location( <statement> )
-      checksum = code_provider->get_statement_checksum( <statement> )
-      has_pseudo_comment = meta_data->has_valid_pseudo_comment(
-        statement = <statement>
-        finding_code = finding_codes-test_seam )
-      ) into table findings.
+    loop at procedure-statements assigning field-symbol(<statement>).
+      data(statement_index) = sy-tabix.
+      loop at <statement>-tokens assigning field-symbol(<token>).
+
+      check_if_then_else( exporting  procedure = procedure statement_index = statement_index current_token = <token> changing findings = findings ).
+
+      fill_booltable( exporting current_statement = <statement> procedure_number = procedure_number  ).
+
+      check_correct_bool_usage(  exporting current_statement = <statement> procedure = procedure statement_index = statement_index changing findings = findings ).
+
+      check_bool_initial(  exporting current_statement = <statement> procedure = procedure statement_index = statement_index changing findings = findings ).
+
+
+      if <token>-lexeme eq 'ENDMETHOD'.
+      data(test) = 'tssf'.
+        DELETE booltable WHERE local_variable eq ABAP_true.
+      endif.
+      ENDLOOP.
     endloop.
   ENDMETHOD.
 
@@ -47,7 +122,7 @@ CLASS /cc4a/proper_bool_expression IMPLEMENTATION.
           description = 'Usage of inappropriate boolean'(des)
           remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
           finding_codes = value #(
-            ( code = finding_codes-test_seam pseudo_comment = pseudo_comment text = 'Usage of inappropriate boolean'(UIB) ) ) ) ).
+            ( code = finding_codes-test_boolean text = 'Usage of inappropriate boolean'(UIB) ) ) ) ).
   ENDMETHOD.
 
   METHOD if_ci_atc_check~get_meta_data.
@@ -58,6 +133,7 @@ CLASS /cc4a/proper_bool_expression IMPLEMENTATION.
     code_provider = data_provider->get_code_provider( ).
     data(procedures) = code_provider->get_procedures( code_provider->object_to_comp_unit( object ) ).
     loop at procedures->* assigning field-symbol(<procedure>).
+      procedure_number = procedure_number + 1.
       insert lines of analyze_procedure( <procedure> ) into table findings.
     endloop.
   ENDMETHOD.
@@ -70,4 +146,193 @@ CLASS /cc4a/proper_bool_expression IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD check_if_then_else.
+    data(current_statement) = value #( procedure-statements[ statement_index  ] optional ).
+    data(next_statement1) = value #( procedure-statements[ statement_index + 1 ] optional ).
+    data(next_statement2) = value #( procedure-statements[ statement_index + 2 ] optional ).
+    data(next_statement3) = value #( procedure-statements[ statement_index + 3 ] optional ).
+    data(next_statement4) = value #( procedure-statements[ statement_index + 4 ] optional ).
+    data(next_token1_2) = value #( next_statement1-tokens[ sy-tabix + 1 ] optional ).
+    data(next_token1_3) = value #( next_statement1-tokens[ sy-tabix + 2 ] optional ).
+    data(next_token3_2) = value #( next_statement3-tokens[ sy-tabix + 1 ] optional ).
+    data(next_token3_3) = value #( next_statement3-tokens[ sy-tabix + 2 ] optional ).
+
+    if current_token-lexeme eq 'IF'
+    and next_statement1 is not INITIAL
+    and next_statement2 is not INITIAL
+    and next_statement3 is not INITIAL
+    and next_statement4 is not INITIAL
+    and next_token1_2 is not INITIAL
+    and next_token3_2 is not INITIAL
+    and next_token1_2-lexeme eq '='
+    and ( next_token1_3-lexeme eq 'ABAP_FALSE' or next_token1_3-lexeme eq 'ABAP_TRUE' )
+    and next_statement2-keyword eq 'ELSE'
+    and next_token3_2-lexeme eq '='
+    and ( next_token3_3-lexeme eq 'ABAP_FALSE' or next_token3_3-lexeme eq 'ABAP_TRUE' )
+    and next_statement4-keyword eq 'ENDIF'
+    .
+
+        data(available_quickfixes) = assistant_factory->create_quickfixes( ).
+        available_quickfixes = assistant_factory->create_quickfixes( ).
+        available_quickfixes->create_quickfix( quickfix_codes-self_reference )->replace(
+        context = assistant_factory->create_quickfix_context( value #(
+        procedure_id = procedure-id
+        statements = value #( from = statement_index to = statement_index + 3 ) ) )
+        code = insert_xsdbool( statement = current_statement
+*        statement1 = next_statement1 statement2 = next_statement2 statement3 = next_statement3 statement4 = next_statement4
+        variable_position = sy-tabix  ) ).
+
+
+
+
+      insert value #( code = finding_codes-test_boolean
+      location = code_provider->get_statement_location( current_statement )
+      checksum = code_provider->get_statement_checksum( current_statement )
+      details = assistant_factory->create_finding_details( )->attach_quickfixes( available_quickfixes )
+      ) into table findings.
+
+    endif.
+
+  ENDMETHOD.
+
+
+  METHOD fill_booltable.
+  data(boolname) = value #( current_statement-tokens[ sy-tabix - 1  ]-lexeme optional ).
+  data(next_token1) = value #( current_statement-tokens[ sy-tabix + 1  ] optional ).
+  data(next_token2) = value #( current_statement-tokens[ sy-tabix + 2  ] optional ).
+  data(token) = value #( current_statement-tokens[ sy-tabix   ] optional ).
+  data(local_variable) = xsdbool(  procedure_number > 1 ).
+
+    if token-lexeme eq 'TYPE'
+    and boolname is not INITIAL
+    and next_token1-lexeme eq 'ABAP_BOOL'.
+      insert value #( name = boolname
+                    local_variable = local_variable
+    ) into table booltable.
+
+    ENDIF.
+
+
+    if token-lexeme cp 'DATA(*)'
+    and next_token1-lexeme eq '='
+    and ( next_token2-lexeme eq 'ABAP_TRUE' or next_token2-lexeme eq 'ABAP_FALSE' ).
+      insert value #( name = substring( val = token-lexeme off = 5 len =  strlen( token-lexeme ) - 6 )
+                    local_variable = local_variable
+    ) into table booltable.
+
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD check_correct_bool_usage.
+    data(token) = value #( current_statement-tokens[ sy-tabix ] optional ).
+    data(next_token) = value #( current_statement-tokens[ sy-tabix + 1  ] optional ).
+    data(previous_token) = value #( current_statement-tokens[ sy-tabix - 1  ] optional ).
+
+    if token-lexeme eq '='
+    and ( next_token-lexeme eq |'X'| or next_token-lexeme eq |' '| or next_token-lexeme eq 'SPACE' ).
+      data(status) = xsdbool( next_token-lexeme eq |'X'| ).
+
+        data(available_quickfixes) = assistant_factory->create_quickfixes( ).
+        available_quickfixes = assistant_factory->create_quickfixes( ).
+        available_quickfixes->create_quickfix( quickfix_codes-self_reference )->replace(
+        context = assistant_factory->create_quickfix_context( value #(
+        procedure_id = procedure-id
+        statements = value #( from = statement_index to = statement_index ) ) )
+        code = exchangebool( statement = current_statement status = status variable_position = sy-tabix + 1 ) ).
+
+      insert value #( code = finding_codes-test_boolean
+      location = code_provider->get_statement_location( current_statement )
+      checksum = code_provider->get_statement_checksum( current_statement )
+      details = assistant_factory->create_finding_details( )->attach_quickfixes( available_quickfixes )
+      ) into table findings.
+
+
+    endif.
+  ENDMETHOD.
+
+  METHOD check_bool_initial.
+  data(previous_token) = value #( current_statement-tokens[ sy-tabix - 1  ] optional ).
+  data(token) = value #( current_statement-tokens[ sy-tabix ] optional ).
+  data(next_token1) = value #( current_statement-tokens[ sy-tabix + 1  ] optional ).
+  data(next_token2) = value #( current_statement-tokens[ sy-tabix + 2  ] optional ).
+  data(index) = sy-tabix.
+
+  if previous_token is not INITIAL
+  and token is not INITIAL
+  and next_token1 is not INITIAL
+  and token-lexeme eq 'IS'
+  and ( next_token1-lexeme EQ 'INITIAL' or ( next_token2 is not INITIAL and next_token2-lexeme eq 'INITIAL' ) ).
+    loop at booltable ASSIGNING FIELD-SYMBOL(<boolean>).
+      if previous_token-lexeme eq <boolean>-name.
+
+        data(available_quickfixes) = assistant_factory->create_quickfixes( ).
+        available_quickfixes = assistant_factory->create_quickfixes( ).
+        available_quickfixes->create_quickfix( quickfix_codes-self_reference )->replace(
+        context = assistant_factory->create_quickfix_context( value #(
+        procedure_id = procedure-id
+        statements = value #( from = statement_index to = statement_index ) ) )
+        code = removeinitial( statement = current_statement  variable_position = index  ) ).
+
+
+
+        insert value #( code = finding_codes-test_boolean
+      location = code_provider->get_statement_location( current_statement )
+      checksum = code_provider->get_statement_checksum( current_statement )
+      details = assistant_factory->create_finding_details( )->attach_quickfixes( available_quickfixes )
+      ) into table findings.
+
+      ENDIF.
+    ENDLOOP.
+  ENDIF.
+
+
+  ENDMETHOD.
+
+  METHOD exchangebool.
+    data(new_statement) = statement.
+    if status = abap_true.
+      new_statement-tokens[ variable_position ]-lexeme = 'ABAP_TRUE'.
+      ELSE.
+      new_statement-tokens[ variable_position ]-lexeme = 'ABAP_FALSE'.
+      endif.
+    data(flat_new_statement) = /cc4a/abap_analyzer=>create( )->flatten_tokens( new_statement-tokens ) && `.`.
+    modified_statement = /cc4a/abap_analyzer=>create( )->break_into_lines( flat_new_statement ).
+  ENDMETHOD.
+
+  METHOD removeinitial.
+    data(new_statement) = statement.
+    if new_statement-tokens[ variable_position + 1 ]-lexeme eq 'NOT'.
+      new_statement-tokens[ variable_position  ]-lexeme = '='.
+      new_statement-tokens[ variable_position  + 1 ]-lexeme = 'ABAP_TRUE'.
+      new_statement-tokens[ variable_position  + 2 ]-lexeme = ''.
+    ELSE.
+      new_statement-tokens[ variable_position  ]-lexeme = '='.
+      new_statement-tokens[ variable_position  + 1 ]-lexeme = 'ABAP_FALSE'.
+    ENDIF.
+    data(flat_new_statement) = /cc4a/abap_analyzer=>create( )->flatten_tokens( new_statement-tokens ) && `.`.
+    modified_statement = /cc4a/abap_analyzer=>create( )->break_into_lines( flat_new_statement ).
+  ENDMETHOD.
+
+  METHOD insert_xsdbool.
+    data(new_statement) = statement.
+*    data(new_statement1) = statement1.
+*    data(new_statement2) = statement2.
+*    data(new_statement3) = statement3.
+*    data(new_statement4) = statement4.
+
+
+    data(flat_new_statement) = /cc4a/abap_analyzer=>create( )->flatten_tokens( new_statement-tokens ) && `.`.
+    modified_statement = /cc4a/abap_analyzer=>create( )->break_into_lines( flat_new_statement ).
+  ENDMETHOD.
+
 ENDCLASS.
+
+
+
+
+
+
+
+
+

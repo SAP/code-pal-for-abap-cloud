@@ -13,7 +13,9 @@ CLASS /cc4a/proper_bool_expression DEFINITION
 
      constants:
       begin of quickfix_codes,
-        self_reference type cl_ci_atc_quickfixes=>ty_quickfix_code value 'RMVSELFREF',
+        if_else type cl_ci_atc_quickfixes=>ty_quickfix_code value 'EXCIFELSE',
+        charachter_equivalents type cl_ci_atc_quickfixes=>ty_quickfix_code value 'EXCCHAREQV',
+        initial_boolean type cl_ci_atc_quickfixes=>ty_quickfix_code value 'EXCINBOOL',
       end of quickfix_codes.
 
 
@@ -22,7 +24,6 @@ CLASS /cc4a/proper_bool_expression DEFINITION
 
   protected section.
   private section.
-*    constants pseudo_comment type string value 'TEST_SEAM_USAGE'.
 
 
           types: BEGIN OF boolstructure,
@@ -81,10 +82,7 @@ CLASS /cc4a/proper_bool_expression DEFINITION
 
     Methods insert_xsdbool
        IMPORTING statement type if_ci_atc_source_code_provider=>ty_statement
-*              statement1 type if_ci_atc_source_code_provider=>ty_statement
-*       statement2 type if_ci_atc_source_code_provider=>ty_statement
-*       statement3 type if_ci_atc_source_code_provider=>ty_statement
-*       statement4 type if_ci_atc_source_code_provider=>ty_statement
+                 statement1 type if_ci_atc_source_code_provider=>ty_statement
                 variable_position  type i
       returning value(modified_statement) type if_ci_atc_quickfix=>ty_code.
 
@@ -109,7 +107,6 @@ CLASS /cc4a/proper_bool_expression IMPLEMENTATION.
 
 
       if <token>-lexeme eq 'ENDMETHOD'.
-      data(test) = 'tssf'.
         DELETE booltable WHERE local_variable eq ABAP_true.
       endif.
       ENDLOOP.
@@ -122,7 +119,10 @@ CLASS /cc4a/proper_bool_expression IMPLEMENTATION.
           description = 'Usage of inappropriate boolean'(des)
           remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
           finding_codes = value #(
-            ( code = finding_codes-test_boolean text = 'Usage of inappropriate boolean'(UIB) ) ) ) ).
+            ( code = finding_codes-test_boolean text = 'Usage of inappropriate boolean'(UIB) ) )
+            quickfix_codes = value #(
+            ( code = quickfix_codes-if_else short_text = 'Remove self-reference'(qrs) ) ) )
+             ).
   ENDMETHOD.
 
   METHOD if_ci_atc_check~get_meta_data.
@@ -174,12 +174,11 @@ CLASS /cc4a/proper_bool_expression IMPLEMENTATION.
 
         data(available_quickfixes) = assistant_factory->create_quickfixes( ).
         available_quickfixes = assistant_factory->create_quickfixes( ).
-        available_quickfixes->create_quickfix( quickfix_codes-self_reference )->replace(
+        available_quickfixes->create_quickfix( quickfix_codes-if_else )->replace(
         context = assistant_factory->create_quickfix_context( value #(
         procedure_id = procedure-id
-        statements = value #( from = statement_index to = statement_index + 3 ) ) )
-        code = insert_xsdbool( statement = current_statement
-*        statement1 = next_statement1 statement2 = next_statement2 statement3 = next_statement3 statement4 = next_statement4
+        statements = value #( from = statement_index to = statement_index + 4  ) ) )
+        code =  insert_xsdbool( statement = current_statement statement1 = next_statement1
         variable_position = sy-tabix  ) ).
 
 
@@ -235,7 +234,7 @@ CLASS /cc4a/proper_bool_expression IMPLEMENTATION.
 
         data(available_quickfixes) = assistant_factory->create_quickfixes( ).
         available_quickfixes = assistant_factory->create_quickfixes( ).
-        available_quickfixes->create_quickfix( quickfix_codes-self_reference )->replace(
+        available_quickfixes->create_quickfix( quickfix_codes-charachter_equivalents )->replace(
         context = assistant_factory->create_quickfix_context( value #(
         procedure_id = procedure-id
         statements = value #( from = statement_index to = statement_index ) ) )
@@ -268,7 +267,7 @@ CLASS /cc4a/proper_bool_expression IMPLEMENTATION.
 
         data(available_quickfixes) = assistant_factory->create_quickfixes( ).
         available_quickfixes = assistant_factory->create_quickfixes( ).
-        available_quickfixes->create_quickfix( quickfix_codes-self_reference )->replace(
+        available_quickfixes->create_quickfix( quickfix_codes-initial_boolean )->replace(
         context = assistant_factory->create_quickfix_context( value #(
         procedure_id = procedure-id
         statements = value #( from = statement_index to = statement_index ) ) )
@@ -315,15 +314,27 @@ CLASS /cc4a/proper_bool_expression IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD insert_xsdbool.
-    data(new_statement) = statement.
-*    data(new_statement1) = statement1.
-*    data(new_statement2) = statement2.
-*    data(new_statement3) = statement3.
-*    data(new_statement4) = statement4.
+
+      data statement_string type string.
+      statement_string  = statement1-tokens[ 1 ]-lexeme && ' =' && ' xsdbool(' .
 
 
-    data(flat_new_statement) = /cc4a/abap_analyzer=>create( )->flatten_tokens( new_statement-tokens ) && `.`.
-    modified_statement = /cc4a/abap_analyzer=>create( )->break_into_lines( flat_new_statement ).
+      if statement1-tokens[ 3 ]-lexeme eq 'ABAP_FALSE'.
+        statement_string = statement_string &&   ` `  &&  'NOT ( '.
+      endif.
+      loop at statement-tokens ASSIGNING FIELD-SYMBOL(<token>).
+        if sy-tabix > 1.
+          statement_string = statement_string &&   ` `  &&  <token>-lexeme.
+        ENDIF.
+      ENDLOOP.
+      if statement1-tokens[ 3 ]-lexeme eq 'ABAP_FALSE'.
+        statement_string = statement_string &&   ` `  &&  ')'.
+      endif.
+      statement_string = statement_string && ` ` && ').'.
+
+      append statement_string
+      to modified_statement.
+
   ENDMETHOD.
 
 ENDCLASS.

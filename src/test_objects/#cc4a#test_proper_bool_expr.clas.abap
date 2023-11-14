@@ -20,13 +20,13 @@ CLASS /cc4a/test_proper_bool_expr IMPLEMENTATION.
     data(test) = 'Test'.
     data(b) = abap_true.
 
-    if test is INITIAL. "finding erwartet
+    if test is INITIAL. "finding1 erwartet
     b = abap_true.
     else.
     b = ABAP_false.
     endif.
 
-    if test is INITIAL. "finding erwartet
+    if test is INITIAL. "finding2 erwartet
     b = abap_false.
     else.
     b = abap_true.

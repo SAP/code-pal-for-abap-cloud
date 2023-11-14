@@ -121,8 +121,11 @@ CLASS /cc4a/proper_bool_expression IMPLEMENTATION.
           finding_codes = value #(
             ( code = finding_codes-test_boolean text = 'Usage of inappropriate boolean'(UIB) ) )
             quickfix_codes = value #(
-            ( code = quickfix_codes-if_else short_text = 'Remove self-reference'(qrs) ) ) )
+            ( code = quickfix_codes-if_else short_text = 'Replace with xsdbool'(qrs) )
+            ( code = quickfix_codes-charachter_equivalents short_text = 'Replace with correct boolean-term'(qrs) )
+            ( code = quickfix_codes-initial_boolean short_text = 'Replace with correct comparison'(qrs) ) ) )
              ).
+
   ENDMETHOD.
 
   METHOD if_ci_atc_check~get_meta_data.

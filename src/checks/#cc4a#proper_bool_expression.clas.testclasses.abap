@@ -57,26 +57,35 @@ class test implementation.
               object            = value #( type = 'CLASS' name = test_class )
               expected_findings = value #( code = /cc4a/PROPER_BOOL_EXPRESSION=>finding_codes-test_boolean
                                          ( location = finding1
-*                                              quickfixes = value #( (
-*                                              quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-if_else
-*                                              location = finding1
-*                                              code = value #(
-*                                              ( `B = xsdbool( TEST IS INITIAL ).` ) ) ) )
-)
+                                              quickfixes = value #( (
+                                              quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-if_else
+                                              location = finding1
+                                              code = value #(
+                                              ( `B = xsdbool( TEST IS INITIAL ).` )
+                                              ( ` ` )
+                                              ( ` ` )
+                                              ( ` ` )
+                                              ( ` ` ) ) ) ) )
                                          ( location = finding2
-*                                              quickfixes = value #( (
-*                                              quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-if_else
-*                                              location = finding2
-*                                              code = value #(
-*                                              ( `B = xsdbool( NOT ( TEST IS INITIAL ) ).` ) ) ) )
-)
+                                              quickfixes = value #( (
+                                              quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-if_else
+                                              location = finding2
+                                              code = value #(
+                                              ( `B = xsdbool( NOT ( TEST IS INITIAL ) ).` )
+                                              ( ` ` )
+                                              ( ` ` )
+                                              ( ` ` )
+                                              ( ` ` ) ) ) ) )
                                          ( location = finding3
-*                                              quickfixes = value #( (
-*                                              quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-if_else
-*                                              location = finding3
-*                                              code = value #(
-*                                              ( `B = xsdbool( NOT ( TEST IS NOT INITIAL ) ).` ) ) ) )
- )
+                                              quickfixes = value #( (
+                                              quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-if_else
+                                              location = finding3
+                                              code = value #(
+                                              ( `B = xsdbool( NOT ( TEST IS NOT INITIAL ) ).` )
+                                              ( ` ` )
+                                              ( ` ` )
+                                              ( ` ` )
+                                              ( ` ` ) ) ) ) )
                                          ( location = finding4
                                               quickfixes = value #( (
                                               quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-charachter_equivalents

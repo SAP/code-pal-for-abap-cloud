@@ -6,6 +6,8 @@ CLASS /cc4a/proper_bool_expression DEFINITION
   public section.
     interfaces if_ci_atc_check.
 
+
+
     constants:
       begin of finding_codes,
         test_boolean type if_ci_atc_check=>ty_finding_code value 'IPBUSE',
@@ -82,7 +84,7 @@ CLASS /cc4a/proper_bool_expression DEFINITION
 
     Methods insert_xsdbool
        IMPORTING statement type if_ci_atc_source_code_provider=>ty_statement
-                 statement1 type if_ci_atc_source_code_provider=>ty_statement
+                 next_statement type if_ci_atc_source_code_provider=>ty_statement
                 variable_position  type i
       returning value(modified_statement) type if_ci_atc_quickfix=>ty_code.
 
@@ -181,7 +183,7 @@ CLASS /cc4a/proper_bool_expression IMPLEMENTATION.
         context = assistant_factory->create_quickfix_context( value #(
         procedure_id = procedure-id
         statements = value #( from = statement_index to = statement_index + 4  ) ) )
-        code =  insert_xsdbool( statement = current_statement statement1 = next_statement1
+        code =  insert_xsdbool( statement = current_statement next_statement = next_statement1
         variable_position = sy-tabix  ) ).
 
 
@@ -317,22 +319,44 @@ CLASS /cc4a/proper_bool_expression IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD insert_xsdbool.
-
       data statement_string type string.
-      statement_string  = statement1-tokens[ 1 ]-lexeme && ' =' && ' xsdbool(' .
-
-
-      if statement1-tokens[ 3 ]-lexeme eq 'ABAP_FALSE'.
-        statement_string = statement_string &&   ` `  &&  'NOT ( '.
-      endif.
+      data counter type i.
+      statement_string  = next_statement-tokens[ 1 ]-lexeme && ' =' && ' xsdbool(' .
       loop at statement-tokens ASSIGNING FIELD-SYMBOL(<token>).
-        if sy-tabix > 1.
-          statement_string = statement_string &&   ` `  &&  <token>-lexeme.
+      counter = counter + 1.
+        data(current_token) = value #( statement-tokens[ counter ] optional ).
+        data(next_token) = value #( statement-tokens[ counter + 1 ] optional ).
+        data(previous_token) = value #( statement-tokens[ counter - 1 ] optional ).
+        if counter > 1.
+          if next_statement-tokens[ 3 ]-lexeme eq 'ABAP_FALSE'.
+              if /cc4a/abap_analyzer=>create( )->token_is_comparison_operator( current_token ) and current_token-lexeme ne 'IS' and current_token-lexeme ne 'IN'.
+              data(comparison_operator) = current_token-lexeme.
+              data(negated_comparison_operator) = /cc4a/abap_analyzer=>create( )->negate_comparison_operator( comparison_operator ).
+                statement_string = statement_string &&   ` `  && negated_comparison_operator .
+              else.
+                if  current_token-lexeme eq 'IN' and previous_token-lexeme eq 'NOT'.
+                  statement_string = substring( val = statement_string len = strlen( statement_string ) - 4 ).
+                endif.
+
+                if current_token-lexeme eq 'IN' and previous_token-lexeme ne 'NOT'.
+                  statement_string = statement_string && ` ` && `NOT`.
+                endif.
+
+                statement_string = statement_string &&   ` `  &&  current_token-lexeme.
+
+                if current_token-lexeme eq 'IS' and next_token-lexeme ne 'NOT'.
+                  statement_string = statement_string && ` ` && `NOT`.
+                endif.
+                if  current_token-lexeme eq 'IS' and next_token-lexeme eq 'NOT'.
+                  counter = counter + 1.
+                endif.
+              endif.
+          else.
+              statement_string = statement_string &&   ` `  &&  current_token-lexeme.
+          endif.
         ENDIF.
       ENDLOOP.
-      if statement1-tokens[ 3 ]-lexeme eq 'ABAP_FALSE'.
-        statement_string = statement_string &&   ` `  &&  ')'.
-      endif.
+
       statement_string = statement_string && ` ` && ').'.
 
       append statement_string

@@ -137,7 +137,7 @@ class test implementation.
                                               quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-if_else
                                               location = finding7
                                               code = value #(
-                                              ( `B = xsdbool( TEST_NUMBER = 4 ).` )
+                                              ( `B = xsdbool( TEST_NUMBER = 4 AND TEST IS INITIAL  ).` )
                                               ( ` ` )
                                               ( ` ` )
                                               ( ` ` )

@@ -60,7 +60,7 @@ CLASS /cc4a/test_proper_bool_expr IMPLEMENTATION.
     b = abap_true.
     endif.
 
-    if test_number <> 4. "finding erwartet
+    if test_number <> 4 or test is not INITIAL. "finding erwartet
     b = abap_false.
     else.
     b = abap_true.

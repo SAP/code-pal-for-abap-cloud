@@ -62,6 +62,7 @@ class /cc4a/proper_bool_expression definition
 
     methods check_correct_bool_usage
        IMPORTING next_token_lexeme type string
+                 previous_token_lexeme type string
       returning value(finding)    type string.
 
     methods  check_bool_initial
@@ -71,7 +72,7 @@ class /cc4a/proper_bool_expression definition
     methods exchangebool
       importing statement                 type if_ci_atc_source_code_provider=>ty_statement
                 status                    type abap_bool
-                variable_position         type i
+                bool_constant_position    type i
       returning value(modified_statement) type if_ci_atc_quickfix=>ty_code.
 
     methods removeinitial
@@ -104,8 +105,9 @@ class /cc4a/proper_bool_expression implementation.
             reported_finding = fill_booltable( exporting current_statement = <statement> current_token_lexeme = <token>-lexeme local_variable = abap_false  ).
           endif.
         else.
+
           if <statement>-keyword eq 'COMPUTE' and <token>-lexeme eq '='.
-            reported_finding = check_correct_bool_usage( next_token_lexeme = <statement>-tokens[ sy-tabix + 1 ]-lexeme ).
+            reported_finding = check_correct_bool_usage( next_token_lexeme = <statement>-tokens[ sy-tabix + 1 ]-lexeme previous_token_lexeme = <statement>-tokens[ sy-tabix - 1 ]-lexeme ).
 
           else.
             if <token>-lexeme eq 'TYPE' or <token>-lexeme cp 'DATA(*)'.
@@ -132,17 +134,18 @@ class /cc4a/proper_bool_expression implementation.
           statements = value #( from = statement_index to = cond #( when reported_finding eq 'check_if_then_else' then statement_index + 4
                                                                     else statement_index ) ) ) )
           code = cond #( when reported_finding eq 'check_correct_bool_usage' then
-                            exchangebool( statement = <statement> status = xsdbool( <statement>-tokens[ sy-tabix + 1 ]-lexeme eq |'X'| )
-                            variable_position = sy-tabix + 1 )
+                            exchangebool( statement = <statement> status = xsdbool( <statement>-tokens[ sy-tabix + cond #(  when <statement>-tokens[ sy-tabix ]-lexeme eq '=' then 1
+                                                                                                                            when <statement>-tokens[ sy-tabix ]-lexeme eq 'TYPE' then 3
+                                                                                                                            else 2 ) ]-lexeme eq |'X'| )
+                            bool_constant_position = sy-tabix + cond #(   when <statement>-tokens[ sy-tabix ]-lexeme eq '=' then 1
+                                                                          when <statement>-tokens[ sy-tabix ]-lexeme eq 'TYPE' then 3
+                                                                          else 2 ) )
                          when reported_finding eq 'check_if_then_else' then
                             insert_xsdbool( statement = procedure-statements[ statement_index ]
                             next_statement = procedure-statements[ statement_index + 1 ]
                             variable_position = sy-tabix  )
                          when reported_finding = 'check_bool_initial' then
                             removeinitial( statement = <statement>  variable_position = sy-tabix  )
-                         when reported_finding = 'check_bool_value_usage' then
-                            exchangebool( statement = <statement> status = xsdbool( <statement>-tokens[ sy-tabix + 3 ]-lexeme eq |'X'| )
-                            variable_position = sy-tabix + 3 )
                           else value #(  ) ) ).
 
           insert value #( code = finding_codes-test_boolean
@@ -152,9 +155,12 @@ class /cc4a/proper_bool_expression implementation.
           ) into table findings.
 
         endif.
+        if <token>-lexeme eq 'ENDMETHOD'.
+                delete booltable where local_variable eq ABAP_true.
+         endif.
 
       endloop.
-      delete booltable where local_variable eq ABAP_true.
+
     endloop.
   endmethod.
 
@@ -202,7 +208,7 @@ class /cc4a/proper_bool_expression implementation.
       loop at procedure-statements assigning field-symbol(<statement>) from statement_index + 1 to statement_index + 3.
         loop at <statement>-tokens assigning field-symbol(<token>) where lexeme eq '='.
           data(next_token) = value #( <statement>-tokens[ sy-tabix + 1 ] ).
-          if next_token-lexeme eq 'ABAP_TRUE' or next_token-lexeme eq 'ABAP_FALSE' or next_token-lexeme eq |SPACE| or next_token-lexeme eq |''|
+          if next_token-lexeme eq 'ABAP_TRUE' or next_token-lexeme eq 'ABAP_FALSE' or next_token-lexeme eq |SPACE|
           or next_token-lexeme eq |' '| or next_token-lexeme eq |'X'|.
             if bool_variable is initial.
               bool_variable = <statement>-tokens[ sy-tabix - 1 ]-lexeme.
@@ -220,29 +226,36 @@ class /cc4a/proper_bool_expression implementation.
 
   method fill_booltable.
     data(token_lexeme_after_value) = value #( current_statement-tokens[ sy-tabix + 3  ]-lexeme optional ).
+    data(token_lexeme_after_eq) = value #( current_statement-tokens[ sy-tabix + 2  ]-lexeme optional ).
+
     if current_token_lexeme eq 'TYPE'
     and current_statement-tokens[ sy-tabix + 1  ]-lexeme eq 'ABAP_BOOL'.
       insert value #( name = current_statement-tokens[ sy-tabix - 1  ]-lexeme
                     local_variable = local_variable
       ) into table booltable.
-      if token_lexeme_after_value eq |''| or token_lexeme_after_value eq |' '| or token_lexeme_after_value eq |'X'| or token_lexeme_after_value eq |SPACE|.
-        finding = 'check_bool_value_usage'.
-      endif.
     elseif current_token_lexeme cp 'DATA(*)'
     and ( current_statement-tokens[ sy-tabix + 2  ]-lexeme eq 'ABAP_TRUE' or current_statement-tokens[ sy-tabix + 2  ]-lexeme eq 'ABAP_FALSE'
-    or current_statement-tokens[ sy-tabix + 2  ]-lexeme eq 'SPACE' or current_statement-tokens[ sy-tabix + 2  ]-lexeme eq |''|
+    or current_statement-tokens[ sy-tabix + 2  ]-lexeme eq 'SPACE'
     or current_statement-tokens[ sy-tabix + 2  ]-lexeme eq |' '| or current_statement-tokens[ sy-tabix + 2  ]-lexeme eq |'X'| ).
       insert value #( name = substring( val = current_token_lexeme off = 5 len =  strlen( current_token_lexeme ) - 6 )
                     local_variable = local_variable
       ) into table booltable.
+
     endif.
+          if token_lexeme_after_eq eq |' '| or token_lexeme_after_eq eq |'X'| or token_lexeme_after_eq eq |SPACE| or token_lexeme_after_value eq |' '| or token_lexeme_after_value eq |'X'| or token_lexeme_after_value eq |SPACE|.
+        finding = 'check_correct_bool_usage'.
+      endif.
 
   endmethod.
 
   method check_correct_bool_usage.
 
-    if ( next_token_lexeme eq |'X'| or next_token_lexeme eq |' '| or next_token_lexeme eq |''| or next_token_lexeme eq 'SPACE' ).
-      finding = 'check_correct_bool_usage'.
+    if ( next_token_lexeme eq |'X'| or next_token_lexeme eq |' '| or next_token_lexeme eq 'SPACE' ).
+      loop at booltable assigning field-symbol(<boolean>).
+        if previous_token_lexeme eq <boolean>-name.
+          finding = 'check_correct_bool_usage'.
+        endif.
+      endloop.
     endif.
 
   endmethod.
@@ -258,9 +271,9 @@ class /cc4a/proper_bool_expression implementation.
   method exchangebool.
     data(new_statement) = statement.
     if status = abap_true.
-      new_statement-tokens[ variable_position ]-lexeme = 'ABAP_TRUE'.
+      new_statement-tokens[ bool_constant_position ]-lexeme = 'ABAP_TRUE'.
     else.
-      new_statement-tokens[ variable_position ]-lexeme = 'ABAP_FALSE'.
+      new_statement-tokens[ bool_constant_position ]-lexeme = 'ABAP_FALSE'.
     endif.
     data(flat_new_statement) = /cc4a/abap_analyzer=>create( )->flatten_tokens( new_statement-tokens ) && `.`.
     modified_statement = /cc4a/abap_analyzer=>create( )->break_into_lines( flat_new_statement ).
@@ -292,7 +305,6 @@ class /cc4a/proper_bool_expression implementation.
       data(previous_token) = value #( statement-tokens[ counter - 1 ] optional ).
       if counter > 1.
         if next_statement-tokens[ 3 ]-lexeme eq 'ABAP_FALSE'
-        or next_statement-tokens[ 3 ]-lexeme eq |''|
         or next_statement-tokens[ 3 ]-lexeme eq |' '|
         or next_statement-tokens[ 3 ]-lexeme eq |SPACE|.
           if /cc4a/abap_analyzer=>create( )->token_is_comparison_operator( current_token ) and current_token-lexeme ne 'IS' and current_token-lexeme ne 'IN'.

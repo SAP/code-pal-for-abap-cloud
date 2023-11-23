@@ -49,15 +49,15 @@ class test implementation.
     data(finding8) = value if_ci_atc_check=>ty_location(
           object   = cl_ci_atc_unit_driver=>get_method_object(
             value #( class = test_class method = test_class_methods-test_correct_bool_usage ) )
-          position = value #( line = 2 column = 4 ) ).
+          position = value #( line = 3 column = 4 ) ).
     data(finding9) = value if_ci_atc_check=>ty_location(
           object   = cl_ci_atc_unit_driver=>get_method_object(
             value #( class = test_class method = test_class_methods-test_correct_bool_usage ) )
-          position = value #( line = 3 column = 4 ) ).
+          position = value #( line = 4 column = 4 ) ).
     data(finding10) = value if_ci_atc_check=>ty_location(
           object   = cl_ci_atc_unit_driver=>get_method_object(
             value #( class = test_class method = test_class_methods-test_correct_bool_usage ) )
-          position = value #( line = 4 column = 4 ) ).
+          position = value #( line = 5 column = 4 ) ).
     data(finding11) = value if_ci_atc_check=>ty_location(
           object   = cl_ci_atc_unit_driver=>get_method_object(
             value #( class = test_class method = test_class_methods-test_bool_initial ) )
@@ -148,7 +148,7 @@ class test implementation.
                                               quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-charachter_equivalents
                                               location = finding8
                                               code = value #(
-                                              ( `A = ABAP_TRUE .` ) ) ) ) )
+                                              ( `T = ABAP_TRUE .` ) ) ) ) )
                                          ( location = finding9
                                               quickfixes = value #( (
                                               quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-charachter_equivalents

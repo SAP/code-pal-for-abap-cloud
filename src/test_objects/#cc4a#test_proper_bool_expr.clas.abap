@@ -21,7 +21,7 @@ ENDCLASS.
 CLASS /cc4a/test_proper_bool_expr IMPLEMENTATION.
 
   METHOD test_if_then_else.
-    data(test) = 'Test'.
+    data(test) = 'test'.
     data(test_number) = 5.
     data(b) = abap_true.
     if test is INITIAL. "finding1 erwartet
@@ -70,9 +70,9 @@ CLASS /cc4a/test_proper_bool_expr IMPLEMENTATION.
   ENDMETHOD.
 
 
-
   METHOD test_correct_bool_usage.
-    a = 'X'.  "finding erwartet
+    data t type abap_bool.
+    t = 'X'.  "finding erwartet
     a = ' '.  "finding erwartet
     a = space.  "finding erwartet
   ENDMETHOD.

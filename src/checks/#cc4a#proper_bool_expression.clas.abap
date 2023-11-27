@@ -31,14 +31,22 @@ class /cc4a/proper_bool_expression definition
 
     types: begin of boolstructure,
              name           type string,
-             local_variable type abap_bool,
+             is_local_variable type abap_bool,
            end of boolstructure.
+
+    types: begin of boolean_names_in_structure,
+             name_of_boolean   type string,
+             name_of_corresp_structure type string,
+           end of boolean_names_in_structure.
     data code_provider     type ref to if_ci_atc_source_code_provider.
     data assistant_factory type ref to cl_ci_atc_assistant_factory.
     data meta_data type ref to /cc4a/if_check_meta_data.
 
+    data xsdbool_position_line type if_ci_atc_check=>ty_position-line value -10.
+
 
     data booltable type table of boolstructure.
+    data table_of_structure_names type table of boolean_names_in_structure.
     data procedure_number type i value 0.
 
     methods analyze_procedure
@@ -56,13 +64,16 @@ class /cc4a/proper_bool_expression definition
     methods fill_booltable
       importing current_statement    type  if_ci_atc_source_code_provider=>ty_statement
                 current_token_lexeme type string
-                local_variable       type abap_bool
-      returning value(finding)    type string.
+                is_local_variable   type abap_bool
+                procedure           type if_ci_atc_source_code_provider=>ty_procedure
+                statement_index type i
+      returning value(finding)      type string.
 
 
     methods check_correct_bool_usage
        IMPORTING next_token_lexeme type string
                  previous_token_lexeme type string
+                 statement type if_ci_atc_source_code_provider=>ty_statement
       returning value(finding)    type string.
 
     methods  check_bool_initial
@@ -101,17 +112,17 @@ class /cc4a/proper_bool_expression implementation.
         reported_finding = ''.
 
         if procedure-id-kind eq if_ci_atc_source_code_provider=>procedure_kinds-class_definition.
-          if <token>-lexeme eq 'TYPE'.
-            reported_finding = fill_booltable( exporting current_statement = <statement> current_token_lexeme = <token>-lexeme local_variable = abap_false  ).
+          if <token>-lexeme eq 'TYPE' or <token>-lexeme eq 'BEGIN'.
+            reported_finding = fill_booltable( exporting current_statement = <statement> current_token_lexeme = <token>-lexeme is_local_variable = abap_false procedure = procedure statement_index = statement_index ).
           endif.
         else.
 
           if <statement>-keyword eq 'COMPUTE' and <token>-lexeme eq '='.
-            reported_finding = check_correct_bool_usage( next_token_lexeme = <statement>-tokens[ sy-tabix + 1 ]-lexeme previous_token_lexeme = <statement>-tokens[ sy-tabix - 1 ]-lexeme ).
+            reported_finding = check_correct_bool_usage( next_token_lexeme = <statement>-tokens[ sy-tabix + 1 ]-lexeme previous_token_lexeme = <statement>-tokens[ sy-tabix - 1 ]-lexeme statement = <statement> ).
 
           else.
             if <token>-lexeme eq 'TYPE' or <token>-lexeme cp 'DATA(*)'.
-              reported_finding = fill_booltable( exporting current_statement = <statement> current_token_lexeme = <token>-lexeme local_variable = abap_true  ).
+              reported_finding = fill_booltable( exporting current_statement = <statement> current_token_lexeme = <token>-lexeme is_local_variable = abap_true procedure = procedure  statement_index = statement_index  ).
             endif.
             case <token>-lexeme.
               when 'IF'.
@@ -153,10 +164,12 @@ class /cc4a/proper_bool_expression implementation.
           checksum = code_provider->get_statement_checksum( <statement> )
           details = assistant_factory->create_finding_details( )->attach_quickfixes( available_quickfixes )
           ) into table findings.
-
+          if reported_finding eq 'check_if_then_else'.
+            xsdbool_position_line = code_provider->get_statement_location( <statement> )-position-line.
+          endif.
         endif.
         if <token>-lexeme eq 'ENDMETHOD'.
-                delete booltable where local_variable eq ABAP_true.
+                delete booltable where is_local_variable eq ABAP_true.
          endif.
 
       endloop.
@@ -213,7 +226,12 @@ class /cc4a/proper_bool_expression implementation.
             if bool_variable is initial.
               bool_variable = <statement>-tokens[ sy-tabix - 1 ]-lexeme.
             elseif bool_variable eq  <statement>-tokens[ sy-tabix - 1 ]-lexeme.
-              finding = 'check_if_then_else'.
+
+              loop at booltable assigning field-symbol(<boolean>).
+                if bool_variable eq <boolean>-name.
+                  finding = 'check_if_then_else'.
+                endif.
+              endloop.
               exit.
             endif.
           endif.
@@ -228,18 +246,57 @@ class /cc4a/proper_bool_expression implementation.
     data(token_lexeme_after_value) = value #( current_statement-tokens[ sy-tabix + 3  ]-lexeme optional ).
     data(token_lexeme_after_eq) = value #( current_statement-tokens[ sy-tabix + 2  ]-lexeme optional ).
 
-    if current_token_lexeme eq 'TYPE'
-    and current_statement-tokens[ sy-tabix + 1  ]-lexeme eq 'ABAP_BOOL'.
-      insert value #( name = current_statement-tokens[ sy-tabix - 1  ]-lexeme
-                    local_variable = local_variable
-      ) into table booltable.
+    if current_token_lexeme eq 'TYPE'.
+      if current_statement-tokens[ sy-tabix + 1  ]-lexeme eq 'ABAP_BOOL'
+      and current_statement-tokens[ sy-tabix - 2  ]-lexeme ne 'TYPES'.
+        insert value #( name = current_statement-tokens[ sy-tabix - 1  ]-lexeme
+                        is_local_variable = is_local_variable
+          ) into table booltable.
+      else.
+      data(counter) = sy-tabix.
+      loop at table_of_structure_names ASSIGNING FIELD-SYMBOL(<line_of_table>) where name_of_corresp_structure eq current_statement-tokens[ sy-tabix + 1  ]-lexeme .
+          insert value #( name =   current_statement-tokens[ counter - 1  ]-lexeme && '-' && <line_of_table>-name_of_boolean
+                        is_local_variable = is_local_variable
+          ) into table booltable.
+
+        endloop.
+      endif.
+
+
     elseif current_token_lexeme cp 'DATA(*)'
     and ( current_statement-tokens[ sy-tabix + 2  ]-lexeme eq 'ABAP_TRUE' or current_statement-tokens[ sy-tabix + 2  ]-lexeme eq 'ABAP_FALSE'
     or current_statement-tokens[ sy-tabix + 2  ]-lexeme eq 'SPACE'
     or current_statement-tokens[ sy-tabix + 2  ]-lexeme eq |' '| or current_statement-tokens[ sy-tabix + 2  ]-lexeme eq |'X'| ).
       insert value #( name = substring( val = current_token_lexeme off = 5 len =  strlen( current_token_lexeme ) - 6 )
-                    local_variable = local_variable
+                    is_local_variable = is_local_variable
       ) into table booltable.
+
+
+
+    elseif current_token_lexeme eq 'BEGIN'.
+      data(structure_name) = current_statement-tokens[ sy-tabix + 2  ]-lexeme.
+      loop at procedure-statements ASSIGNING FIELD-SYMBOL(<statement>)
+      where keyword eq 'TYPES'
+
+      .
+
+        data(statement_counter) = sy-tabix.
+*        if sy-tabix >= statement_index.
+        loop at <statement>-tokens ASSIGNING FIELD-SYMBOL(<current_token>)
+         where lexeme eq 'ABAP_BOOL'
+         .
+*         if <current_token>-lexeme eq 'ABAP_BOOL'.
+        insert value #( name_of_boolean = procedure-statements[ statement_counter ]-tokens[ sy-tabix - 2 ]-lexeme
+                      name_of_corresp_structure = structure_name
+        ) into table table_of_structure_names.
+*        endif.
+        if <current_token>-lexeme eq 'END'.
+          exit.
+          exit.
+        endif.
+        endloop.
+*        endif.
+      endloop.
 
     endif.
           if token_lexeme_after_eq eq |' '| or token_lexeme_after_eq eq |'X'| or token_lexeme_after_eq eq |SPACE| or token_lexeme_after_value eq |' '| or token_lexeme_after_value eq |'X'| or token_lexeme_after_value eq |SPACE|.
@@ -249,13 +306,17 @@ class /cc4a/proper_bool_expression implementation.
   endmethod.
 
   method check_correct_bool_usage.
+  data(a) = code_provider->get_statement_location( statement )-position-line.
 
-    if ( next_token_lexeme eq |'X'| or next_token_lexeme eq |' '| or next_token_lexeme eq 'SPACE' ).
-      loop at booltable assigning field-symbol(<boolean>).
-        if previous_token_lexeme eq <boolean>-name.
-          finding = 'check_correct_bool_usage'.
-        endif.
-      endloop.
+      if ( next_token_lexeme eq |'X'| or next_token_lexeme eq |' '| or next_token_lexeme eq 'SPACE' ).
+            if xsdbool_position_line + 1 ne a
+            and xsdbool_position_line + 3 ne a.
+        loop at booltable assigning field-symbol(<boolean>).
+          if previous_token_lexeme eq <boolean>-name.
+            finding = 'check_correct_bool_usage'.
+          endif.
+        endloop.
+      endif.
     endif.
 
   endmethod.
@@ -297,6 +358,8 @@ class /cc4a/proper_bool_expression implementation.
   method insert_xsdbool.
     data statement_string type string.
     data counter type i.
+    data(open_brackets) = 0.
+    data is_exchanged type abap_bool value abap_false.
     statement_string  = next_statement-tokens[ 1 ]-lexeme && ' =' && ' xsdbool(' .
     loop at statement-tokens assigning field-symbol(<token>).
       counter = counter + 1.
@@ -304,9 +367,22 @@ class /cc4a/proper_bool_expression implementation.
       data(next_token) = value #( statement-tokens[ counter + 1 ] optional ).
       data(previous_token) = value #( statement-tokens[ counter - 1 ] optional ).
       if counter > 1.
-        if next_statement-tokens[ 3 ]-lexeme eq 'ABAP_FALSE'
+
+
+          if current_token-lexeme cp '*+('.
+            open_brackets = open_brackets + 1.
+          endif.
+
+          if current_token-lexeme eq ')'.
+            open_brackets = open_brackets - 1.
+          endif.
+
+
+        if ( next_statement-tokens[ 3 ]-lexeme eq 'ABAP_FALSE'
         or next_statement-tokens[ 3 ]-lexeme eq |' '|
-        or next_statement-tokens[ 3 ]-lexeme eq |SPACE|.
+        or next_statement-tokens[ 3 ]-lexeme eq |SPACE| )
+        and open_brackets < 1.
+
           if /cc4a/abap_analyzer=>create( )->token_is_comparison_operator( current_token ) and current_token-lexeme ne 'IS' and current_token-lexeme ne 'IN'.
             data(comparison_operator) = current_token-lexeme.
             data(negated_comparison_operator) = /cc4a/abap_analyzer=>create( )->negate_comparison_operator( comparison_operator ).
@@ -324,13 +400,31 @@ class /cc4a/proper_bool_expression implementation.
               statement_string = statement_string && ` ` && `OR`.
             elseif current_token-lexeme eq 'OR'.
               statement_string = statement_string && ` ` && `AND`.
+            elseif current_token-lexeme eq 'IS' and next_token-lexeme ne 'NOT'.
+              loop at booltable ASSIGNING FIELD-SYMBOL(<boolean>).
+                if <boolean>-name eq statement-tokens[ counter - 1 ]-lexeme.
+                  statement_string = statement_string &&  ` ` && '=' && ` ` && `ABAP_TRUE`.
+                  counter = counter + 1.
+                  is_exchanged = abap_true.
+                endif.
+              endloop.
+              if is_exchanged = abap_false.
+                statement_string = statement_string &&   ` `  &&  current_token-lexeme.
+              ENDIF.
+
+
+
             else.
               statement_string = statement_string &&   ` `  &&  current_token-lexeme.
-            endif.
 
-            if current_token-lexeme eq 'IS' and next_token-lexeme ne 'NOT'.
-              statement_string = statement_string && ` ` && `NOT`.
             endif.
+           if is_exchanged = abap_false and current_token-lexeme eq 'IS' and next_token-lexeme ne 'NOT'.
+                  statement_string = statement_string && ` ` && `NOT`.
+*                  is_exchanged = abap_false.
+           endif.
+
+
+
             if  current_token-lexeme eq 'IS' and next_token-lexeme eq 'NOT'.
               counter = counter + 1.
             endif.
@@ -347,8 +441,6 @@ class /cc4a/proper_bool_expression implementation.
     to modified_statement.
 
   endmethod.
-
-
 endclass.
 
 

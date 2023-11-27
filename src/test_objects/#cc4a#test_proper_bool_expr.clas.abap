@@ -6,6 +6,15 @@ CLASS /cc4a/test_proper_bool_expr DEFINITION
   PUBLIC SECTION.
   data a type abap_bool.
 
+      types: begin of number_and_bool,
+             number  type i,
+             boolean type abap_bool,
+           end of number_and_bool.
+
+    data number_bool_structure type number_and_bool.
+        methods test_method
+      importing iparameter        type i optional
+      returning value(rparameter) type i.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -54,7 +63,7 @@ CLASS /cc4a/test_proper_bool_expr IMPLEMENTATION.
     b = abap_true.
     endif.
 
-    if test_number lt 38. "finding erwartet
+    if TEST_NUMBER lt 38. "finding erwartet
     b = abap_false.
     else.
     b = abap_true.
@@ -66,6 +75,15 @@ CLASS /cc4a/test_proper_bool_expr IMPLEMENTATION.
     b = abap_true.
     endif.
 
+    data(string) = 'teststring'.
+    if 1 = 2 and 'test' ne substring( len = test_method( iparameter = 3 ) val = string ) and 5 gt 2. "finding erwartet
+      b = ' '. "kein finding erwartet, da es ein XSDBOOL werden soll
+    else.
+      b = 'X'. "kein finding erwartet, da es ein XSDBOOL werden soll
+    endif.
+
+
+
 
   ENDMETHOD.
 
@@ -73,7 +91,7 @@ CLASS /cc4a/test_proper_bool_expr IMPLEMENTATION.
   METHOD test_correct_bool_usage.
     data t type abap_bool.
     t = 'X'.  "finding erwartet
-    a = ' '.  "finding erwartet
+    NUMBER_BOOL_STRUCTURE-BOOLEAN = ' '. "finding erwartet
     a = space.  "finding erwartet
   ENDMETHOD.
 
@@ -82,6 +100,10 @@ CLASS /cc4a/test_proper_bool_expr IMPLEMENTATION.
     ENDIF.
     if a is not INITIAL.  "finding erwartet
     ENDIF.
+  ENDMETHOD.
+
+  METHOD test_method.
+
   ENDMETHOD.
 
 ENDCLASS.

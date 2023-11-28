@@ -11,7 +11,12 @@ CLASS /cc4a/test_proper_bool_expr DEFINITION
              boolean type abap_bool,
            end of number_and_bool.
 
+     types: begin of struc_of_nab,
+             nab type number_and_bool,
+           end of struc_of_nab.
+
     data number_bool_structure type number_and_bool.
+    data test_struc_nab type struc_of_nab.
         methods test_method
       importing iparameter        type i optional
       returning value(rparameter) type i.
@@ -82,6 +87,17 @@ CLASS /cc4a/test_proper_bool_expr IMPLEMENTATION.
       b = 'X'. "kein finding erwartet, da es ein XSDBOOL werden soll
     endif.
 
+    if a is not INITIAL. "finding erwartet
+    NUMBER_BOOL_STRUCTURE-BOOLEAN = abap_false.
+    else.
+    NUMBER_BOOL_STRUCTURE-BOOLEAN = abap_true.
+    endif.
+
+    if a is INITIAL. "finding1 erwartet
+    b = abap_true.
+    else.
+    b = ABAP_false.
+    endif.
 
 
 
@@ -93,6 +109,7 @@ CLASS /cc4a/test_proper_bool_expr IMPLEMENTATION.
     t = 'X'.  "finding erwartet
     NUMBER_BOOL_STRUCTURE-BOOLEAN = ' '. "finding erwartet
     a = space.  "finding erwartet
+    test_struc_nab-nab-boolean = 'X'.
   ENDMETHOD.
 
   METHOD test_bool_initial.

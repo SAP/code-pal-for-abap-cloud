@@ -1,472 +1,476 @@
-class /cc4a/proper_bool_expression definition
-  public
-  final
-  create public .
+CLASS /cc4a/proper_bool_expression DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
 
-  public section.
-    interfaces if_ci_atc_check.
-
-
-
-
-    constants:
-      begin of finding_codes,
-        test_boolean type if_ci_atc_check=>ty_finding_code value 'IPBUSE',
-      end of finding_codes.
-
-    constants:
-      begin of quickfix_codes,
-        if_else                type cl_ci_atc_quickfixes=>ty_quickfix_code value 'EXCIFELSE',
-        charachter_equivalents type cl_ci_atc_quickfixes=>ty_quickfix_code value 'EXCCHAREQV',
-        initial_boolean        type cl_ci_atc_quickfixes=>ty_quickfix_code value 'EXCINBOOL',
-      end of quickfix_codes.
+  PUBLIC SECTION.
+    INTERFACES if_ci_atc_check.
 
 
 
-    methods constructor.
 
-  protected section.
-  private section.
+    CONSTANTS:
+      BEGIN OF finding_codes,
+        test_boolean TYPE if_ci_atc_check=>ty_finding_code VALUE 'IPBUSE',
+      END OF finding_codes.
 
-
-    types: begin of boolstructure,
-             name           type string,
-             is_local_variable type abap_bool,
-           end of boolstructure.
-
-    types: begin of boolean_names_in_structure,
-             name_of_boolean   type string,
-             name_of_corresp_structure type string,
-           end of boolean_names_in_structure.
-    data code_provider     type ref to if_ci_atc_source_code_provider.
-    data assistant_factory type ref to cl_ci_atc_assistant_factory.
-    data meta_data type ref to /cc4a/if_check_meta_data.
-
-    data lexeme type range of if_ci_atc_source_code_provider=>ty_lexeme.
-
-    data structures type range of string.
-
-    data xsdbool_position_line type if_ci_atc_check=>ty_position-line value -10.
-
-
-    data booltable type table of boolstructure.
-    data table_of_structure_names type table of boolean_names_in_structure.
-    data procedure_number type i value 0.
-
-    methods analyze_procedure
-      importing procedure       type if_ci_atc_source_code_provider=>ty_procedure
-      returning value(findings) type if_ci_atc_check=>ty_findings.
-
-    methods check_if_then_else
-      importing procedure       type if_ci_atc_source_code_provider=>ty_procedure
-                statement_index type i
-                current_token   type if_ci_atc_source_code_provider=>ty_token
-      returning value(finding)  type string.
+    CONSTANTS:
+      BEGIN OF quickfix_codes,
+        if_else                TYPE cl_ci_atc_quickfixes=>ty_quickfix_code VALUE 'EXCIFELSE',
+        charachter_equivalents TYPE cl_ci_atc_quickfixes=>ty_quickfix_code VALUE 'EXCCHAREQV',
+        initial_boolean        TYPE cl_ci_atc_quickfixes=>ty_quickfix_code VALUE 'EXCINBOOL',
+      END OF quickfix_codes.
 
 
 
-    methods fill_booltable
-      importing current_statement    type  if_ci_atc_source_code_provider=>ty_statement
-                current_token_lexeme type string
-                is_local_variable   type abap_bool
-                procedure           type if_ci_atc_source_code_provider=>ty_procedure
-                statement_index type i
-      returning value(finding)      type string.
+    METHODS constructor.
+
+  PROTECTED SECTION.
+  PRIVATE SECTION.
 
 
-    methods check_correct_bool_usage
-       IMPORTING next_token_lexeme type string
-                 previous_token_lexeme type string
-                 statement type if_ci_atc_source_code_provider=>ty_statement
-      returning value(finding)    type string.
+    TYPES: BEGIN OF boolstructure,
+             name              TYPE string,
+             is_local_variable TYPE abap_bool,
+           END OF boolstructure.
 
-    methods  check_bool_initial
-      importing previous_token_lexeme type string
-                statement type if_ci_atc_source_code_provider=>ty_statement
-      returning value(finding)    type string.
+    TYPES: BEGIN OF boolean_names_in_structure,
+             name_of_boolean           TYPE string,
+             name_of_corresp_structure TYPE string,
+           END OF boolean_names_in_structure.
+    DATA code_provider     TYPE REF TO if_ci_atc_source_code_provider.
+    DATA assistant_factory TYPE REF TO cl_ci_atc_assistant_factory.
+    DATA meta_data TYPE REF TO /cc4a/if_check_meta_data.
 
-    methods exchangebool
-      importing statement                 type if_ci_atc_source_code_provider=>ty_statement
-                status                    type abap_bool
-                bool_constant_position    type i
-      returning value(modified_statement) type if_ci_atc_quickfix=>ty_code.
+    DATA structures TYPE RANGE OF string.
 
-    methods removeinitial
-      importing statement                 type if_ci_atc_source_code_provider=>ty_statement
+    DATA xsdbool_position_line TYPE if_ci_atc_check=>ty_position-line VALUE -10.
 
 
-                variable_position         type i
-      returning value(modified_statement) type if_ci_atc_quickfix=>ty_code.
+    DATA booltable TYPE TABLE OF boolstructure.
+    DATA table_of_structure_names TYPE TABLE OF boolean_names_in_structure.
+    DATA procedure_number TYPE i VALUE 0.
 
-    methods insert_xsdbool
-      importing statement                 type if_ci_atc_source_code_provider=>ty_statement
-                next_statement            type if_ci_atc_source_code_provider=>ty_statement
-                variable_position         type i
-      returning value(modified_statement) type if_ci_atc_quickfix=>ty_code.
+    METHODS analyze_procedure
+      IMPORTING procedure       TYPE if_ci_atc_source_code_provider=>ty_procedure
+      RETURNING VALUE(findings) TYPE if_ci_atc_check=>ty_findings.
+
+    METHODS check_if_then_else
+      IMPORTING procedure       TYPE if_ci_atc_source_code_provider=>ty_procedure
+                statement_index TYPE i
+                current_token   TYPE if_ci_atc_source_code_provider=>ty_token
+      RETURNING VALUE(finding)  TYPE string.
 
 
-endclass.
+
+    METHODS fill_booltable
+      IMPORTING current_statement    TYPE  if_ci_atc_source_code_provider=>ty_statement
+                current_token_lexeme TYPE string
+                is_local_variable    TYPE abap_bool
+                procedure            TYPE if_ci_atc_source_code_provider=>ty_procedure
+                statement_index      TYPE i
+      RETURNING VALUE(finding)       TYPE string.
 
 
-class /cc4a/proper_bool_expression implementation.
-  method analyze_procedure.
-    loop at procedure-statements assigning field-symbol(<statement>).
-      data(statement_index) = sy-tabix.
-      loop at <statement>-tokens assigning field-symbol(<token>).
-        data reported_finding type string.
+    METHODS check_correct_bool_usage
+      IMPORTING next_token_lexeme     TYPE string
+                previous_token_lexeme TYPE string
+                statement             TYPE if_ci_atc_source_code_provider=>ty_statement
+      RETURNING VALUE(finding)        TYPE string.
+
+    METHODS  check_bool_initial
+      IMPORTING previous_token_lexeme TYPE string
+                statement             TYPE if_ci_atc_source_code_provider=>ty_statement
+      RETURNING VALUE(finding)        TYPE string.
+
+    METHODS exchangebool
+      IMPORTING statement                 TYPE if_ci_atc_source_code_provider=>ty_statement
+                status                    TYPE abap_bool
+                bool_constant_position    TYPE i
+      RETURNING VALUE(modified_statement) TYPE if_ci_atc_quickfix=>ty_code.
+
+    METHODS removeinitial
+      IMPORTING statement                 TYPE if_ci_atc_source_code_provider=>ty_statement
+
+
+                variable_position         TYPE i
+      RETURNING VALUE(modified_statement) TYPE if_ci_atc_quickfix=>ty_code.
+
+    METHODS insert_xsdbool
+      IMPORTING statement                 TYPE if_ci_atc_source_code_provider=>ty_statement
+                next_statement            TYPE if_ci_atc_source_code_provider=>ty_statement
+                variable_position         TYPE i
+      RETURNING VALUE(modified_statement) TYPE if_ci_atc_quickfix=>ty_code.
+
+
+ENDCLASS.
+
+
+CLASS /cc4a/proper_bool_expression IMPLEMENTATION.
+  METHOD analyze_procedure.
+    LOOP AT procedure-statements ASSIGNING FIELD-SYMBOL(<statement>).
+      DATA(statement_index) = sy-tabix.
+      LOOP AT <statement>-tokens ASSIGNING FIELD-SYMBOL(<token>).
+        DATA reported_finding TYPE string.
         reported_finding = ''.
 
-        if procedure-id-kind eq if_ci_atc_source_code_provider=>procedure_kinds-class_definition.
-          if <token>-lexeme eq 'TYPE' or <token>-lexeme eq 'BEGIN'.
-            reported_finding = fill_booltable( exporting current_statement = <statement> current_token_lexeme = <token>-lexeme is_local_variable = abap_false procedure = procedure statement_index = statement_index ).
-          endif.
-        else.
+        IF procedure-id-kind EQ if_ci_atc_source_code_provider=>procedure_kinds-class_definition.
+          IF <token>-lexeme EQ 'TYPE' OR <token>-lexeme EQ 'BEGIN'.
+            reported_finding = fill_booltable( EXPORTING current_statement = <statement> current_token_lexeme = <token>-lexeme is_local_variable = abap_false procedure = procedure statement_index = statement_index ).
+          ENDIF.
+        ELSE.
 
-          if <statement>-keyword eq 'COMPUTE' and <token>-lexeme eq '='.
+          IF <statement>-keyword EQ 'COMPUTE' AND <token>-lexeme EQ '='.
             reported_finding = check_correct_bool_usage( next_token_lexeme = <statement>-tokens[ sy-tabix + 1 ]-lexeme previous_token_lexeme = <statement>-tokens[ sy-tabix - 1 ]-lexeme statement = <statement> ).
 
-          else.
-            if <token>-lexeme eq 'TYPE' or <token>-lexeme cp 'DATA(*)'.
-              reported_finding = fill_booltable( exporting current_statement = <statement> current_token_lexeme = <token>-lexeme is_local_variable = abap_true procedure = procedure  statement_index = statement_index  ).
-            endif.
-            case <token>-lexeme.
-              when 'IF'.
-                reported_finding = check_if_then_else( exporting  procedure = procedure statement_index = statement_index current_token = <token> ).
-              when 'IS'.
-                reported_finding = check_bool_initial( exporting previous_token_lexeme = <statement>-tokens[ sy-tabix - 1 ]-lexeme statement = <statement> ).
-            endcase.
-          endif.
-        endif.
+          ELSE.
+            IF <token>-lexeme EQ 'TYPE' OR <token>-lexeme CP 'DATA(*)'.
+              reported_finding = fill_booltable( EXPORTING current_statement = <statement> current_token_lexeme = <token>-lexeme is_local_variable = abap_true procedure = procedure  statement_index = statement_index  ).
+            ENDIF.
+            CASE <token>-lexeme.
+              WHEN 'IF'.
+                reported_finding = check_if_then_else( EXPORTING  procedure = procedure statement_index = statement_index current_token = <token> ).
+              WHEN 'IS'.
+                reported_finding = check_bool_initial( EXPORTING previous_token_lexeme = <statement>-tokens[ sy-tabix - 1 ]-lexeme statement = <statement> ).
+            ENDCASE.
+          ENDIF.
+        ENDIF.
 
-        if reported_finding ne ''.
+        IF reported_finding NE ''.
 
-          data(available_quickfixes) = assistant_factory->create_quickfixes( ).
+          DATA(available_quickfixes) = assistant_factory->create_quickfixes( ).
           available_quickfixes = assistant_factory->create_quickfixes( ).
-          available_quickfixes->create_quickfix( cond #( when reported_finding eq 'check_correct_bool_usage' or reported_finding = 'check_bool_value_usage' then quickfix_codes-charachter_equivalents
-                                                         when reported_finding eq 'check_if_then_else' then quickfix_codes-if_else
-                                                         when reported_finding eq 'check_bool_initial' then quickfix_codes-initial_boolean ) )->replace(
-          context = assistant_factory->create_quickfix_context( value #(
+          available_quickfixes->create_quickfix( COND #( WHEN reported_finding EQ 'check_correct_bool_usage' OR reported_finding = 'check_bool_value_usage' THEN quickfix_codes-charachter_equivalents
+                                                         WHEN reported_finding EQ 'check_if_then_else' THEN quickfix_codes-if_else
+                                                         WHEN reported_finding EQ 'check_bool_initial' THEN quickfix_codes-initial_boolean ) )->replace(
+          context = assistant_factory->create_quickfix_context( VALUE #(
           procedure_id = procedure-id
-          statements = value #( from = statement_index to = cond #( when reported_finding eq 'check_if_then_else' then statement_index + 4
-                                                                    else statement_index ) ) ) )
-          code = cond #( when reported_finding eq 'check_correct_bool_usage' then
-                            exchangebool( statement = <statement> status = xsdbool( <statement>-tokens[ sy-tabix + cond #(  when <statement>-tokens[ sy-tabix ]-lexeme eq '=' then 1
-                                                                                                                            when <statement>-tokens[ sy-tabix ]-lexeme eq 'TYPE' then 3
-                                                                                                                            else 2 ) ]-lexeme eq |'X'| )
-                            bool_constant_position = sy-tabix + cond #(   when <statement>-tokens[ sy-tabix ]-lexeme eq '=' then 1
-                                                                          when <statement>-tokens[ sy-tabix ]-lexeme eq 'TYPE' then 3
-                                                                          else 2 ) )
-                         when reported_finding eq 'check_if_then_else' then
+          statements = VALUE #( from = statement_index to = COND #( WHEN reported_finding EQ 'check_if_then_else' THEN statement_index + 4
+                                                                    ELSE statement_index ) ) ) )
+          code = COND #( WHEN reported_finding EQ 'check_correct_bool_usage' THEN
+                            exchangebool( statement = <statement> status = xsdbool( <statement>-tokens[ sy-tabix + COND #(  WHEN <statement>-tokens[ sy-tabix ]-lexeme EQ '=' THEN 1
+                                                                                                                            WHEN <statement>-tokens[ sy-tabix ]-lexeme EQ 'TYPE' THEN 3
+                                                                                                                            ELSE 2 ) ]-lexeme EQ |'X'| )
+                            bool_constant_position = sy-tabix + COND #(   WHEN <statement>-tokens[ sy-tabix ]-lexeme EQ '=' THEN 1
+                                                                          WHEN <statement>-tokens[ sy-tabix ]-lexeme EQ 'TYPE' THEN 3
+                                                                          ELSE 2 ) )
+                         WHEN reported_finding EQ 'check_if_then_else' THEN
                             insert_xsdbool( statement = procedure-statements[ statement_index ]
                             next_statement = procedure-statements[ statement_index + 1 ]
                             variable_position = sy-tabix  )
-                         when reported_finding = 'check_bool_initial' then
+                         WHEN reported_finding = 'check_bool_initial' THEN
                             removeinitial( statement = <statement>  variable_position = sy-tabix  )
-                          else value #(  ) ) ).
+                          ELSE VALUE #(  ) ) ).
 
-          insert value #( code = finding_codes-test_boolean
+          INSERT VALUE #( code = finding_codes-test_boolean
           location = code_provider->get_statement_location( <statement> )
           checksum = code_provider->get_statement_checksum( <statement> )
           details = assistant_factory->create_finding_details( )->attach_quickfixes( available_quickfixes )
-          ) into table findings.
-          if reported_finding eq 'check_if_then_else'.
+          ) INTO TABLE findings.
+          IF reported_finding EQ 'check_if_then_else'.
             xsdbool_position_line = code_provider->get_statement_location( <statement> )-position-line.
-          endif.
-        endif.
-        if <token>-lexeme eq 'ENDMETHOD'.
-                delete booltable where is_local_variable eq ABAP_true.
-         endif.
+          ENDIF.
+        ENDIF.
+        IF <token>-lexeme EQ 'ENDMETHOD'.
+          DELETE booltable WHERE is_local_variable EQ ABAP_true.
+        ENDIF.
 
-      endloop.
+      ENDLOOP.
 
-    endloop.
-  endmethod.
+    ENDLOOP.
+  ENDMETHOD.
 
-  method constructor.
+  METHOD constructor.
     meta_data = /cc4a/check_meta_data=>create(
-      value #( checked_types = /cc4a/check_meta_data=>checked_types-abap_programs
+      VALUE #( checked_types = /cc4a/check_meta_data=>checked_types-abap_programs
           description = 'Usage of inappropriate boolean'(des)
           remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
-          finding_codes = value #(
+          finding_codes = VALUE #(
             ( code = finding_codes-test_boolean text = 'Usage of inappropriate boolean'(uib) ) )
-            quickfix_codes = value #(
+            quickfix_codes = VALUE #(
             ( code = quickfix_codes-if_else short_text = 'Replace with xsdbool'(qrs) )
             ( code = quickfix_codes-charachter_equivalents short_text = 'Replace with correct boolean-term'(qrs) )
             ( code = quickfix_codes-initial_boolean short_text = 'Replace with correct comparison'(qrs) ) ) ) ).
+  ENDMETHOD.
 
-  endmethod.
 
-
-  method if_ci_atc_check~get_meta_data.
+  METHOD if_ci_atc_check~get_meta_data.
     meta_data = me->meta_data.
-  endmethod.
+  ENDMETHOD.
 
-  method if_ci_atc_check~run.
+  METHOD if_ci_atc_check~run.
     code_provider = data_provider->get_code_provider( ).
-    data(procedures) = code_provider->get_procedures( code_provider->object_to_comp_unit( object ) ).
-    loop at procedures->* assigning field-symbol(<procedure>).
-      insert lines of analyze_procedure( <procedure> ) into table findings.
-    endloop.
-  endmethod.
+    DATA(procedures) = code_provider->get_procedures( code_provider->object_to_comp_unit( object ) ).
+    LOOP AT procedures->* ASSIGNING FIELD-SYMBOL(<procedure>).
+      INSERT LINES OF analyze_procedure( <procedure> ) INTO TABLE findings.
+    ENDLOOP.
+  ENDMETHOD.
 
-  method if_ci_atc_check~set_assistant_factory.
+  METHOD if_ci_atc_check~set_assistant_factory.
     assistant_factory = factory.
-  endmethod.
+  ENDMETHOD.
 
-  method if_ci_atc_check~verify_prerequisites.
+  METHOD if_ci_atc_check~verify_prerequisites.
 
-  endmethod.
+  ENDMETHOD.
 
-  method check_if_then_else.
-    data bool_variable type string.
-    data(endif_statement) = value #( procedure-statements[ statement_index + 4 ] optional ).
-    if current_token-lexeme eq 'IF'
-    and endif_statement is not initial
-    and endif_statement-keyword eq 'ENDIF'.
+  METHOD check_if_then_else.
+    DATA bool_variable TYPE string.
+    DATA(endif_statement) = VALUE #( procedure-statements[ statement_index + 4 ] OPTIONAL ).
+    IF current_token-lexeme EQ 'IF'
+    AND endif_statement IS NOT INITIAL
+    AND endif_statement-keyword EQ 'ENDIF'.
 
-      loop at procedure-statements assigning field-symbol(<statement>) from statement_index + 1 to statement_index + 3.
-        loop at <statement>-tokens assigning field-symbol(<token>) where lexeme eq '='.
-          data(next_token) = value #( <statement>-tokens[ sy-tabix + 1 ] ).
-          if next_token-lexeme eq 'ABAP_TRUE' or next_token-lexeme eq 'ABAP_FALSE' or next_token-lexeme eq |SPACE|
-          or next_token-lexeme eq |' '| or next_token-lexeme eq |'X'|.
-            if bool_variable is initial.
+      LOOP AT procedure-statements ASSIGNING FIELD-SYMBOL(<statement>) FROM statement_index + 1 TO statement_index + 3.
+        LOOP AT <statement>-tokens ASSIGNING FIELD-SYMBOL(<token>) WHERE lexeme EQ '='.
+          DATA(next_token) = VALUE #( <statement>-tokens[ sy-tabix + 1 ] ).
+          IF next_token-lexeme EQ 'ABAP_TRUE' OR next_token-lexeme EQ 'ABAP_FALSE' OR next_token-lexeme EQ |SPACE|
+          OR next_token-lexeme EQ |' '| OR next_token-lexeme EQ |'X'|.
+            IF bool_variable IS INITIAL.
               bool_variable = <statement>-tokens[ sy-tabix - 1 ]-lexeme.
-            elseif bool_variable eq  <statement>-tokens[ sy-tabix - 1 ]-lexeme.
+            ELSEIF bool_variable EQ  <statement>-tokens[ sy-tabix - 1 ]-lexeme.
 
-              loop at booltable assigning field-symbol(<boolean>).
-                if bool_variable eq <boolean>-name.
+              LOOP AT booltable ASSIGNING FIELD-SYMBOL(<boolean>).
+                IF bool_variable EQ <boolean>-name.
                   finding = 'check_if_then_else'.
-                endif.
-              endloop.
-              exit.
-            endif.
-          endif.
-        endloop.
-      endloop.
-    endif.
+                ENDIF.
+              ENDLOOP.
+              EXIT.
+            ENDIF.
+          ENDIF.
+        ENDLOOP.
+      ENDLOOP.
+    ENDIF.
 
-  endmethod.
+  ENDMETHOD.
 
 
-  method fill_booltable.
-    data(token_lexeme_after_value) = value #( current_statement-tokens[ sy-tabix + 3  ]-lexeme optional ).
-    data(token_lexeme_after_eq) = value #( current_statement-tokens[ sy-tabix + 2  ]-lexeme optional ).
+  METHOD fill_booltable.
+    DATA(token_lexeme_after_value) = VALUE #( current_statement-tokens[ sy-tabix + 3  ]-lexeme OPTIONAL ).
+    DATA(token_lexeme_after_eq) = VALUE #( current_statement-tokens[ sy-tabix + 2  ]-lexeme OPTIONAL ).
 
-    if current_token_lexeme eq 'TYPE'.
-      if current_statement-tokens[ sy-tabix + 1  ]-lexeme eq 'ABAP_BOOL'
-      and current_statement-tokens[ sy-tabix - 2  ]-lexeme ne 'TYPES'.
-        insert value #( name = current_statement-tokens[ sy-tabix - 1  ]-lexeme
+    IF current_token_lexeme EQ 'TYPE'.
+      IF current_statement-tokens[ sy-tabix + 1  ]-lexeme EQ 'ABAP_BOOL'
+      AND current_statement-tokens[ sy-tabix - 2  ]-lexeme NE 'TYPES'.
+        INSERT VALUE #( name = current_statement-tokens[ sy-tabix - 1  ]-lexeme
                         is_local_variable = is_local_variable
-          ) into table booltable.
-      else.
-      data(counter) = sy-tabix.
-      loop at table_of_structure_names ASSIGNING FIELD-SYMBOL(<line_of_table>) where name_of_corresp_structure eq current_statement-tokens[ sy-tabix + 1  ]-lexeme .
-          insert value #( name =   current_statement-tokens[ counter - 1  ]-lexeme && '-' && <line_of_table>-name_of_boolean
+          ) INTO TABLE booltable.
+      ELSE.
+        DATA(counter) = sy-tabix.
+*        data(next_token3_lexeme) = value #( current_statement-tokens[ sy-tabix + 3  ]-lexeme optional ).
+        LOOP AT table_of_structure_names ASSIGNING FIELD-SYMBOL(<line_of_table>)
+        WHERE  name_of_corresp_structure EQ current_statement-tokens[ sy-tabix + 1  ]-lexeme
+*        or name_of_corresp_structure EQ next_token3_lexeme ) and name_of_corresp_structure is not initial
+          .
+          INSERT VALUE #( name = current_statement-tokens[ counter - 1  ]-lexeme
+*          && cond #( when <line_of_table>-name_of_corresp_structure EQ next_token3_lexeme then '[ * ]' else '' )
+          &&'-' && <line_of_table>-name_of_boolean
                         is_local_variable = is_local_variable
-          ) into table booltable.
+          ) INTO TABLE booltable.
 
-        endloop.
-      endif.
+        ENDLOOP.
+      ENDIF.
 
 
-    elseif current_token_lexeme cp 'DATA(*)'
-    and ( current_statement-tokens[ sy-tabix + 2  ]-lexeme eq 'ABAP_TRUE' or current_statement-tokens[ sy-tabix + 2  ]-lexeme eq 'ABAP_FALSE'
-    or current_statement-tokens[ sy-tabix + 2  ]-lexeme eq 'SPACE'
-    or current_statement-tokens[ sy-tabix + 2  ]-lexeme eq |' '| or current_statement-tokens[ sy-tabix + 2  ]-lexeme eq |'X'| ).
-      insert value #( name = substring( val = current_token_lexeme off = 5 len =  strlen( current_token_lexeme ) - 6 )
+    ELSEIF current_token_lexeme CP 'DATA(*)'
+    AND ( current_statement-tokens[ sy-tabix + 2  ]-lexeme EQ 'ABAP_TRUE' OR current_statement-tokens[ sy-tabix + 2  ]-lexeme EQ 'ABAP_FALSE'
+    OR current_statement-tokens[ sy-tabix + 2  ]-lexeme EQ 'SPACE'
+    OR current_statement-tokens[ sy-tabix + 2  ]-lexeme EQ |' '| OR current_statement-tokens[ sy-tabix + 2  ]-lexeme EQ |'X'| ).
+      INSERT VALUE #( name = substring( val = current_token_lexeme off = 5 len =  strlen( current_token_lexeme ) - 6 )
                     is_local_variable = is_local_variable
-      ) into table booltable.
+      ) INTO TABLE booltable.
 
 
 
-    elseif current_token_lexeme eq 'BEGIN'.
-      data(structure_name) = current_statement-tokens[ sy-tabix + 2  ]-lexeme.
-      loop at procedure-statements into data(statement)
-      where keyword eq 'TYPES'.
+    ELSEIF current_token_lexeme EQ 'BEGIN'.
+      DATA(structure_name) = current_statement-tokens[ sy-tabix + 2  ]-lexeme.
 
-       structures = value #( for line in table_of_structure_names ( sign = 'I' option = 'EQ' low = line-name_of_corresp_structure ) ) .
+      LOOP AT procedure-statements ASSIGNING FIELD-SYMBOL(<statement>) FROM statement_index.
 
-        data(statement_counter) = sy-tabix.
-        loop at statement-tokens ASSIGNING FIELD-SYMBOL(<current_token>)
-        where lexeme eq 'ABAP_BOOL' or lexeme in structures.
-          data(token_counter) = sy-tabix.
-         if <current_token>-lexeme eq 'ABAP_BOOL'.
-        insert value #( name_of_boolean = procedure-statements[ statement_counter ]-tokens[ sy-tabix - 2 ]-lexeme
-                      name_of_corresp_structure = structure_name
-        ) into table table_of_structure_names.
-          else.
-                loop at table_of_structure_names ASSIGNING FIELD-SYMBOL(<structure_name>) where name_of_corresp_structure eq  <current_token>-lexeme.
-*                  insert value #( name_of_boolean = procedure-statements[ statement_counter ]-tokens[ token_counter - 2 ]-lexeme && '-' && <structure_name>-name_of_boolean
-*                                  name_of_corresp_structure = structure_name
-*                  ) into table table_of_structure_names.
-        insert value #( name_of_boolean = procedure-statements[ statement_counter ]-tokens[ token_counter - 2 ]-lexeme
-                      name_of_corresp_structure = structure_name
-        ) into table table_of_structure_names.
-                endloop.
+        IF <statement>-keyword EQ 'TYPES'.
+          structures = VALUE #( FOR line IN table_of_structure_names ( sign = 'I' option = 'EQ' low = line-name_of_corresp_structure ) ) .
+          DATA(statement_counter) = sy-tabix.
 
-          endif.
+          LOOP AT <statement>-tokens ASSIGNING FIELD-SYMBOL(<current_token>) WHERE lexeme EQ 'ABAP_BOOL' OR lexeme IN structures OR lexeme EQ 'END'.
+            DATA(lexeme_of_token) = <current_token>-lexeme.
 
-        if <current_token>-lexeme eq 'END'.
-          exit.
-          exit.
-        endif.
-        endloop.
-      endloop.
+            IF <current_token>-lexeme EQ 'END'.
+              EXIT.
+            ELSE.
+              DATA(token_counter) = sy-tabix.
+              IF <current_token>-lexeme EQ 'ABAP_BOOL'.
+                INSERT VALUE #( name_of_boolean = procedure-statements[ statement_counter ]-tokens[ sy-tabix - 2 ]-lexeme
+                              name_of_corresp_structure = structure_name
+                              ) INTO TABLE table_of_structure_names.
+              ELSEIF <current_token>-lexeme IN structures AND <current_token>-lexeme NE structure_name.
+                LOOP AT table_of_structure_names ASSIGNING FIELD-SYMBOL(<structure_name>) WHERE name_of_corresp_structure EQ  <current_token>-lexeme.
+                  INSERT VALUE #( name_of_boolean = procedure-statements[ statement_counter  ]-tokens[ token_counter - 2 ]-lexeme && '-' && <structure_name>-name_of_boolean
+                                  name_of_corresp_structure = structure_name
+                                  ) INTO TABLE table_of_structure_names.
+                ENDLOOP.
+              ENDIF.
+            ENDIF.
+          ENDLOOP.
+          IF lexeme_of_token EQ 'END'.
+            EXIT.
+          ENDIF.
+        ENDIF.
+      ENDLOOP.
 
-    endif.
-          if token_lexeme_after_eq eq |' '| or token_lexeme_after_eq eq |'X'| or token_lexeme_after_eq eq |SPACE| or token_lexeme_after_value eq |' '| or token_lexeme_after_value eq |'X'| or token_lexeme_after_value eq |SPACE|.
-        finding = 'check_correct_bool_usage'.
-      endif.
+    ENDIF.
+    IF token_lexeme_after_eq EQ |' '| OR token_lexeme_after_eq EQ |'X'| OR token_lexeme_after_eq EQ |SPACE| OR token_lexeme_after_value EQ |' '| OR token_lexeme_after_value EQ |'X'| OR token_lexeme_after_value EQ |SPACE|.
+      finding = 'check_correct_bool_usage'.
+    ENDIF.
 
-  endmethod.
+  ENDMETHOD.
 
-  method check_correct_bool_usage.
-  data(a) = code_provider->get_statement_location( statement )-position-line.
+  METHOD check_correct_bool_usage.
+*    DATA(a) = code_provider->get_statement_location( statement )-position-line.
 
-      if ( next_token_lexeme eq |'X'| or next_token_lexeme eq |' '| or next_token_lexeme eq 'SPACE' ).
-            if xsdbool_position_line + 1 ne a
-            and xsdbool_position_line + 3 ne a.
-        loop at booltable assigning field-symbol(<boolean>).
-          if previous_token_lexeme eq <boolean>-name.
+    IF ( next_token_lexeme EQ |'X'| OR next_token_lexeme EQ |' '| OR next_token_lexeme EQ 'SPACE' ).
+      IF xsdbool_position_line + 1 NE code_provider->get_statement_location( statement )-position-line
+      AND xsdbool_position_line + 3 NE code_provider->get_statement_location( statement )-position-line.
+        LOOP AT booltable ASSIGNING FIELD-SYMBOL(<boolean>).
+          IF previous_token_lexeme eq <boolean>-name.
             finding = 'check_correct_bool_usage'.
-          endif.
-        endloop.
-      endif.
-    endif.
-  endmethod.
+          ENDIF.
+        ENDLOOP.
+      ENDIF.
+    ENDIF.
+  ENDMETHOD.
 
-  method check_bool_initial.
-      loop at booltable assigning field-symbol(<boolean>).
-        if previous_token_lexeme eq <boolean>-name and xsdbool_position_line ne code_provider->get_statement_location( statement )-position-line.
-          finding = 'check_bool_initial'.
-        endif.
-      endloop.
-  endmethod.
+  METHOD check_bool_initial.
+    LOOP AT booltable ASSIGNING FIELD-SYMBOL(<boolean>).
+      IF previous_token_lexeme EQ <boolean>-name AND xsdbool_position_line NE code_provider->get_statement_location( statement )-position-line.
+        finding = 'check_bool_initial'.
+      ENDIF.
+    ENDLOOP.
+  ENDMETHOD.
 
-  method exchangebool.
-    data(new_statement) = statement.
-    if status = abap_true.
+  METHOD exchangebool.
+    DATA(new_statement) = statement.
+    IF status = abap_true.
       new_statement-tokens[ bool_constant_position ]-lexeme = 'ABAP_TRUE'.
-    else.
+    ELSE.
       new_statement-tokens[ bool_constant_position ]-lexeme = 'ABAP_FALSE'.
-    endif.
-    data(flat_new_statement) = /cc4a/abap_analyzer=>create( )->flatten_tokens( new_statement-tokens ) && `.`.
+    ENDIF.
+    DATA(flat_new_statement) = /cc4a/abap_analyzer=>create( )->flatten_tokens( new_statement-tokens ) && `.`.
     modified_statement = /cc4a/abap_analyzer=>create( )->break_into_lines( flat_new_statement ).
-  endmethod.
+  ENDMETHOD.
 
-  method removeinitial.
-    data(new_statement) = statement.
-    if new_statement-tokens[ variable_position + 1 ]-lexeme eq 'NOT'.
+  METHOD removeinitial.
+    DATA(new_statement) = statement.
+    IF new_statement-tokens[ variable_position + 1 ]-lexeme EQ 'NOT'.
       new_statement-tokens[ variable_position  ]-lexeme = '='.
       new_statement-tokens[ variable_position  + 1 ]-lexeme = 'ABAP_TRUE'.
       new_statement-tokens[ variable_position  + 2 ]-lexeme = ''.
-    else.
+    ELSE.
       new_statement-tokens[ variable_position  ]-lexeme = '='.
       new_statement-tokens[ variable_position  + 1 ]-lexeme = 'ABAP_FALSE'.
-    endif.
-    data(flat_new_statement) = /cc4a/abap_analyzer=>create( )->flatten_tokens( new_statement-tokens ) && `.`.
+    ENDIF.
+    DATA(flat_new_statement) = /cc4a/abap_analyzer=>create( )->flatten_tokens( new_statement-tokens ) && `.`.
     modified_statement = /cc4a/abap_analyzer=>create( )->break_into_lines( flat_new_statement ).
 
-  endmethod.
+  ENDMETHOD.
 
-  method insert_xsdbool.
-    data statement_string type string.
-    data counter type i.
-    data(open_brackets) = 0.
-    data is_exchanged type abap_bool value abap_false.
-    data boolean_is_in_table type abap_bool value abap_false.
+  METHOD insert_xsdbool.
+    DATA statement_string TYPE string.
+    DATA counter TYPE i.
+    DATA(open_brackets) = 0.
+    DATA is_exchanged TYPE abap_bool VALUE abap_false.
+    DATA boolean_is_in_table TYPE abap_bool VALUE abap_false.
     statement_string  = next_statement-tokens[ 1 ]-lexeme && ' =' && ' xsdbool(' .
-    loop at statement-tokens assigning field-symbol(<token>).
+    LOOP AT statement-tokens ASSIGNING FIELD-SYMBOL(<token>).
       counter = counter + 1.
-      data(current_token) = value #( statement-tokens[ counter ] optional ).
-      data(next_token) = value #( statement-tokens[ counter + 1 ] optional ).
-      data(previous_token) = value #( statement-tokens[ counter - 1 ] optional ).
-      if counter > 1.
+      DATA(current_token) = VALUE #( statement-tokens[ counter ] OPTIONAL ).
+      DATA(next_token) = VALUE #( statement-tokens[ counter + 1 ] OPTIONAL ).
+      DATA(previous_token) = VALUE #( statement-tokens[ counter - 1 ] OPTIONAL ).
+      IF counter > 1.
 
 
-          if current_token-lexeme cp '*+('.
-            open_brackets = open_brackets + 1.
-          endif.
+        IF current_token-lexeme CP '*+('.
+          open_brackets = open_brackets + 1.
+        ENDIF.
 
-          if current_token-lexeme eq ')'.
-            open_brackets = open_brackets - 1.
-          endif.
-        if ( next_statement-tokens[ 3 ]-lexeme eq 'ABAP_FALSE'
-        or next_statement-tokens[ 3 ]-lexeme eq |' '|
-        or next_statement-tokens[ 3 ]-lexeme eq |SPACE| )
-        and open_brackets < 1.
+        IF current_token-lexeme EQ ')'.
+          open_brackets = open_brackets - 1.
+        ENDIF.
+        IF ( next_statement-tokens[ 3 ]-lexeme EQ 'ABAP_FALSE'
+        OR next_statement-tokens[ 3 ]-lexeme EQ |' '|
+        OR next_statement-tokens[ 3 ]-lexeme EQ |SPACE| )
+        AND open_brackets < 1.
 
-          if /cc4a/abap_analyzer=>create( )->token_is_comparison_operator( current_token ) and current_token-lexeme ne 'IS' and current_token-lexeme ne 'IN'.
-            data(comparison_operator) = current_token-lexeme.
-            data(negated_comparison_operator) = /cc4a/abap_analyzer=>create( )->negate_comparison_operator( comparison_operator ).
+          IF /cc4a/abap_analyzer=>create( )->token_is_comparison_operator( current_token ) AND current_token-lexeme NE 'IS' AND current_token-lexeme NE 'IN'.
+            DATA(comparison_operator) = current_token-lexeme.
+            DATA(negated_comparison_operator) = /cc4a/abap_analyzer=>create( )->negate_comparison_operator( comparison_operator ).
             statement_string = statement_string &&   ` `  && negated_comparison_operator .
-          else.
-            if  current_token-lexeme eq 'IN' and previous_token-lexeme eq 'NOT'.
+          ELSE.
+            IF  current_token-lexeme EQ 'IN' AND previous_token-lexeme EQ 'NOT'.
               statement_string = substring( val = statement_string len = strlen( statement_string ) - 4 ).
-            endif.
+            ENDIF.
 
-            if current_token-lexeme eq 'IN' and previous_token-lexeme ne 'NOT'.
+            IF current_token-lexeme EQ 'IN' AND previous_token-lexeme NE 'NOT'.
               statement_string = statement_string && ` ` && `NOT`.
-            endif.
+            ENDIF.
 
-            if current_token-lexeme eq 'AND'.
+            IF current_token-lexeme EQ 'AND'.
               statement_string = statement_string && ` ` && `OR`.
-            elseif current_token-lexeme eq 'OR'.
+            ELSEIF current_token-lexeme EQ 'OR'.
               statement_string = statement_string && ` ` && `AND`.
-            elseif current_token-lexeme eq 'IS'.
-              loop at booltable ASSIGNING FIELD-SYMBOL(<boolean>).
-                if <boolean>-name eq statement-tokens[ counter - 1 ]-lexeme.
+            ELSEIF current_token-lexeme EQ 'IS'.
+              LOOP AT booltable ASSIGNING FIELD-SYMBOL(<boolean>).
+                IF <boolean>-name EQ statement-tokens[ counter - 1 ]-lexeme.
                   statement_string = statement_string &&  ` ` && '=' &&  ` `
-                  && cond #( when next_token-lexeme eq 'NOT' then 'ABAP_FALSE'
-                             when next_token-lexeme ne 'NOT' then 'ABAP_TRUE' ).
+                  && COND #( WHEN next_token-lexeme EQ 'NOT' THEN 'ABAP_FALSE'
+                             WHEN next_token-lexeme NE 'NOT' THEN 'ABAP_TRUE' ).
                   counter = counter + 2.
                   is_exchanged = abap_true.
-                endif.
-              endloop.
-              if is_exchanged = abap_false.
+                ENDIF.
+              ENDLOOP.
+              IF is_exchanged = abap_false.
                 statement_string = statement_string &&   ` `  &&  current_token-lexeme.
-              endif.
-            else.
+              ENDIF.
+            ELSE.
               statement_string = statement_string &&   ` `  &&  current_token-lexeme.
-            endif.
+            ENDIF.
 
-            if is_exchanged = abap_false and current_token-lexeme eq 'IS' and next_token-lexeme ne 'NOT'.
-                  statement_string = statement_string && ` ` && `NOT`.
-                  is_exchanged = abap_false.
-            endif.
-            if  is_exchanged = abap_false and current_token-lexeme eq 'IS' and next_token-lexeme eq 'NOT'.
+            IF is_exchanged = abap_false AND current_token-lexeme EQ 'IS' AND next_token-lexeme NE 'NOT'.
+              statement_string = statement_string && ` ` && `NOT`.
+              is_exchanged = abap_false.
+            ENDIF.
+            IF  is_exchanged = abap_false AND current_token-lexeme EQ 'IS' AND next_token-lexeme EQ 'NOT'.
               counter = counter + 1.
               is_exchanged = abap_false.
-            endif.
-          endif.
-        else.
-          IF current_token-lexeme eq 'IS'.
-            loop at booltable ASSIGNING FIELD-SYMBOL(<bool>).
-                if <bool>-name eq statement-tokens[ counter - 1 ]-lexeme.
-                  statement_string = statement_string &&  ` ` && '=' &&  ` `
-                  && cond #( when next_token-lexeme ne 'NOT' then 'ABAP_FALSE'
-                             when next_token-lexeme eq 'NOT' then 'ABAP_TRUE' ).
-                  counter = counter + 2.
-                  boolean_is_in_table = abap_true.
-                endif.
-            endloop.
-            if boolean_is_in_table = abap_false.
+            ENDIF.
+          ENDIF.
+        ELSE.
+          IF current_token-lexeme EQ 'IS'.
+            LOOP AT booltable ASSIGNING FIELD-SYMBOL(<bool>).
+              IF <bool>-name EQ statement-tokens[ counter - 1 ]-lexeme.
+                statement_string = statement_string &&  ` ` && '=' &&  ` `
+                && COND #( WHEN next_token-lexeme NE 'NOT' THEN 'ABAP_FALSE'
+                           WHEN next_token-lexeme EQ 'NOT' THEN 'ABAP_TRUE' ).
+                counter = counter + 2.
+                boolean_is_in_table = abap_true.
+              ENDIF.
+            ENDLOOP.
+            IF boolean_is_in_table = abap_false.
               statement_string = statement_string &&   ` `  &&  current_token-lexeme.
-            endif.
-          else.
+            ENDIF.
+          ELSE.
             statement_string = statement_string &&   ` `  &&  current_token-lexeme.
-          endif.
-        endif.
-      endif.
-    endloop.
+          ENDIF.
+        ENDIF.
+      ENDIF.
+    ENDLOOP.
 
     statement_string = statement_string && ` ` && ').'.
 
-    append statement_string
-    to modified_statement.
+    APPEND statement_string
+    TO modified_statement.
 
-  endmethod.
-endclass.
+  ENDMETHOD.
+ENDCLASS.
 
 
 

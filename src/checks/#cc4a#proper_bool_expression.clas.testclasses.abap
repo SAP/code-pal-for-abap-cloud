@@ -86,6 +86,14 @@ class test implementation.
           object   = cl_ci_atc_unit_driver=>get_method_object(
             value #( class = test_class method = test_class_methods-test_correct_bool_usage ) )
           position = value #( line = 7 column = 4 ) ).
+    data(finding18) = value if_ci_atc_check=>ty_location(
+          object   = cl_ci_atc_unit_driver=>get_method_object(
+            value #( class = test_class method = test_class_methods-test_correct_bool_usage ) )
+          position = value #( line = 9 column = 4 ) ).
+    data(finding19) = value if_ci_atc_check=>ty_location(
+          object   = cl_ci_atc_unit_driver=>get_method_object(
+            value #( class = test_class method = test_class_methods-test_correct_bool_usage ) )
+          position = value #( line = 10 column = 4 ) ).
 
 
 
@@ -236,6 +244,18 @@ class test implementation.
                                               location = finding17
                                               code = value #(
                                               ( `TEST_BOOL_SON-SON-NAB-BOOLEAN = ABAP_FALSE .` ) ) ) ) )
+                                        ( location = finding18
+                                              quickfixes = value #( (
+                                              quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-charachter_equivalents
+                                              location = finding18
+                                              code = value #(
+                                              ( `APPEND VALUE #( BOOLEAN = ABAP_TRUE NUMBER = 5 ) TO NUMBER_BOOL_TABLE .` ) ) ) ) )
+                                        ( location = finding19
+                                              quickfixes = value #( (
+                                              quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-charachter_equivalents
+                                              location = finding19
+                                              code = value #(
+                                              ( `NUMBER_BOOL_TABLE[ 1 ]-BOOLEAN = ABAP_TRUE .` ) ) ) ) )
                                               )
 
               asserter_config   = value #( quickfixes = abap_false ) ).

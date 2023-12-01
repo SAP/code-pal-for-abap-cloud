@@ -1,118 +1,123 @@
-CLASS /cc4a/test_proper_bool_expr DEFINITION
-  PUBLIC
-  FINAL
-  CREATE PUBLIC .
+class /cc4a/test_proper_bool_expr definition
+  public
+  final
+  create public .
 
-  PUBLIC SECTION.
-    DATA a TYPE abap_bool.
+  public section.
+    data a type abap_bool.
 
-    TYPES: BEGIN OF number_and_bool,
-             number  TYPE i,
-             boolean TYPE abap_bool,
-           END OF number_and_bool.
+    types: begin of number_and_bool,
+             number  type i,
+             boolean type abap_bool,
+           end of number_and_bool.
 
-    TYPES: BEGIN OF struc_of_nab,
-             nab TYPE number_and_bool,
-           END OF struc_of_nab.
+    types: begin of struc_of_nab,
+             nab type number_and_bool,
+           end of struc_of_nab.
 
-    TYPES: BEGIN OF struc_with_bool_and_son,
-             bool TYPE abap_bool,
-             son  TYPE struc_of_nab,
-           END OF struc_with_bool_and_son.
+    types: begin of struc_with_bool_and_son,
+             bool type abap_bool,
+             son  type struc_of_nab,
+           end of struc_with_bool_and_son.
+
+           types tabletype type table of number_and_bool.
+
+           data table type tabletype.
 
     data number_bool_table type table of number_and_bool.
-    DATA number_bool_structure TYPE number_and_bool.
-    DATA test_struc_nab TYPE struc_of_nab.
-    DATA test_bool_son TYPE struc_with_bool_and_son.
-    METHODS test_method
-      IMPORTING iparameter        TYPE i OPTIONAL
-      RETURNING VALUE(rparameter) TYPE i.
+    data number_bool_structure type number_and_bool.
+    data strc_nab_table type table of struc_of_nab.
+    data test_struc_nab type struc_of_nab.
+    data test_bool_son type struc_with_bool_and_son.
+    methods test_method
+      importing iparameter        type i optional
+      returning value(rparameter) type i.
 
-  PROTECTED SECTION.
-  PRIVATE SECTION.
-    METHODS test_if_then_else.
-    METHODS test_correct_bool_usage.
-    METHODS test_bool_initial.
-    DATA int_tab TYPE RANGE OF i.
-    DATA x TYPE i.
-ENDCLASS.
+  protected section.
+  private section.
+    methods test_if_then_else.
+    methods test_correct_bool_usage.
+    methods test_bool_initial.
+    data int_tab type range of i.
+    data x type i.
+endclass.
 
 
 
-CLASS /cc4a/test_proper_bool_expr IMPLEMENTATION.
+class /cc4a/test_proper_bool_expr implementation.
 
-  METHOD test_if_then_else.
-    DATA(test) = 'test'.
-    DATA(test_number) = 5.
-    DATA(b) = abap_true.
-    IF test IS INITIAL. "finding1 erwartet
+  method test_if_then_else.
+    data(test) = 'test'.
+    data(test_number) = 5.
+    data(b) = abap_true.
+    if test is initial. "finding1 erwartet
       b = abap_true.
-    ELSE.
+    else.
       b = ABAP_false.
-    ENDIF.
+    endif.
 
-    IF test IS INITIAL. "finding erwartet
+    if test is initial. "finding erwartet
       b = abap_false.
-    ELSE.
+    else.
       b = abap_true.
-    ENDIF.
+    endif.
 
-    IF test IS NOT INITIAL. "finding erwartet
+    if test is not initial. "finding erwartet
       b = abap_false.
-    ELSE.
+    else.
       b = abap_true.
-    ENDIF.
+    endif.
 
-    IF x IN int_tab. "finding erwartet
+    if x in int_tab. "finding erwartet
       b = abap_false.
-    ELSE.
+    else.
       b = abap_true.
-    ENDIF.
+    endif.
 
-    IF x NOT IN int_tab. "finding erwartet
+    if x not in int_tab. "finding erwartet
       b = abap_false.
-    ELSE.
+    else.
       b = abap_true.
-    ENDIF.
+    endif.
 
-    IF test_number LT 38. "finding erwartet
+    if test_number lt 38. "finding erwartet
       b = abap_false.
-    ELSE.
+    else.
       b = abap_true.
-    ENDIF.
+    endif.
 
-    IF test_number <> 4 OR test IS NOT INITIAL. "finding erwartet
+    if test_number <> 4 or test is not initial. "finding erwartet
       b = abap_false.
-    ELSE.
+    else.
       b = abap_true.
-    ENDIF.
+    endif.
 
-    DATA(string) = 'teststring'.
-    IF 1 = 2 AND 'test' NE substring( len = test_method( iparameter = 3 ) val = string ) AND 5 GT 2. "finding erwartet
+    data(string) = 'teststring'.
+    if 1 = 2 and 'test' ne substring( len = test_method( iparameter = 3 ) val = string ) and 5 gt 2. "finding erwartet
       b = ' '. "kein finding erwartet, da es ein XSDBOOL werden soll
-    ELSE.
+    else.
       b = 'X'. "kein finding erwartet, da es ein XSDBOOL werden soll
-    ENDIF.
+    endif.
 
-    IF a IS NOT INITIAL. "finding erwartet
+    if a is not initial. "finding erwartet
       number_bool_structure-boolean = abap_false.
-    ELSE.
+    else.
       number_bool_structure-boolean = abap_true.
-    ENDIF.
+    endif.
 
-    IF a IS INITIAL. "finding1 erwartet
+    if a is initial. "finding1 erwartet
       b = abap_true.
-    ELSE.
+    else.
       b = ABAP_false.
-    ENDIF.
+    endif.
 
 
 
-  ENDMETHOD.
+  endmethod.
 
 
-  METHOD test_correct_bool_usage.
-    DATA t TYPE abap_bool.
+  method test_correct_bool_usage.
+    data t type abap_bool.
     t = 'X'.  "finding erwartet
     number_bool_structure-boolean = ' '. "finding erwartet
     a = space.  "finding erwartet
@@ -121,18 +126,20 @@ CLASS /cc4a/test_proper_bool_expr IMPLEMENTATION.
 
     append value #( boolean = 'X' number = 5 ) to number_bool_table.
     number_bool_table[ 1 ]-boolean = 'X'.
-  ENDMETHOD.
+    table[ 1 ]-boolean = 'X'.
 
-  METHOD test_bool_initial.
-    IF a IS  INITIAL. "finding erwartet
-    ENDIF.
-    IF a IS NOT INITIAL.  "finding erwartet
-    ENDIF.
-  ENDMETHOD.
+  endmethod.
 
-  METHOD test_method.
+  method test_bool_initial.
+    if a is  initial. "finding erwartet
+    endif.
+    if a is not initial.  "finding erwartet
+    endif.
+  endmethod.
 
-  ENDMETHOD.
+  method test_method.
+    data(asd) = 'ABAP_TRUE'.
+  endmethod.
 
-ENDCLASS.
+endclass.
 

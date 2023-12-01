@@ -9,7 +9,6 @@ class key_words definition final for testing
 endclass.
 
 class key_words implementation.
-
   method statement_is_all_keywords.
     data(test_statement) = value if_ci_atc_source_code_provider=>ty_statement(
       tokens = value #( for i = 1 then i + 1 until i >= 10 ( lexeme = |{ i }| ) ) ).
@@ -85,22 +84,20 @@ class key_words implementation.
         cl_abap_unit_assert=>fail( ).
       catch /cc4a/cx_clause_is_initial.
     endtry.
-
   endmethod.
-
 endclass.
 
 class lcl_atc_check_db_stmt definition final.
 
   public section.
     interfaces if_ci_atc_check.
-  private section.
 
+  private section.
     data code_provider     type ref to if_ci_atc_source_code_provider.
-    data assistant_factory type ref to cl_ci_atc_assistant_factory ##NEEDED.
+    data assistant_factory type ref to cl_ci_atc_assistant_factory ##needed.
 
     methods analyze_procedure
-      importing procedure       type if_ci_atc_source_code_provider=>ty_procedure
+      importing !procedure       type if_ci_atc_source_code_provider=>ty_procedure
       returning value(findings) type if_ci_atc_check=>ty_findings.
 endclass.
 
@@ -114,7 +111,6 @@ class lcl_atc_check_db_stmt implementation.
               ( code = 'LOOP' ) ( code = 'READ' ) ( code = 'IMPORT' ) ( code = 'EXPORT' ) ) ) ).
   endmethod.
 
-
   method if_ci_atc_check~run.
     code_provider = data_provider->get_code_provider( ).
     data(procedures) = code_provider->get_procedures( code_provider->object_to_comp_unit( object ) ).
@@ -127,11 +123,8 @@ class lcl_atc_check_db_stmt implementation.
     assistant_factory = factory.
   endmethod.
 
-
-  method if_ci_atc_check~verify_prerequisites ##NEEDED.
-
+  method if_ci_atc_check~verify_prerequisites ##needed.
   endmethod.
-
 
   method analyze_procedure.
     data(analyzer) = /cc4a/abap_analyzer=>create( ).
@@ -155,13 +148,12 @@ class db_stmt definition final for testing
 
   private section.
     constants test_class type c length 30 value '/CC4A/TEST_FOR_DB_STATEMENTS'.
+
     methods execute_test_class for testing raising cx_static_check.
 endclass.
 
 class db_stmt implementation.
-
   method execute_test_class.
-
     data(dyn) = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = 'DYN' ) ).
     data(mixed) = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = 'MIXED' ) ).
     cl_ci_atc_unit_driver=>create_asserter( )->check_and_assert(
@@ -207,29 +199,25 @@ class db_stmt implementation.
        ( code = 'MODIFY' parameters = value #( param_1 = '/CC4A/DB_TEST1' )
          location = value #( object = mixed position = value #( line = 33 column = 4 ) ) )
        ( code = 'WITH' parameters = value #( param_1 = 'SCI_TEST_SFLIGHT' )
-         location = value #( object = mixed position = value #( line = 46 column = 4 ) ) )
-      )
+         location = value #( object = mixed position = value #( line = 46 column = 4 ) ) ) )
       asserter_config   = value #(
         quickfixes = abap_false ) ).
-
   endmethod.
 endclass.
 
 class shared definition final abstract.
   public section.
     class-methods tokenize
-      importing code type string
+      importing !code type string
       returning value(statement) type if_ci_atc_source_code_provider=>ty_statement.
 endclass.
 
 class shared implementation.
-
   method tokenize.
     split code at space into table data(tokens).
     statement = value #( tokens = value #( for <tok> in tokens ( lexeme = to_upper( <tok> ) ) ) ).
     statement-keyword = statement-tokens[ 1 ]-lexeme.
   endmethod.
-
 endclass.
 
 class bracket_matching definition final for testing
@@ -240,9 +228,7 @@ class bracket_matching definition final for testing
     methods bracket_ends for testing raising cx_static_check.
 endclass.
 
-
 class bracket_matching implementation.
-
   method bracket_ends.
     data(analyzer) = /cc4a/abap_analyzer=>create( ).
 
@@ -282,7 +268,6 @@ class bracket_matching implementation.
         bracket_position = 1 )
       exp = 2 ).
   endmethod.
-
 endclass.
 
 class method_definitions definition final for testing
@@ -293,9 +278,8 @@ class method_definitions definition final for testing
     methods method_definitions for testing raising cx_static_check.
 endclass.
 
-CLASS method_definitions IMPLEMENTATION.
-
-  METHOD method_definitions.
+class method_definitions implementation.
+  method method_definitions.
     data(analyzer) = /cc4a/abap_analyzer=>create( ).
 
     cl_abap_unit_assert=>assert_equals(
@@ -350,6 +334,69 @@ CLASS method_definitions IMPLEMENTATION.
           ( name = `EXP` kind = /cc4a/if_abap_analyzer=>parameter_kind-exporting )
           ( name = `CH` kind = /cc4a/if_abap_analyzer=>parameter_kind-changing )
           ( name = `RET` kind = /cc4a/if_abap_analyzer=>parameter_kind-returning ) ) ) ).
-  ENDMETHOD.
+  endmethod.
+endclass.
 
-ENDCLASS.
+class flatten_tokens definition final for testing
+  duration short
+  risk level harmless.
+
+  private section.
+    methods simple_statement for testing raising cx_static_check.
+    methods string_template for testing raising cx_static_check.
+    methods nested_string_template for testing raising cx_static_check.
+endclass.
+
+class flatten_tokens implementation.
+  method simple_statement.
+    data(analyzer) = /cc4a/abap_analyzer=>create( ).
+    cl_abap_unit_assert=>assert_equals(
+      act = analyzer->flatten_tokens(
+        shared=>tokenize( `data my_int type i.` )-tokens )
+      exp = `DATA MY_INT TYPE I. ` ).
+    cl_abap_unit_assert=>assert_equals(
+      act = analyzer->flatten_tokens(
+        shared=>tokenize( `obj->meth( par = val ).` )-tokens )
+      exp = `OBJ->METH( PAR = VAL ). ` ).
+  endmethod.
+
+  method string_template.
+    data(analyzer) = /cc4a/abap_analyzer=>create( ).
+    cl_abap_unit_assert=>assert_equals(
+      act = condense( analyzer->flatten_tokens( value #(
+        ( lexeme = `STR` )
+        ( lexeme = `=` )
+        ( lexeme = `|` )
+        ( lexeme = '`hello, `' )
+        ( lexeme = `{` )
+        ( lexeme = `WORLD` )
+        ( lexeme = `}` )
+        ( lexeme = '`!`' )
+        ( lexeme = `|` ) ) ) )
+      exp = 'STR = |hello, { WORLD }!|' ).
+  endmethod.
+
+  method nested_string_template.
+    data(analyzer) = /cc4a/abap_analyzer=>create( ).
+    cl_abap_unit_assert=>assert_equals(
+      act = condense( analyzer->flatten_tokens( value #(
+        ( lexeme = `STR` )
+        ( lexeme = `=` )
+        ( lexeme = `|` )
+        ( lexeme = '`hello, `' )
+        ( lexeme = `{` )
+        ( lexeme = `func(` )
+        ( lexeme = `|` )
+        ( lexeme = '`inner `' )
+        ( lexeme = '{' )
+        ( lexeme = `TEMPLATE` )
+        ( lexeme = '}' )
+        ( lexeme = `|` )
+        ( lexeme = `)` )
+        ( lexeme = `}` )
+        ( lexeme = '`!`' )
+        ( lexeme = `|` ) ) ) )
+      exp = 'STR = |hello, { func( |inner { TEMPLATE }| ) }!|' ).
+
+  endmethod.
+endclass.

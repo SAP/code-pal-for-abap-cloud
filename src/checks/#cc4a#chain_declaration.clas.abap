@@ -144,7 +144,6 @@ CLASS /CC4A/CHAIN_DECLARATION IMPLEMENTATION.
   method create_begin_of_quickfix_code.
     loop at statements assigning field-symbol(<statement>).
       data(new_statement) = <statement>.
-      data(third_token) = value #( <statement>-tokens[ 3 ] optional ).
       case sy-tabix.
         when 1.
           new_statement-tokens[ 1 ]-lexeme = <statement>-tokens[ 1 ]-lexeme && `:`.
@@ -240,14 +239,15 @@ CLASS /CC4A/CHAIN_DECLARATION IMPLEMENTATION.
   method constructor.
     meta_data = /cc4a/check_meta_data=>create(
       value #( checked_types = /cc4a/check_meta_data=>checked_types-abap_programs
-          description = 'Avoid Chain Declaration'(des)
-          remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
-          finding_codes = value #(
-            ( code = finding_codes-chain_declaration
-              pseudo_comment = pseudo_comment
-              text = 'Usage of Chain Declaration'(ucd) ) )
-          quickfix_codes = value #(
-            ( code = quickfix_codes-resolve_chain short_text = 'Replace Chain Declaration with Single Declaration'(qsd) ) ) ) ).
+        description = 'Avoid Chain Declaration'(des)
+        remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
+        finding_codes = value #(
+          ( code = finding_codes-chain_declaration
+            pseudo_comment = pseudo_comment
+            text = 'Usage of Chain Declaration'(ucd) ) )
+        quickfix_codes = value #(
+          ( code = quickfix_codes-resolve_chain 
+            short_text = 'Replace Chain Declaration with Single Declaration'(qsd) ) ) ) ).
   endmethod.
 
   method if_ci_atc_check~run.

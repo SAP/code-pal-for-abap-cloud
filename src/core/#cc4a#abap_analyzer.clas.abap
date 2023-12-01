@@ -21,11 +21,18 @@ class /cc4a/abap_analyzer definition
         negated  type string,
       end of ty_negation.
     class-data negations type table of ty_negation.
-endclass.
+
+    methods _flatten_tokens
+      changing tokens type if_ci_atc_source_code_provider=>ty_tokens
+      returning value(flat) type string.
+    methods _flatten_template
+      changing tokens type if_ci_atc_source_code_provider=>ty_tokens
+      returning value(flat) type string.
+ENDCLASS.
 
 
 
-class /cc4a/abap_analyzer implementation.
+CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
 
 
   method /cc4a/if_abap_analyzer~break_into_lines.
@@ -127,55 +134,8 @@ class /cc4a/abap_analyzer implementation.
 
 
   method /cc4a/if_abap_analyzer~flatten_tokens.
-    if line_exists( tokens[ lexeme = '|' ] ).
-      data new_tokens like tokens.
-      data template_token like line of tokens.
-      data inside_template type abap_bool.
-      loop at tokens assigning field-symbol(<token>).
-        if inside_template = abap_false.
-          case <token>-lexeme.
-            when '|'.
-              inside_template = abap_true.
-              template_token-lexeme = <token>-lexeme.
-              continue.
-            when others.
-              append <token> to new_tokens.
-          endcase.
-        else.
-          case <token>-lexeme.
-            when '|'.
-              template_token-lexeme &&= '|'.
-              append template_token to new_tokens.
-              inside_template = abap_false.
-              exit.
-            when '`\`'.
-              template_token-lexeme &&= '\\'.
-            when '`|`'.
-              template_token-lexeme &&= '\|'.
-            when '`{`'.
-              template_token-lexeme &&= '\{'.
-            when '`}`'.
-              template_token-lexeme &&= '\}'.
-            when '``'.
-              continue.
-            when '{'.
-              template_token-lexeme &&= `{ `.
-            when '}'.
-              template_token-lexeme &&= ` }`.
-            when others.
-              if <token>-lexeme cp '`*`'.
-                data(len) = strlen( <token>-lexeme ) - 2.
-                template_token-lexeme &&= <token>-lexeme+1(len).
-              else.
-                template_token-lexeme &&= <token>-lexeme.
-              endif.
-          endcase.
-        endif.
-      endloop.
-      flat_statement = reduce #( init str = `` for tok in new_tokens next str = |{ str }{ tok-lexeme } | ).
-    else.
-      flat_statement = reduce #( init str = `` for tok in tokens next str = |{ str }{ tok-lexeme } | ).
-    endif.
+    data(tokens_to_process) = tokens.
+    flat_statement = _flatten_tokens( changing tokens = tokens_to_process ).
   endmethod.
 
 
@@ -194,6 +154,12 @@ class /cc4a/abap_analyzer implementation.
   endmethod.
 
 
+  method /cc4a/if_abap_analyzer~is_logical_connective.
+    is_logical_connective = xsdbool(
+      token-references is initial and ( token-lexeme = 'AND' or token-lexeme = 'OR' or token-lexeme = 'EQUIV' ) ).
+  endmethod.
+
+
   method /cc4a/if_abap_analyzer~is_token_keyword.
     result = abap_true.
     if token-references is not initial or token-lexeme <> keyword.
@@ -209,72 +175,6 @@ class /cc4a/abap_analyzer implementation.
     negated_comparison_operator = negations[ operator = comparison_operator ]-negated.
   endmethod.
 
-
-  method /cc4a/if_abap_analyzer~token_is_comparison_operator.
-    case token-lexeme.
-      when 'IS' or 'IN' or '>' or 'GT' or '<' or 'LT' or '>=' or 'GE' or '<=' or 'LE' or '=' or 'EQ' or '<>' or 'NE'.
-        is_operator = abap_true.
-      when others.
-        is_operator = abap_false.
-    endcase.
-  endmethod.
-
-
-  method create.
-    instance = new /cc4a/abap_analyzer( ).
-  endmethod.
-
-
-  method is_db_statement.
-    case statement-keyword.
-      when 'SELECT' or 'WITH' or 'DELETE' or 'UPDATE' or 'INSERT' or 'MODIFY' or 'READ' or 'LOOP'
-      or 'IMPORT' or 'EXPORT' or 'FETCH' or 'OPEN' or 'EXEC'.
-        if ( find_clause_index( tokens = statement-tokens clause = 'CONNECTION' ) <> 0
-             and (    statement-keyword = 'DELETE'
-                   or statement-keyword = 'UPDATE'
-                   or statement-keyword = 'INSERT'
-                   or statement-keyword = 'MODIFY' ) ).
-          result-is_db = abap_true.
-          if get_dbtab_name = abap_false.
-            return.
-          endif.
-        endif.
-      when others.
-        return.
-    endcase.
-    data(token_idx) = 2.
-    while lines( statement-tokens ) > token_idx and statement-tokens[ token_idx ]-lexeme cp '%_*('
-    and statement-tokens[ token_idx ]-references is initial.
-      token_idx += 3.
-    endwhile.
-    data(analyzer) = new db_statement_analyzer(
-       statement = statement
-       start_idx = token_idx
-       analyzer = me
-       include_subqueries = include_subqueries ).
-    result = analyzer->analyze( ).
-
-  endmethod.
-
-  method /cc4a/if_abap_analyzer~is_logical_connective.
-    is_logical_connective = xsdbool(
-      token-references is initial and ( token-lexeme = 'AND' or token-lexeme = 'OR' or token-lexeme = 'EQUIV' ) ).
-  endmethod.
-
-  method class_constructor.
-    negations = value #( ( operator = '>' negated = '<=' )
-                         ( operator = 'GT' negated = 'LE' )
-                         ( operator = '<' negated = '>=' )
-                         ( operator = 'LT' negated = 'GE' )
-                         ( operator = '=' negated = '<>' )
-                         ( operator = 'EQ' negated = 'NE' )
-                         ( operator = '<>' negated = '=' )
-                         ( operator = 'NE' negated = 'EQ' )
-                         ( operator = '<=' negated = '>' )
-                         ( operator = 'LE' negated = 'GT' )
-                         ( operator = '>=' negated = '<' )
-                         ( operator = 'GE' negated = 'LT' ) ).
-  endmethod.
 
   method /cc4a/if_abap_analyzer~parse_method_definition.
     if statement-keyword <> 'METHODS' and statement-keyword <> 'CLASS-METHODS'.
@@ -321,5 +221,122 @@ class /cc4a/abap_analyzer implementation.
     endloop.
   endmethod.
 
-endclass.
 
+  method /cc4a/if_abap_analyzer~token_is_comparison_operator.
+    case token-lexeme.
+      when 'IS' or 'IN' or '>' or 'GT' or '<' or 'LT' or '>=' or 'GE' or '<=' or 'LE' or '=' or 'EQ' or '<>' or 'NE'.
+        is_operator = abap_true.
+      when others.
+        is_operator = abap_false.
+    endcase.
+  endmethod.
+
+
+  method class_constructor.
+    negations = value #( ( operator = '>' negated = '<=' )
+                         ( operator = 'GT' negated = 'LE' )
+                         ( operator = '<' negated = '>=' )
+                         ( operator = 'LT' negated = 'GE' )
+                         ( operator = '=' negated = '<>' )
+                         ( operator = 'EQ' negated = 'NE' )
+                         ( operator = '<>' negated = '=' )
+                         ( operator = 'NE' negated = 'EQ' )
+                         ( operator = '<=' negated = '>' )
+                         ( operator = 'LE' negated = 'GT' )
+                         ( operator = '>=' negated = '<' )
+                         ( operator = 'GE' negated = 'LT' ) ).
+  endmethod.
+
+
+  method create.
+    instance = new /cc4a/abap_analyzer( ).
+  endmethod.
+
+
+  method is_db_statement.
+    case statement-keyword.
+      when 'SELECT' or 'WITH' or 'DELETE' or 'UPDATE' or 'INSERT' or 'MODIFY' or 'READ' or 'LOOP'
+      or 'IMPORT' or 'EXPORT' or 'FETCH' or 'OPEN' or 'EXEC'.
+        if ( find_clause_index( tokens = statement-tokens clause = 'CONNECTION' ) <> 0
+             and (    statement-keyword = 'DELETE'
+                   or statement-keyword = 'UPDATE'
+                   or statement-keyword = 'INSERT'
+                   or statement-keyword = 'MODIFY' ) ).
+          result-is_db = abap_true.
+          if get_dbtab_name = abap_false.
+            return.
+          endif.
+        endif.
+      when others.
+        return.
+    endcase.
+    data(token_idx) = 2.
+    while lines( statement-tokens ) > token_idx and statement-tokens[ token_idx ]-lexeme cp '%_*('
+    and statement-tokens[ token_idx ]-references is initial.
+      token_idx += 3.
+    endwhile.
+    data(analyzer) = new db_statement_analyzer(
+       statement = statement
+       start_idx = token_idx
+       analyzer = me
+       include_subqueries = include_subqueries ).
+    result = analyzer->analyze( ).
+
+  endmethod.
+
+  method _flatten_tokens.
+    if not line_exists( tokens[ lexeme = '|' ] ).
+      flat = reduce #( init str = `` for tok in tokens next str = |{ str }{ tok-lexeme } | ).
+    else.
+      assign tokens[ 1 ] to field-symbol(<token>).
+      while lines( tokens ) > 0.
+        if <token>-lexeme = '|'.
+          delete tokens index 1.
+          flat &&= |\|{ _flatten_template( changing tokens = tokens ) }\||.
+        else.
+          flat &&= |{ <token>-lexeme } |.
+        endif.
+        delete tokens index 1.
+        assign tokens[ 1 ] to <token>.
+      endwhile.
+    endif.
+  endmethod.
+
+  method _flatten_template.
+    data(inside_braces) = abap_true.
+    assign tokens[ 1 ] to field-symbol(<token>).
+    while lines( tokens ) > 0.
+      case <token>-lexeme.
+        when `|`.
+          delete tokens index 1.
+          if inside_braces = abap_true.
+            flat &&= |\|{ _flatten_template( changing tokens = tokens ) }\| |.
+          else.
+            return.
+          endif.
+
+        when `{`.
+          inside_braces = abap_true.
+          flat &&= `{ `.
+          delete tokens index 1.
+
+        when `}`.
+          inside_braces = abap_false.
+          flat &&= ` }`.
+          delete tokens index 1.
+
+        when others.
+          if <token>-lexeme cp '`*`'.
+            data(token_inner_length) = strlen( <token>-lexeme ) - 2.
+            flat &&= <token>-lexeme+1(token_inner_length).
+          else.
+            flat &&= |{ <token>-lexeme } |.
+          endif.
+          delete tokens index 1.
+
+      endcase.
+      assign tokens[ 1 ] to <token>.
+    endwhile.
+  endmethod.
+
+ENDCLASS.

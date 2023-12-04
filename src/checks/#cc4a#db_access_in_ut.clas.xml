@@ -5,7 +5,7 @@
    <VSEOCLASS>
     <CLSNAME>/CC4A/DB_ACCESS_IN_UT</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>Avoid database access in unit-tests</DESCRIPT>
+    <DESCRIPT>Avoid database access in unit tests</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>
@@ -16,13 +16,13 @@
     <item>
      <ID>I</ID>
      <KEY>DAU</KEY>
-     <ENTRY>Database access in unit-test</ENTRY>
+     <ENTRY>Database access in unit test</ENTRY>
      <LENGTH>88</LENGTH>
     </item>
     <item>
      <ID>I</ID>
      <KEY>DES</KEY>
-     <ENTRY>Avoid data base access in unit-tests</ENTRY>
+     <ENTRY>Database access in unit tests</ENTRY>
      <LENGTH>88</LENGTH>
     </item>
    </TPOOL>

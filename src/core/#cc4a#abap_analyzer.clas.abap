@@ -302,7 +302,6 @@ CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
     endif.
   endmethod.
 
-
   method _flatten_template.
     data(inside_braces) = abap_true.
     assign tokens[ 1 ] to field-symbol(<token>).

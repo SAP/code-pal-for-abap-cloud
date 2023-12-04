@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_SCO2" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <SCO2>
+    <IBS_ID>/CC4A/RFC_ENABLED_MODULE_RFC</IBS_ID>
+    <IBS_TYPE>SRFC</IBS_TYPE>
+    <RFC_SERVICE_ID>/CC4A/RFC_ENABLED_MODULE</RFC_SERVICE_ID>
+    <REL_FOR_CUST_CSCN>X</REL_FOR_CUST_CSCN>
+    <ABAP_LANGUAGE_VERSION>5</ABAP_LANGUAGE_VERSION>
+    <NAME>/CC4A/RFC_ENABLED_MODULE_RFC</NAME>
+    <DESCRIPTION> RFC Service /CC4A/RFC_ENABLED_MODULE</DESCRIPTION>
+    <ABAP_LANGU_VERSION>5</ABAP_LANGU_VERSION>
+   </SCO2>
+  </asx:values>
+ </asx:abap>
+</abapGit>

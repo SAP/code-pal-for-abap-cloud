@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_FUGR" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <AREAT>Test class for prefer methods check</AREAT>
+   <INCLUDES>
+    <SOBJ_NAME>/CC4A/LTEST_PREFER_METHODSTOP</SOBJ_NAME>
+    <SOBJ_NAME>/CC4A/SAPLTEST_PREFER_METHODS</SOBJ_NAME>
+   </INCLUDES>
+   <FUNCTIONS>
+    <item>
+     <FUNCNAME>/CC4A/RFC_DISABLED_MODULE</FUNCNAME>
+     <SHORT_TEXT>Test module where rfc is disabled</SHORT_TEXT>
+    </item>
+    <item>
+     <FUNCNAME>/CC4A/RFC_ENABLED_MODULE</FUNCNAME>
+     <REMOTE_CALL>R</REMOTE_CALL>
+     <SHORT_TEXT>Test module where rfc is enabled</SHORT_TEXT>
+    </item>
+   </FUNCTIONS>
+  </asx:values>
+ </asx:abap>
+</abapGit>

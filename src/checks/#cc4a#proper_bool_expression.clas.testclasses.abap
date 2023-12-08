@@ -83,9 +83,9 @@ class test implementation.
             value #( class = test_class method = test_class_methods-test_if_then_else ) )
           position = value #( line = 60 column = 4 ) ).
     data(finding17) = value if_ci_atc_check=>ty_location(
-          object   = cl_ci_atc_unit_driver=>get_method_object(
-            value #( class = test_class method = test_class_methods-test_correct_bool_usage ) )
-          position = value #( line = 7 column = 4 ) ).
+          object   = cl_ci_atc_unit_driver=>get_class_section_object(
+          value #( class = test_class kind = cl_ci_atc_unit_driver=>class_section_kind-public ) )
+        position = value #( line = 7 column = 4 ) ).
     data(finding18) = value if_ci_atc_check=>ty_location(
           object   = cl_ci_atc_unit_driver=>get_method_object(
             value #( class = test_class method = test_class_methods-test_correct_bool_usage ) )
@@ -94,6 +94,14 @@ class test implementation.
           object   = cl_ci_atc_unit_driver=>get_method_object(
             value #( class = test_class method = test_class_methods-test_correct_bool_usage ) )
           position = value #( line = 10 column = 4 ) ).
+    data(finding20) = value if_ci_atc_check=>ty_location(
+          object   = cl_ci_atc_unit_driver=>get_method_object(
+            value #( class = test_class method = test_class_methods-test_correct_bool_usage ) )
+          position = value #( line = 11 column = 4 ) ).
+    data(finding21) = value if_ci_atc_check=>ty_location(
+          object   = cl_ci_atc_unit_driver=>get_method_object(
+            value #( class = test_class method = test_class_methods-test_correct_bool_usage ) )
+          position = value #( line = 12 column = 4 ) ).
 
 
 
@@ -243,7 +251,7 @@ class test implementation.
                                               quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-charachter_equivalents
                                               location = finding17
                                               code = value #(
-                                              ( `TEST_BOOL_SON-SON-NAB-BOOLEAN = ABAP_FALSE .` ) ) ) ) )
+                                              ( `CONSTANTS: BOOL TYPE abap_bool VALUE ABAP_TRUE.` ) ) ) ) )
                                         ( location = finding18
                                               quickfixes = value #( (
                                               quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-charachter_equivalents
@@ -256,6 +264,18 @@ class test implementation.
                                               location = finding19
                                               code = value #(
                                               ( `NUMBER_BOOL_TABLE[ 1 ]-BOOLEAN = ABAP_TRUE .` ) ) ) ) )
+                                        ( location = finding20
+                                              quickfixes = value #( (
+                                              quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-charachter_equivalents
+                                              location = finding20
+                                              code = value #(
+                                              ( `table[ 1 ]-boolean = ABAP_TRUE .` ) ) ) ) )
+                                        ( location = finding21
+                                              quickfixes = value #( (
+                                              quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-charachter_equivalents
+                                              location = finding21
+                                              code = value #(
+                                              ( `TABLE2[ 4 ]-TABLE[ 1 ]-BOOLEAN = ABAP_TRUE .` ) ) ) ) )
                                               )
 
               asserter_config   = value #( quickfixes = abap_false ) ).

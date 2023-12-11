@@ -35,9 +35,9 @@ CLASS /cc4a/proper_bool_expression DEFINITION
            END OF boolstructure.
 
     TYPES: BEGIN OF boolean_names_in_structure,
-             name_of_boolean           TYPE string,
+             name_of_boolean            TYPE string,
              corresp_struc_or_tabletype TYPE string,
-             is_table                  TYPE abap_bool,
+             is_table                   TYPE abap_bool,
            END OF boolean_names_in_structure.
     DATA code_provider     TYPE REF TO if_ci_atc_source_code_provider.
     DATA assistant_factory TYPE REF TO cl_ci_atc_assistant_factory.
@@ -82,6 +82,7 @@ CLASS /cc4a/proper_bool_expression DEFINITION
     METHODS  check_bool_initial
       IMPORTING previous_token_lexeme TYPE string
                 statement             TYPE if_ci_atc_source_code_provider=>ty_statement
+                IS_keyword_position   type i
       RETURNING VALUE(finding)        TYPE string.
 
     METHODS exchangebool
@@ -103,6 +104,11 @@ CLASS /cc4a/proper_bool_expression DEFINITION
                 variable_position         TYPE i
       RETURNING VALUE(modified_statement) TYPE if_ci_atc_quickfix=>ty_code.
 
+METHODS is_boolean_in_booltable
+      IMPORTING current_position type i
+                statement type if_ci_atc_source_code_provider=>ty_statement
+                boolean_name type string
+      returning value(is_in_table) type abap_bool.
 
 ENDCLASS.
 
@@ -132,7 +138,7 @@ CLASS /cc4a/proper_bool_expression IMPLEMENTATION.
               WHEN 'IF'.
                 reported_finding = check_if_then_else( EXPORTING  procedure = procedure statement_index = statement_index current_token = <token> ).
               WHEN 'IS'.
-                reported_finding = check_bool_initial( EXPORTING previous_token_lexeme = <statement>-tokens[ sy-tabix - 1 ]-lexeme statement = <statement> ).
+                reported_finding = check_bool_initial( EXPORTING previous_token_lexeme = <statement>-tokens[ sy-tabix - 1 ]-lexeme statement = <statement> is_keyword_position = sy-tabix ).
             ENDCASE.
           ENDIF.
         ENDIF.
@@ -258,7 +264,7 @@ CLASS /cc4a/proper_bool_expression IMPLEMENTATION.
         INSERT VALUE #( name = current_statement-tokens[ sy-tabix - 1  ]-lexeme
                         is_local_variable = is_local_variable
           ) INTO TABLE booltable.
-      ELSEif current_statement-tokens[ sy-tabix - 2  ]-lexeme Eq 'DATA'.
+      ELSEIF current_statement-tokens[ sy-tabix - 2  ]-lexeme EQ 'DATA'.
         DATA(counter) = sy-tabix.
 
         LOOP AT table_of_structure_names ASSIGNING FIELD-SYMBOL(<line_of_table>)
@@ -266,7 +272,7 @@ CLASS /cc4a/proper_bool_expression IMPLEMENTATION.
         OR corresp_struc_or_tabletype EQ next_token3_lexeme ) AND corresp_struc_or_tabletype IS NOT INITIAL
           .
           INSERT VALUE #( name = current_statement-tokens[ counter - 1  ]-lexeme
-          && COND #( WHEN <line_of_table>-corresp_struc_or_tabletype EQ next_token3_lexeme or <line_of_table>-is_table eq abap_true THEN '[ * ]' ELSE '' )
+          && COND #( WHEN <line_of_table>-corresp_struc_or_tabletype EQ next_token3_lexeme OR <line_of_table>-is_table EQ abap_true THEN '[ * ]' ELSE '' )
           && '-' && <line_of_table>-name_of_boolean
                         is_local_variable = is_local_variable
           ) INTO TABLE booltable.
@@ -306,7 +312,7 @@ CLASS /cc4a/proper_bool_expression IMPLEMENTATION.
               ELSEIF <current_token>-lexeme IN structure_names_range AND <current_token>-lexeme NE structure_name.
                 LOOP AT table_of_structure_names ASSIGNING FIELD-SYMBOL(<structure_name>) WHERE corresp_struc_or_tabletype EQ  <current_token>-lexeme.
                   INSERT VALUE #( name_of_boolean = procedure-statements[ statement_counter  ]-tokens[ token_counter - 2 ]-lexeme &&
-                  COND #( WHEN <structure_name>-is_table eq abap_true THEN '[ * ]' ELSE '' ) &&
+                  COND #( WHEN <structure_name>-is_table EQ abap_true THEN '[ * ]' ELSE '' ) &&
                   '-' && <structure_name>-name_of_boolean
                                   corresp_struc_or_tabletype = structure_name
                                   ) INTO TABLE table_of_structure_names.
@@ -323,12 +329,12 @@ CLASS /cc4a/proper_bool_expression IMPLEMENTATION.
     DATA(table_type) = VALUE #( current_statement-tokens[ sy-tabix + 5  ]-lexeme OPTIONAL ).
     DATA(table_name) = VALUE #( current_statement-tokens[ sy-tabix + 1  ]-lexeme OPTIONAL ).
     IF current_token_lexeme EQ 'TYPES' AND table_type IN structure_names_range AND table_type NE table_name.
-    LOOP AT table_of_structure_names ASSIGNING FIELD-SYMBOL(<struc_name>) WHERE corresp_struc_or_tabletype eq table_type.
-      INSERT VALUE #( name_of_boolean = <struc_name>-name_of_boolean
-                corresp_struc_or_tabletype = table_name
-                is_table = abap_true
-                ) INTO TABLE table_of_structure_names.
-                ENDLOOP.
+      LOOP AT table_of_structure_names ASSIGNING FIELD-SYMBOL(<struc_name>) WHERE corresp_struc_or_tabletype EQ table_type.
+        INSERT VALUE #( name_of_boolean = <struc_name>-name_of_boolean
+                  corresp_struc_or_tabletype = table_name
+                  is_table = abap_true
+                  ) INTO TABLE table_of_structure_names.
+      ENDLOOP.
     ENDIF.
     IF token_lexeme_after_eq EQ |' '| OR token_lexeme_after_eq EQ |'X'| OR token_lexeme_after_eq EQ |SPACE|
     OR token_lexeme_after_value EQ |' '| OR token_lexeme_after_value EQ |'X'| OR token_lexeme_after_value EQ |SPACE|.
@@ -341,81 +347,46 @@ CLASS /cc4a/proper_bool_expression IMPLEMENTATION.
     IF next_token_lexeme EQ |'X'| OR next_token_lexeme EQ |' '| OR next_token_lexeme EQ 'SPACE'.
       IF xsdbool_position_line + 1 NE code_provider->get_statement_location( statement )-position-line
       AND xsdbool_position_line + 3 NE code_provider->get_statement_location( statement )-position-line.
-        DATA(equal_sign_index) = sy-tabix.
-        LOOP AT booltable ASSIGNING FIELD-SYMBOL(<boolean>).
-          if previous_token_lexeme EQ <boolean>-name.
-            finding = 'check_correct_bool_usage'.
-          else.
-          data(last_part) = reverse( <boolean>-name ).
-            data char type c.
-            data counter type i.
-            counter = 0.
-            data has_exited type abap_bool.
-            has_exited = abap_false.
-          while last_part CP '*]*[*'.
-
-
-                SPLIT last_part at ']' into data(first_part) last_part.
-                counter = counter + 1.
-                first_part = ']' && reverse( first_part ).
-                data(compared_token_lexeme) = value #( statement-tokens[ equal_sign_index - counter ]-lexeme optional ).
-                if first_part ne compared_token_lexeme.
-                  has_exited = abap_true.
-                  exit.
-                endif.
-                SPLIT last_part at '[' into first_part last_part.
-                last_part = '[' && last_part.
-
-                counter = counter + 1.
-          ENDwhile.
-          if has_exited eq abap_false.
-            counter = counter + 1.
-            compared_token_lexeme = value #( statement-tokens[ equal_sign_index - counter ]-lexeme OPTIONAL ).
-            last_part = reverse( last_part ).
-            if last_part eq compared_token_lexeme.
-              finding = 'check_correct_bool_usage'.
-            ENDIF.
-          endif.
-          endif.
-
+*        DATA(equal_sign_index) = sy-tabix.
+*        LOOP AT booltable ASSIGNING FIELD-SYMBOL(<boolean>).
+*          IF previous_token_lexeme EQ <boolean>-name.
+*            finding = 'check_correct_bool_usage'.
 *
-*          IF <boolean>-name CP '*[*]*'.
-*
-*            SPLIT <boolean>-name AT '[' INTO DATA(first_part) DATA(second_part).
-*            SPLIT second_part AT ']' INTO second_part DATA(third_part).
-*            first_part = first_part && '['.
-*            third_part = ']' && third_part.
-*            IF previous_token_lexeme EQ third_part AND statement-tokens[ equal_sign_index - 3 ]-lexeme EQ first_part.
-*              finding = 'check_correct_bool_usage'.
-*            ENDIF.
-*          ELSEIF previous_token_lexeme EQ <boolean>-name.
+*          elseif is_boolean_in_booltable(  exporting current_position = equal_sign_index statement = statement boolean_name = <boolean>-name )  eq abap_true.
 *            finding = 'check_correct_bool_usage'.
 *          ENDIF.
-        ENDLOOP.
-        IF finding NE 'check_correct_bool_usage'.
-          DATA(open_brackets) = 0.
+*        ENDLOOP.
+*        IF finding NE 'check_correct_bool_usage'.
+*          DATA(open_brackets) = 0.
+*
+*          LOOP AT statement-tokens ASSIGNING FIELD-SYMBOL(<current_token>).
+*            IF <current_token>-lexeme CP '*+(' OR ( <current_token>-lexeme EQ '(' AND open_brackets >= 1 ).
+*              open_brackets = open_brackets + 1.
+*            ELSEIF <current_token>-lexeme EQ ')'.
+*              open_brackets = open_brackets - 1.
+*            ENDIF.
+*            IF open_brackets = 0 AND <current_token>-lexeme EQ ')'.
+*              EXIT.
+*            ENDIF.
+*            IF open_brackets >= 1 AND equal_sign_index = sy-tabix.
+*              finding = 'check_correct_bool_usage'.
+*            ENDIF.
+*          ENDLOOP.
+*        ENDIF.
 
-          LOOP AT statement-tokens ASSIGNING FIELD-SYMBOL(<current_token>).
-            IF <current_token>-lexeme CP '*+(' OR ( <current_token>-lexeme EQ '(' AND open_brackets >= 1 ).
-              open_brackets = open_brackets + 1.
-            ELSEIF <current_token>-lexeme EQ ')'.
-              open_brackets = open_brackets - 1.
-            ENDIF.
-            IF open_brackets = 0 AND <current_token>-lexeme EQ ')'.
-              EXIT.
-            ENDIF.
-            IF open_brackets >= 1 AND equal_sign_index = sy-tabix.
               finding = 'check_correct_bool_usage'.
-            ENDIF.
-          ENDLOOP.
-        ENDIF.
+
+
       ENDIF.
     ENDIF.
   ENDMETHOD.
 
   METHOD check_bool_initial.
+  data(a) = is_keyword_position.
     LOOP AT booltable ASSIGNING FIELD-SYMBOL(<boolean>).
-      IF previous_token_lexeme EQ <boolean>-name AND xsdbool_position_line NE code_provider->get_statement_location( statement )-position-line.
+      IF ( previous_token_lexeme EQ <boolean>-name
+      or is_boolean_in_booltable( exporting current_position = a statement = statement boolean_name = <boolean>-name ) eq abap_true )
+      AND xsdbool_position_line NE code_provider->get_statement_location( statement )-position-line.
         finding = 'check_bool_initial'.
       ENDIF.
     ENDLOOP.
@@ -493,7 +464,8 @@ CLASS /cc4a/proper_bool_expression IMPLEMENTATION.
               statement_string = statement_string && ` ` && `AND`.
             ELSEIF current_token-lexeme EQ 'IS'.
               LOOP AT booltable ASSIGNING FIELD-SYMBOL(<boolean>).
-                IF <boolean>-name EQ statement-tokens[ counter - 1 ]-lexeme.
+                IF <boolean>-name EQ statement-tokens[ counter - 1 ]-lexeme
+                or is_boolean_in_booltable( current_position = counter statement = statement boolean_name = <boolean>-name ).
                   statement_string = statement_string &&  ` ` && '=' &&  ` `
                   && COND #( WHEN next_token-lexeme EQ 'NOT' THEN 'ABAP_FALSE'
                              WHEN next_token-lexeme NE 'NOT' THEN 'ABAP_TRUE' ).
@@ -520,7 +492,8 @@ CLASS /cc4a/proper_bool_expression IMPLEMENTATION.
         ELSE.
           IF current_token-lexeme EQ 'IS'.
             LOOP AT booltable ASSIGNING FIELD-SYMBOL(<bool>).
-              IF <bool>-name EQ statement-tokens[ counter - 1 ]-lexeme.
+              IF <bool>-name EQ statement-tokens[ counter - 1 ]-lexeme
+              or is_boolean_in_booltable( current_position = counter statement = statement boolean_name = <bool>-name ).
                 statement_string = statement_string &&  ` ` && '=' &&  ` `
                 && COND #( WHEN next_token-lexeme NE 'NOT' THEN 'ABAP_FALSE'
                            WHEN next_token-lexeme EQ 'NOT' THEN 'ABAP_TRUE' ).
@@ -544,6 +517,38 @@ CLASS /cc4a/proper_bool_expression IMPLEMENTATION.
     TO modified_statement.
 
   ENDMETHOD.
+  METHOD is_boolean_in_booltable.
+
+            DATA(last_part) = reverse( boolean_name ).
+            DATA char TYPE c.
+            DATA counter TYPE i.
+            counter = 0.
+            DATA has_exited TYPE abap_bool.
+            has_exited = abap_false.
+            WHILE last_part CP '*]*[*'.
+              SPLIT last_part AT ']' INTO DATA(first_part) last_part.
+              counter = counter + 1.
+              first_part = ']' && reverse( first_part ).
+              DATA(compared_token_lexeme) = VALUE #( statement-tokens[ current_position - counter ]-lexeme OPTIONAL ).
+              IF first_part NE compared_token_lexeme.
+                has_exited = abap_true.
+                EXIT.
+              ENDIF.
+              SPLIT last_part AT '[' INTO first_part last_part.
+              last_part = '[' && last_part.
+              counter = counter + 1.
+            ENDWHILE.
+            IF has_exited EQ abap_false.
+              counter = counter + 1.
+              compared_token_lexeme = VALUE #( statement-tokens[ current_position - counter ]-lexeme OPTIONAL ).
+              last_part = reverse( last_part ).
+              IF last_part EQ compared_token_lexeme.
+                is_in_table = abap_true.
+              ENDIF.
+            ENDIF.
+
+  ENDMETHOD.
+
 ENDCLASS.
 
 

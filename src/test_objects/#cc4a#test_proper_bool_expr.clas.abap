@@ -27,6 +27,7 @@ CLASS /cc4a/test_proper_bool_expr DEFINITION
 
     DATA table TYPE tabletype.
     data structure_of_table type struc_of_table.
+    data abapboolean type abap_boolean.
 
     DATA number_bool_table TYPE TABLE OF number_and_bool.
     DATA number_bool_structure TYPE number_and_bool.
@@ -114,6 +115,17 @@ CLASS /cc4a/test_proper_bool_expr IMPLEMENTATION.
       b = ABAP_false.
     ENDIF.
 
+    IF table2[ 4 ]-table[ 1 ]-boolean IS INITIAL. "finding1 erwartet
+      b = ABAP_false.
+    ELSE.
+      b = ABAP_true.
+    ENDIF.
+
+    IF table2[ 4 ]-table[ 1 ]-boolean IS INITIAL. "finding1 erwartet
+      b = abap_true.
+    ELSE.
+      b = ABAP_false.
+    ENDIF.
 
 
   ENDMETHOD.
@@ -132,14 +144,14 @@ CLASS /cc4a/test_proper_bool_expr IMPLEMENTATION.
     table[ 1 ]-boolean = 'X'.
     table2[ 4 ]-table[ 1 ]-boolean = 'X'.
 
-    "naeloob-] 1 [-elbat-] 4 [-2elbat
-
   ENDMETHOD.
 
   METHOD test_bool_initial.
     IF a IS  INITIAL. "finding erwartet
     ENDIF.
     IF a IS NOT INITIAL.  "finding erwartet
+    ENDIF.
+    IF table2[ 4 ]-table[ 1 ]-boolean IS NOT INITIAL.  "finding erwartet
     ENDIF.
   ENDMETHOD.
 

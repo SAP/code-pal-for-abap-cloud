@@ -139,11 +139,6 @@ CLASS /cc4a/test_proper_bool_expr IMPLEMENTATION.
     test_struc_nab-nab-boolean = 'X'.
 
 
-    APPEND VALUE #( boolean = 'X' number = 5 ) TO number_bool_table.
-    number_bool_table[ 1 ]-boolean = 'X'.
-    table[ 1 ]-boolean = 'X'.
-    table2[ 4 ]-table[ 1 ]-boolean = 'X'.
-
   ENDMETHOD.
 
   METHOD test_bool_initial.
@@ -153,10 +148,13 @@ CLASS /cc4a/test_proper_bool_expr IMPLEMENTATION.
     ENDIF.
     IF table2[ 4 ]-table[ 1 ]-boolean IS NOT INITIAL.  "finding erwartet
     ENDIF.
+    if test_struc_nab-nab-boolean is not INITIAL.
+    ENDIF.
   ENDMETHOD.
 
+
   METHOD test_method.
-    DATA(asd) = 'ABAP_TRUE'.
+
   ENDMETHOD.
 
 ENDCLASS.

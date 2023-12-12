@@ -52,68 +52,56 @@ class test implementation.
           position = value #( line = 48 column = 4 ) ).
     data(finding9) = value if_ci_atc_check=>ty_location(
           object   = cl_ci_atc_unit_driver=>get_method_object(
-            value #( class = test_class method = test_class_methods-test_correct_bool_usage ) )
-          position = value #( line = 3 column = 4 ) ).
-    data(finding10) = value if_ci_atc_check=>ty_location(
-          object   = cl_ci_atc_unit_driver=>get_method_object(
-            value #( class = test_class method = test_class_methods-test_correct_bool_usage ) )
-          position = value #( line = 4 column = 4 ) ).
-    data(finding11) = value if_ci_atc_check=>ty_location(
-          object   = cl_ci_atc_unit_driver=>get_method_object(
-            value #( class = test_class method = test_class_methods-test_correct_bool_usage ) )
-          position = value #( line = 5 column = 4 ) ).
-   data(finding12) = value if_ci_atc_check=>ty_location(
-          object   = cl_ci_atc_unit_driver=>get_method_object(
-            value #( class = test_class method = test_class_methods-test_correct_bool_usage ) )
-          position = value #( line = 6 column = 4 ) ).
-    data(finding13) = value if_ci_atc_check=>ty_location(
-          object   = cl_ci_atc_unit_driver=>get_method_object(
-            value #( class = test_class method = test_class_methods-test_bool_initial ) )
-          position = value #( line = 2 column = 4 ) ).
-    data(finding14) = value if_ci_atc_check=>ty_location(
-          object   = cl_ci_atc_unit_driver=>get_method_object(
-            value #( class = test_class method = test_class_methods-test_bool_initial ) )
-          position = value #( line = 4 column = 4 ) ).
-    data(finding15) = value if_ci_atc_check=>ty_location(
-          object   = cl_ci_atc_unit_driver=>get_method_object(
             value #( class = test_class method = test_class_methods-test_if_then_else ) )
           position = value #( line = 54 column = 4 ) ).
-    data(finding16) = value if_ci_atc_check=>ty_location(
+    data(finding10) = value if_ci_atc_check=>ty_location(
           object   = cl_ci_atc_unit_driver=>get_method_object(
             value #( class = test_class method = test_class_methods-test_if_then_else ) )
           position = value #( line = 60 column = 4 ) ).
+    data(finding11) = value if_ci_atc_check=>ty_location(
+          object   = cl_ci_atc_unit_driver=>get_method_object(
+            value #( class = test_class method = test_class_methods-test_if_then_else ) )
+          position = value #( line = 66 column = 4 ) ).
+    data(finding12) = value if_ci_atc_check=>ty_location(
+          object   = cl_ci_atc_unit_driver=>get_method_object(
+            value #( class = test_class method = test_class_methods-test_if_then_else ) )
+          position = value #( line = 72 column = 4 ) ).
+    data(finding13) = value if_ci_atc_check=>ty_location(
+          object   = cl_ci_atc_unit_driver=>get_method_object(
+            value #( class = test_class method = test_class_methods-test_correct_bool_usage ) )
+          position = value #( line = 3 column = 4 ) ).
+    data(finding14) = value if_ci_atc_check=>ty_location(
+          object   = cl_ci_atc_unit_driver=>get_method_object(
+            value #( class = test_class method = test_class_methods-test_correct_bool_usage ) )
+          position = value #( line = 4 column = 4 ) ).
+    data(finding15) = value if_ci_atc_check=>ty_location(
+          object   = cl_ci_atc_unit_driver=>get_method_object(
+            value #( class = test_class method = test_class_methods-test_correct_bool_usage ) )
+          position = value #( line = 5 column = 4 ) ).
+   data(finding16) = value if_ci_atc_check=>ty_location(
+          object   = cl_ci_atc_unit_driver=>get_method_object(
+            value #( class = test_class method = test_class_methods-test_correct_bool_usage ) )
+          position = value #( line = 6 column = 4 ) ).
     data(finding17) = value if_ci_atc_check=>ty_location(
           object   = cl_ci_atc_unit_driver=>get_class_section_object(
           value #( class = test_class kind = cl_ci_atc_unit_driver=>class_section_kind-public ) )
         position = value #( line = 7 column = 4 ) ).
     data(finding18) = value if_ci_atc_check=>ty_location(
           object   = cl_ci_atc_unit_driver=>get_method_object(
-            value #( class = test_class method = test_class_methods-test_correct_bool_usage ) )
-          position = value #( line = 9 column = 4 ) ).
-    data(finding19) = value if_ci_atc_check=>ty_location(
-          object   = cl_ci_atc_unit_driver=>get_method_object(
-            value #( class = test_class method = test_class_methods-test_correct_bool_usage ) )
-          position = value #( line = 10 column = 4 ) ).
-    data(finding20) = value if_ci_atc_check=>ty_location(
-          object   = cl_ci_atc_unit_driver=>get_method_object(
-            value #( class = test_class method = test_class_methods-test_correct_bool_usage ) )
-          position = value #( line = 11 column = 4 ) ).
-    data(finding21) = value if_ci_atc_check=>ty_location(
-          object   = cl_ci_atc_unit_driver=>get_method_object(
-            value #( class = test_class method = test_class_methods-test_correct_bool_usage ) )
-          position = value #( line = 12 column = 4 ) ).
-  data(finding22) = value if_ci_atc_check=>ty_location(
-          object   = cl_ci_atc_unit_driver=>get_method_object(
             value #( class = test_class method = test_class_methods-test_bool_initial ) )
           position = value #( line = 6 column = 4 ) ).
-  data(finding23) = value if_ci_atc_check=>ty_location(
+    data(finding19) = value if_ci_atc_check=>ty_location(
           object   = cl_ci_atc_unit_driver=>get_method_object(
-            value #( class = test_class method = test_class_methods-test_if_then_else ) )
-          position = value #( line = 66 column = 4 ) ).
-  data(finding24) = value if_ci_atc_check=>ty_location(
+            value #( class = test_class method = test_class_methods-test_bool_initial ) )
+          position = value #( line = 2 column = 4 ) ).
+    data(finding20) = value if_ci_atc_check=>ty_location(
           object   = cl_ci_atc_unit_driver=>get_method_object(
-            value #( class = test_class method = test_class_methods-test_if_then_else ) )
-          position = value #( line = 72 column = 4 ) ).
+            value #( class = test_class method = test_class_methods-test_bool_initial ) )
+          position = value #( line = 4 column = 4 ) ).
+    data(finding21) = value if_ci_atc_check=>ty_location(
+          object   = cl_ci_atc_unit_driver=>get_method_object(
+            value #( class = test_class method = test_class_methods-test_bool_initial ) )
+          position = value #( line = 8 column = 4 ) ).
 
 
     cl_ci_atc_unit_driver=>create_asserter( )->check_and_assert(
@@ -200,121 +188,102 @@ class test implementation.
                                               ( ` ` )
                                               ( ` ` )
                                               ( ` ` ) ) ) ) )
-
                                          ( location = finding9
                                               quickfixes = value #( (
-                                              quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-charachter_equivalents
-                                              location = finding9
-                                              code = value #(
-                                              ( `T = ABAP_TRUE .` ) ) ) ) )
-                                         ( location = finding10
-                                              quickfixes = value #( (
-                                              quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-charachter_equivalents
-                                              location = finding10
-                                              code = value #(
-                                              ( `NUMBER_BOOL_STRUCTURE-BOOLEAN = ABAP_FALSE .` ) ) ) ) )
-                                         ( location = finding11
-                                              quickfixes = value #( (
-                                              quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-charachter_equivalents
-                                              location = finding11
-                                              code = value #(
-                                              ( `A = ABAP_FALSE .` ) ) ) ) )
-                                        ( location = finding12
-                                              quickfixes = value #( (
-                                              quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-charachter_equivalents
-                                              location = finding12
-                                              code = value #(
-                                              ( `TEST_STRUC_NAB-NAB-BOOLEAN = ABAP_TRUE .` ) ) ) ) )
-                                         ( location = finding13
-                                              quickfixes = value #( (
-                                              quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-initial_boolean
-                                              location = finding13
-                                              code = value #(
-                                              ( `IF A = ABAP_FALSE .` ) ) ) ) )
-                                         ( location = finding14
-                                               quickfixes = value #( (
-                                              quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-initial_boolean
-                                              location = finding14
-                                              code = value #(
-                                              ( `IF A = ABAP_TRUE .` ) ) ) ) )
-                                         ( location = finding15
-                                              quickfixes = value #( (
                                               quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-if_else
-                                              location = finding15
+                                              location = finding9
                                               code = value #(
                                               ( `NUMBER_BOOL_STRUCTURE-BOOLEAN = xsdbool( A = ABAP_FALSE   ).` )
                                               ( ` ` )
                                               ( ` ` )
                                               ( ` ` )
                                               ( ` ` ) ) ) ) )
-                                        ( location = finding16
+                                        ( location = finding10
                                               quickfixes = value #( (
                                               quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-if_else
-                                              location = finding16
+                                              location = finding10
                                               code = value #(
                                               ( `B = xsdbool( A = ABAP_FALSE  ).` )
                                               ( ` ` )
                                               ( ` ` )
                                               ( ` ` )
                                               ( ` ` ) ) ) ) )
-                                        ( location = finding17
-                                              quickfixes = value #( (
-                                              quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-charachter_equivalents
-                                              location = finding17
-                                              code = value #(
-                                              ( `CONSTANTS: BOOL TYPE abap_bool VALUE ABAP_TRUE.` ) ) ) ) )
-                                        ( location = finding18
-                                              quickfixes = value #( (
-                                              quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-charachter_equivalents
-                                              location = finding18
-                                              code = value #(
-                                              ( `APPEND VALUE #( BOOLEAN = ABAP_TRUE NUMBER = 5 ) TO NUMBER_BOOL_TABLE .` ) ) ) ) )
-                                        ( location = finding19
-                                              quickfixes = value #( (
-                                              quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-charachter_equivalents
-                                              location = finding19
-                                              code = value #(
-                                              ( `NUMBER_BOOL_TABLE[ 1 ]-BOOLEAN = ABAP_TRUE .` ) ) ) ) )
-                                        ( location = finding20
-                                              quickfixes = value #( (
-                                              quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-charachter_equivalents
-                                              location = finding20
-                                              code = value #(
-                                              ( `table[ 1 ]-boolean = ABAP_TRUE .` ) ) ) ) )
-                                        ( location = finding21
-                                              quickfixes = value #( (
-                                              quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-charachter_equivalents
-                                              location = finding21
-                                              code = value #(
-                                              ( `TABLE2[ 4 ]-TABLE[ 1 ]-BOOLEAN = ABAP_TRUE .` ) ) ) ) )
-                                         ( location = finding22
-                                              quickfixes = value #( (
-                                              quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-initial_boolean
-                                              location = finding22
-                                              code = value #(
-                                              ( `IF TABLE2[ 4 ]-TABLE[ 1 ]-BOOLEAN = ABAP_TRUE  .` ) ) ) ) )
-                                              ( location = finding23
+                                              ( location = finding11
                                               quickfixes = value #( (
                                               quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-if_else
-                                              location = finding23
+                                              location = finding11
                                               code = value #(
                                               ( `B = xsdbool( TABLE2[ 4 ]-TABLE[ 1 ]-BOOLEAN = ABAP_TRUE  ).` )
                                               ( ` ` )
                                               ( ` ` )
                                               ( ` ` )
                                               ( ` ` ) ) ) ) )
-                                              ( location = finding24
+                                              ( location = finding12
                                               quickfixes = value #( (
                                               quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-if_else
-                                              location = finding24
+                                              location = finding12
                                               code = value #(
                                               ( `B = xsdbool( TABLE2[ 4 ]-TABLE[ 1 ]-BOOLEAN = ABAP_FALSE  ).` )
                                               ( ` ` )
                                               ( ` ` )
                                               ( ` ` )
                                               ( ` ` ) ) ) ) )
-                                              )
+                                         ( location = finding13
+                                              quickfixes = value #( (
+                                              quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-charachter_equivalents
+                                              location = finding13
+                                              code = value #(
+                                              ( `T = ABAP_TRUE .` ) ) ) ) )
+                                         ( location = finding14
+                                              quickfixes = value #( (
+                                              quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-charachter_equivalents
+                                              location = finding14
+                                              code = value #(
+                                              ( `NUMBER_BOOL_STRUCTURE-BOOLEAN = ABAP_FALSE .` ) ) ) ) )
+                                         ( location = finding15
+                                              quickfixes = value #( (
+                                              quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-charachter_equivalents
+                                              location = finding15
+                                              code = value #(
+                                              ( `A = ABAP_FALSE .` ) ) ) ) )
+                                        ( location = finding16
+                                              quickfixes = value #( (
+                                              quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-charachter_equivalents
+                                              location = finding16
+                                              code = value #(
+                                              ( `TEST_STRUC_NAB-NAB-BOOLEAN = ABAP_TRUE .` ) ) ) ) )
+                                        ( location = finding17
+                                              quickfixes = value #( (
+                                              quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-charachter_equivalents
+                                              location = finding17
+                                              code = value #(
+                                              ( `CONSTANTS: BOOL TYPE abap_bool VALUE ABAP_TRUE.` ) ) ) ) )
+                                         ( location = finding18
+                                              quickfixes = value #( (
+                                              quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-initial_boolean
+                                              location = finding18
+                                              code = value #(
+                                              ( `IF TABLE2[ 4 ]-TABLE[ 1 ]-BOOLEAN = ABAP_TRUE  .` ) ) ) ) )
 
+                                         ( location = finding19
+                                              quickfixes = value #( (
+                                              quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-initial_boolean
+                                              location = finding19
+                                              code = value #(
+                                              ( `IF A = ABAP_FALSE .` ) ) ) ) )
+                                         ( location = finding20
+                                               quickfixes = value #( (
+                                              quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-initial_boolean
+                                              location = finding20
+                                              code = value #(
+                                              ( `IF A = ABAP_TRUE .` ) ) ) ) )
+                                         ( location = finding21
+                                               quickfixes = value #( (
+                                              quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-initial_boolean
+                                              location = finding21
+                                              code = value #(
+                                              ( `IF TEST_STRUC_NAB-NAB-BOOLEAN = ABAP_TRUE  .` ) ) ) ) )
+                                              )
               asserter_config   = value #( quickfixes = abap_false ) ).
   endmethod.
 

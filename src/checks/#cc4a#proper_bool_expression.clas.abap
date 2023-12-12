@@ -382,10 +382,10 @@ CLASS /cc4a/proper_bool_expression IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD check_bool_initial.
-  data(a) = is_keyword_position.
+  data(position) = is_keyword_position.
     LOOP AT booltable ASSIGNING FIELD-SYMBOL(<boolean>).
       IF ( previous_token_lexeme EQ <boolean>-name
-      or is_boolean_in_booltable( exporting current_position = a statement = statement boolean_name = <boolean>-name ) eq abap_true )
+      or is_boolean_in_booltable( exporting current_position = position statement = statement boolean_name = <boolean>-name ) eq abap_true )
       AND xsdbool_position_line NE code_provider->get_statement_location( statement )-position-line.
         finding = 'check_bool_initial'.
       ENDIF.

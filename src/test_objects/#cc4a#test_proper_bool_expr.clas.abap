@@ -4,7 +4,7 @@ CLASS /cc4a/test_proper_bool_expr DEFINITION
   CREATE PUBLIC .
 
   PUBLIC SECTION.
-    CONSTANTS: BOOL TYPE abap_bool VALUE 'X'.
+    CONSTANTS: bool TYPE abap_bool VALUE 'X'.
     DATA a TYPE abap_bool.
 
     TYPES: BEGIN OF number_and_bool,
@@ -16,18 +16,18 @@ CLASS /cc4a/test_proper_bool_expr DEFINITION
              nab TYPE number_and_bool,
            END OF struc_of_nab.
 
-    TYPES tabletype TYPE TABLE OF number_and_bool with EMPTY KEY.
+    TYPES tabletype TYPE TABLE OF number_and_bool WITH EMPTY KEY.
 
     TYPES: BEGIN OF struc_of_table,
              table TYPE tabletype,
            END OF struc_of_table.
 
-    data table2 type table of struc_of_table.
-    TYPES j type table of struc_of_nab.
+    DATA table2 TYPE TABLE OF struc_of_table.
+    TYPES j TYPE TABLE OF struc_of_nab.
 
     DATA table TYPE tabletype.
-    data structure_of_table type struc_of_table.
-    data abapboolean type abap_boolean.
+    DATA structure_of_table TYPE struc_of_table.
+    DATA abapboolean TYPE abap_boolean.
 
     DATA number_bool_table TYPE TABLE OF number_and_bool.
     DATA number_bool_structure TYPE number_and_bool.
@@ -122,10 +122,11 @@ CLASS /cc4a/test_proper_bool_expr IMPLEMENTATION.
     ENDIF.
 
     IF table2[ 4 ]-table[ 1 ]-boolean IS INITIAL. "finding1 erwartet
-      b = abap_true.
+      data(c) = abap_true.
     ELSE.
-      b = ABAP_false.
+      c = ABAP_false.
     ENDIF.
+
 
 
   ENDMETHOD.
@@ -144,11 +145,9 @@ CLASS /cc4a/test_proper_bool_expr IMPLEMENTATION.
   METHOD test_bool_initial.
     IF a IS  INITIAL. "finding erwartet
     ENDIF.
-    IF a IS NOT INITIAL.  "finding erwartet
+    IF table2[ 4 ]-table[ 1 ]-boolean IS INITIAL.  "finding erwartet
     ENDIF.
-    IF table2[ 4 ]-table[ 1 ]-boolean IS NOT INITIAL.  "finding erwartet
-    ENDIF.
-    if test_struc_nab-nab-boolean is not INITIAL.
+    IF test_struc_nab-nab-boolean IS INITIAL.
     ENDIF.
   ENDMETHOD.
 

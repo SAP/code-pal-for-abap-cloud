@@ -135,8 +135,12 @@ CLASS /cc4a/proper_bool_expression IMPLEMENTATION.
           ENDIF.
         ELSE.
 
-          IF <token>-lexeme EQ  '>' OR <token>-lexeme EQ  'GT' OR <token>-lexeme EQ  '<' OR <token>-lexeme EQ 'LT' OR <token>-lexeme EQ  '>=' OR <token>-lexeme EQ  'GE'
-          OR <token>-lexeme EQ  '<=' OR <token>-lexeme EQ  'LE' OR <token>-lexeme EQ '=' OR <token>-lexeme EQ 'EQ' OR <token>-lexeme EQ  '<>' OR <token>-lexeme EQ  'NE'.
+          IF
+*          <token>-lexeme EQ  '>' OR <token>-lexeme EQ  'GT' OR <token>-lexeme EQ  '<' OR <token>-lexeme EQ 'LT' OR <token>-lexeme EQ  '>=' OR <token>-lexeme EQ  'GE'
+*          OR <token>-lexeme EQ  '<=' OR <token>-lexeme EQ  'LE' OR <token>-lexeme EQ '=' OR <token>-lexeme EQ 'EQ' OR <token>-lexeme EQ  '<>' OR <token>-lexeme EQ  'NE'
+            /cc4a/abap_analyzer=>create( )->token_is_comparison_operator( <token> ) AND <token>-lexeme NE 'IS' AND <token>-lexeme NE 'IN'
+          .
+
             reported_finding = check_correct_bool_usage( next_token_lexeme = <statement>-tokens[ sy-tabix + 1 ]-lexeme previous_token_lexeme = <statement>-tokens[ sy-tabix - 1 ]-lexeme statement = <statement> ).
 
           ELSE.
@@ -164,16 +168,14 @@ CLASS /cc4a/proper_bool_expression IMPLEMENTATION.
           statements = VALUE #( from = statement_index to = COND #( WHEN reported_finding EQ 'check_if_then_else' THEN statement_index + 4
                                                                     ELSE statement_index ) ) ) )
           code = COND #( WHEN reported_finding EQ 'check_correct_bool_usage' THEN
-                            exchangebool( statement = <statement> status = xsdbool( <statement>-tokens[ sy-tabix + COND #(  WHEN <statement>-tokens[ sy-tabix ]-lexeme EQ '=' THEN 1
-                                                                                                                            WHEN <statement>-tokens[ sy-tabix ]-lexeme EQ 'TYPE' THEN 3
+                            exchangebool( statement = <statement> status = xsdbool( <statement>-tokens[ sy-tabix + COND #(  WHEN /cc4a/abap_analyzer=>create( )->token_is_comparison_operator( <statement>-tokens[ sy-tabix ] )
+                                                                                                                               AND <token>-lexeme NE 'IS'
+                                                                                                                               AND <token>-lexeme NE 'IN' THEN 1
+                                                                                                                            WHEN <token>-lexeme EQ 'TYPE' THEN 3
                                                                                                                             ELSE 2 ) ]-lexeme EQ |'X'| )
-                            bool_constant_position = sy-tabix + COND #(   WHEN <statement>-tokens[ sy-tabix ]-lexeme EQ '>' OR <statement>-tokens[ sy-tabix ]-lexeme EQ 'GT' OR <statement>-tokens[ sy-tabix ]-lexeme EQ '<'
-                                                                            OR <statement>-tokens[ sy-tabix ]-lexeme EQ 'LT' OR <statement>-tokens[ sy-tabix ]-lexeme EQ '>='
-                                                                            OR <statement>-tokens[ sy-tabix ]-lexeme EQ 'GE' OR <statement>-tokens[ sy-tabix ]-lexeme EQ '<='
-                                                                            OR <statement>-tokens[ sy-tabix ]-lexeme EQ 'LE' OR <statement>-tokens[ sy-tabix ]-lexeme EQ '='
-                                                                            OR <statement>-tokens[ sy-tabix ]-lexeme EQ 'EQ' OR <statement>-tokens[ sy-tabix ]-lexeme EQ '<>'
-                                                                            OR <statement>-tokens[ sy-tabix ]-lexeme EQ 'NE' THEN 1
-                                                                          WHEN <statement>-tokens[ sy-tabix ]-lexeme EQ 'TYPE' THEN 3
+                            bool_constant_position = sy-tabix + COND #(   WHEN /cc4a/abap_analyzer=>create( )->token_is_comparison_operator( <token> )
+                                                                              AND <token>-lexeme NE 'IS' AND <token>-lexeme NE 'IN'  THEN 1
+                                                                          WHEN <token>-lexeme EQ 'TYPE' THEN 3
                                                                           ELSE 2 ) )
                          WHEN reported_finding EQ 'check_if_then_else' THEN
                             insert_xsdbool( statement = procedure-statements[ statement_index ]

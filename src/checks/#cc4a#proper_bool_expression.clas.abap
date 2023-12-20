@@ -451,7 +451,8 @@ CLASS /cc4a/proper_bool_expression IMPLEMENTATION.
                   && COND #( WHEN next_token-lexeme EQ 'NOT' THEN '=' &&  ` ` && 'ABAP_FALSE'
                              WHEN next_token-lexeme NE 'NOT' THEN 'IS' &&  ` ` && 'NOT' &&  ` ` && 'INITIAL'
                              ).
-                  counter = counter + 2.
+                  counter = counter + COND #( WHEN next_token-lexeme EQ 'NOT' THEN 2
+                                              WHEN next_token-lexeme NE 'NOT' THEN 1 ).
                   is_exchanged = abap_true.
                 ENDIF.
               ENDLOOP.
@@ -481,7 +482,8 @@ CLASS /cc4a/proper_bool_expression IMPLEMENTATION.
                 statement_string = statement_string &&  ` `
                 && COND #( WHEN next_token-lexeme NE 'NOT' THEN '=' &&  ` ` && 'ABAP_FALSE'
                            WHEN next_token-lexeme EQ 'NOT' THEN 'IS' &&  ` ` && 'NOT'  &&  ` ` && 'INITIAL' ).
-                counter = counter + 2.
+                counter = counter + COND #( WHEN next_token-lexeme EQ 'NOT' THEN 2
+                                            WHEN next_token-lexeme NE 'NOT' THEN 1 )..
                 boolean_is_in_table = abap_true.
               ENDIF.
             ENDLOOP.

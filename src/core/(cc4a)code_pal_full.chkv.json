@@ -62,6 +62,12 @@
           "value": "true"
         }
       ]
+    },
+    {
+      "checkName": "/CC4A/PREFER_METHODS"
+    },
+    {
+      "checkName": "/CC4A/CHECK_IN_ITERATION"
     }
   ]
 }

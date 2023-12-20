@@ -3,9 +3,9 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <VSEOCLASS>
-    <CLSNAME>/CC4A/AVOID_TEST_SEAM</CLSNAME>
+    <CLSNAME>/CC4A/CHECK_IN_ITERATION</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>Avoid using TEST-SEAM</DESCRIPT>
+    <DESCRIPT>Avoid using of CHECK-statement</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>
@@ -16,13 +16,25 @@
     <item>
      <ID>I</ID>
      <KEY>DES</KEY>
-     <ENTRY>Usage of TEST-SEAM</ENTRY>
+     <ENTRY>Avoid using of CHECK-statement</ENTRY>
      <LENGTH>88</LENGTH>
     </item>
     <item>
      <ID>I</ID>
-     <KEY>UOT</KEY>
-     <ENTRY>Usage of TEST-SEAM</ENTRY>
+     <KEY>ICC</KEY>
+     <ENTRY>Replace CHECK condition with IF condition</ENTRY>
+     <LENGTH>88</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>USG</KEY>
+     <ENTRY>Usage of CHECK-statement</ENTRY>
+     <LENGTH>88</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>WLD</KEY>
+     <ENTRY>Replace CHECK condition with a WHERE condition in loop</ENTRY>
      <LENGTH>88</LENGTH>
     </item>
    </TPOOL>

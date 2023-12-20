@@ -3,9 +3,9 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <VSEOCLASS>
-    <CLSNAME>/CC4A/AVOID_TEST_SEAM</CLSNAME>
+    <CLSNAME>/CC4A/PREFER_METHODS</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>Avoid using TEST-SEAM</DESCRIPT>
+    <DESCRIPT>Prefer methods over other procedures</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>
@@ -16,13 +16,19 @@
     <item>
      <ID>I</ID>
      <KEY>DES</KEY>
-     <ENTRY>Usage of TEST-SEAM</ENTRY>
+     <ENTRY>Prefer methods over other procedures</ENTRY>
      <LENGTH>88</LENGTH>
     </item>
     <item>
      <ID>I</ID>
-     <KEY>UOT</KEY>
-     <ENTRY>Usage of TEST-SEAM</ENTRY>
+     <KEY>PRM</KEY>
+     <ENTRY>Definition of function module &amp;1</ENTRY>
+     <LENGTH>88</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>UFR</KEY>
+     <ENTRY>Definition of FORM routine &amp;1</ENTRY>
      <LENGTH>88</LENGTH>
     </item>
    </TPOOL>

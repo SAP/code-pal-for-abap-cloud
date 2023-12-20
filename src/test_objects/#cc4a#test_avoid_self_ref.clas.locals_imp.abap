@@ -99,3 +99,26 @@ CLASS inheriting_from_global IMPLEMENTATION.
   ENDMETHOD.
 
 ENDCLASS.
+
+interface local_interface.
+  methods meth_1
+    importing par_1 type i.
+  methods meth_2.
+endinterface.
+
+class impl_local_interface definition.
+  public section.
+    interfaces local_interface.
+endclass.
+
+CLASS impl_local_interface IMPLEMENTATION.
+
+  METHOD local_interface~meth_1.
+
+  ENDMETHOD.
+
+  METHOD local_interface~meth_2.
+
+  ENDMETHOD.
+
+ENDCLASS.

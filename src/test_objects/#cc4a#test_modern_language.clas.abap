@@ -29,22 +29,22 @@ CLASS /cc4a/test_modern_language IMPLEMENTATION.
 
     DATA num TYPE number  ##NEEDED.
 
-    MOVE EXACT 1 TO num.
-
-    DATA n TYPE i ##NEEDED ##FLD_TYPE_NAME.
-
-    MOVE 5 TO n.
-
-    MOVE EXACT 5 TO n.
-
-    DATA a TYPE REF TO i ##NEEDED.
-    DATA b TYPE REF TO i ##NEEDED.
-
-    MOVE a ?TO b.
-
-    MOVE a TO b ##DUPLICATE_OK.
-
-    MOVE a TO b.                                    "#EC DEPRECATED_KEY
+*    MOVE EXACT 1 TO num.
+*
+*    DATA n TYPE i ##NEEDED ##FLD_TYPE_NAME.
+*
+*    MOVE 5 TO n.
+*
+*    MOVE EXACT 5 TO n.
+*
+*    DATA a TYPE REF TO i ##NEEDED.
+*    DATA b TYPE REF TO i ##NEEDED.
+*
+*    MOVE a ?TO b.
+*
+*    MOVE a TO b ##DUPLICATE_OK.
+*
+*    MOVE a TO b.                                    "#EC DEPRECATED_KEY
   ENDMETHOD.
 
 
@@ -86,11 +86,11 @@ CLASS /cc4a/test_modern_language IMPLEMENTATION.
     IF sy-subrc EQ 0.
       exists = abap_true.
       idx = sy-tabix.
-      WRITE 'hallo' ##NO_TEXT.
+      data(bla) = 'hallo' ##NO_TEXT.
     ENDIF.
 
     READ TABLE itab WITH KEY pgmid = 'R3TR' TRANSPORTING NO FIELDS.
-    MOVE sy-tabix TO idx.
+    idx = sy-tabix.
 
     READ TABLE itab WITH KEY pgmid = 'R3TR' TRANSPORTING NO FIELDS.
     IF sy-subrc <> 0 OR exists = abap_true ##NEEDED.
@@ -130,10 +130,10 @@ CLASS /cc4a/test_modern_language IMPLEMENTATION.
     DATA itab_string TYPE TABLE OF string.
     READ TABLE itab_string TRANSPORTING NO FIELDS
       WITH KEY table_line = 'blabla' ##NO_TEXT.
-    WRITE 'Difference in contructor code/line' && sy-tabix ##NO_TEXT.
+    bla = 'Difference in contructor code/line' && sy-tabix ##NO_TEXT.
     READ TABLE itab_string TRANSPORTING NO FIELDS
       WITH KEY table_line = 'blub' ##NO_TEXT.
-    MESSAGE i011(sci) INTO DATA(lv_dummy) WITH sy-tabix ##NEEDED.
+*    MESSAGE i011(sci) INTO DATA(lv_dummy) WITH sy-tabix ##NEEDED.
 
     DATA(test) = NEW lcl_test4(  ).
     READ TABLE itab WITH KEY pgmid = 'BLUB' TRANSPORTING NO FIELDS.
@@ -161,7 +161,7 @@ CLASS /cc4a/test_modern_language IMPLEMENTATION.
       exists = abap_true.
       EXIT.
     ENDLOOP.
-    WRITE l_entry-pgmid.
+*    WRITE l_entry-pgmid.
 
     LOOP AT itab INTO l_entry WHERE obj_name = 'BLA' ##INTO_OK.
       exists = abap_true.
@@ -356,11 +356,11 @@ CLASS /cc4a/test_modern_language IMPLEMENTATION.
     text1 = 'ab' && text1 && abap_true.
     text1 = class_ref->test5( param1 = 'a' param2 = 'b' ) && 'end'.
 
-    WRITE class_ref->test5( param1 = 'a' && 'b' param2 = 'c' && 'd' ).
+    data(bla) = class_ref->test5( param1 = 'a' && 'b' param2 = 'c' && 'd' ).
 
-    WRITE class_ref->test5( param1 = 'a' && 'b' param2 = 'xxx' ).
+    bla = class_ref->test5( param1 = 'a' && 'b' param2 = 'xxx' ).
 
-    WRITE class_ref->test6( 'a' && 'b' ) && 'end'.
+    bla = class_ref->test6( 'a' && 'b' ) && 'end'.
 
     text1 = text1 && ' }' ##no_text.
 
@@ -370,12 +370,14 @@ CLASS /cc4a/test_modern_language IMPLEMENTATION.
             ']'.
 
     DATA itab TYPE STANDARD TABLE OF /cc4a/db_test1.
-    WRITE itab[ 1 ]-object && 'a'.
-    WRITE 'a' && itab[ 1 ]-obj_name.
+    bla = itab[ 1 ]-object && 'a'.
+    bla = 'a' && itab[ 1 ]-obj_name.
     text1 = text1 && COND #( WHEN itab IS INITIAL THEN 'a' ELSE 'b' ).
 
     text1 =  `\` && text1 && `-`.
 
-    WRITE 'a' && 'b'.                                "#EC TEXT_ASSEMBLY
+    bla = 'a' && 'b'.                                "#EC TEXT_ASSEMBLY
+
+    text1 = 'abc' && new lcl_test( param1 = 4 param2 = 5 )->test5( param1 = 'bla' param2 = 'blub' ).
   ENDMETHOD.
 ENDCLASS.

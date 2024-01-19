@@ -2,11 +2,11 @@
 "!
 "! Any logic that processes ABAP code information (e.g. parsing a specific assignment) should be located here
 "! so it can be accessed by any check that needs it.
-interface /cc4a/if_abap_analyzer
-  public .
-
-  types:
-    begin of enum ty_bracket_type structure bracket_type,
+INTERFACE /cc4a/if_abap_analyzer
+  PUBLIC .
+  CONSTANTS max_line_length TYPE i VALUE 255.
+  TYPES:
+    BEGIN OF ENUM ty_bracket_type STRUCTURE bracket_type,
       no_bracket,
       opening,
       closing,
@@ -14,108 +14,107 @@ interface /cc4a/if_abap_analyzer
       "! obj->method_1( )->method_2( ) produces a single token `)->method_2(` that is both a closing and an
       "! opening bracket.
       clopening,
-    end of enum ty_bracket_type structure bracket_type.
-  types:
-    begin of ty_db_statement,
-      is_db          type abap_bool,
-      dbtab          type string,
-      dbtab_subquery type string,
-    end of ty_db_statement.
-  types:
-    begin of enum ty_parameter_kind structure parameter_kind,
+    END OF ENUM ty_bracket_type STRUCTURE bracket_type.
+  TYPES:
+    BEGIN OF ty_db_statement,
+      is_db          TYPE abap_bool,
+      dbtab          TYPE string,
+      dbtab_subquery TYPE string,
+    END OF ty_db_statement.
+  TYPES:
+    BEGIN OF ENUM ty_parameter_kind STRUCTURE parameter_kind,
       importing,
       exporting,
       changing,
       returning,
-    end of enum ty_parameter_kind structure parameter_kind.
-  types:
-    begin of ty_method_parameter,
-      name type string,
-      kind type ty_parameter_kind,
-    end of ty_method_parameter.
-  types ty_method_parameters type hashed table of ty_method_parameter with unique key name.
-  types:
-    begin of ty_method_definition,
-      name type string,
-      is_redefinition type abap_bool,
-      parameters type ty_method_parameters,
-    end of ty_method_definition.
+    END OF ENUM ty_parameter_kind STRUCTURE parameter_kind.
+  TYPES:
+    BEGIN OF ty_method_parameter,
+      name TYPE string,
+      kind TYPE ty_parameter_kind,
+    END OF ty_method_parameter.
+  TYPES ty_method_parameters TYPE HASHED TABLE OF ty_method_parameter WITH UNIQUE KEY name.
+  TYPES:
+    BEGIN OF ty_method_definition,
+      name            TYPE string,
+      is_redefinition TYPE abap_bool,
+      parameters      TYPE ty_method_parameters,
+    END OF ty_method_definition.
 
 
-  methods find_key_words
-    importing
-      key_words       type string_table
-      statement       type if_ci_atc_source_code_provider=>ty_statement
-    returning
-      value(position) type i .
-  methods break_into_lines
-    importing
-      code              type string
-    returning
-      value(code_lines) type if_ci_atc_quickfix=>ty_code .
-  methods flatten_tokens
-    importing
-      tokens                type if_ci_atc_source_code_provider=>ty_tokens
-    returning
-      value(flat_statement) type string .
-  methods is_bracket
-    importing
-      token               type if_ci_atc_source_code_provider=>ty_token
-    returning
-      value(bracket_type) type ty_bracket_type .
-  methods calculate_bracket_end
-    importing
-      statement             type if_ci_atc_source_code_provider=>ty_statement
-      bracket_position      type i
-    returning
-      value(end_of_bracket) type i
-    raising
+  METHODS find_key_words
+    IMPORTING
+      key_words       TYPE string_table
+      statement       TYPE if_ci_atc_source_code_provider=>ty_statement
+    RETURNING
+      VALUE(position) TYPE i .
+  METHODS break_into_lines
+    IMPORTING code              TYPE string
+    RETURNING VALUE(code_lines) TYPE if_ci_atc_quickfix=>ty_code
+    RAISING   /cc4a/cx_line_break_impossible.
+  METHODS flatten_tokens
+    IMPORTING
+      tokens                TYPE if_ci_atc_source_code_provider=>ty_tokens
+    RETURNING
+      VALUE(flat_statement) TYPE string .
+  METHODS is_bracket
+    IMPORTING
+      token               TYPE if_ci_atc_source_code_provider=>ty_token
+    RETURNING
+      VALUE(bracket_type) TYPE ty_bracket_type .
+  METHODS calculate_bracket_end
+    IMPORTING
+      statement             TYPE if_ci_atc_source_code_provider=>ty_statement
+      bracket_position      TYPE i
+    RETURNING
+      VALUE(end_of_bracket) TYPE i
+    RAISING
       /cc4a/cx_token_is_no_bracket .
   "! The method analyze the given token whether this is an comparison operator or not.
   "! Operators like +, -, * and / does not count as comparison operator.
   "! The following operators are currently supported: is, in, >, gt, <, lt, >=, ge, <=, le, =, eq, <>, ne
-  methods token_is_comparison_operator
-    importing
-      token              type if_ci_atc_source_code_provider=>ty_token
-    returning
-      value(is_operator) type abap_bool .
-  methods negate_comparison_operator
-    importing
-      comparison_operator                type string
-    returning
-      value(negated_comparison_operator) type string
-    raising
+  METHODS token_is_comparison_operator
+    IMPORTING
+      token              TYPE if_ci_atc_source_code_provider=>ty_token
+    RETURNING
+      VALUE(is_operator) TYPE abap_bool .
+  METHODS negate_comparison_operator
+    IMPORTING
+      comparison_operator                TYPE string
+    RETURNING
+      VALUE(negated_comparison_operator) TYPE string
+    RAISING
       /cc4a/cx_token_is_no_operator .
-  methods is_db_statement
-    importing
-      statement          type if_ci_atc_source_code_provider=>ty_statement
-      get_dbtab_name     type abap_bool default abap_false
-      include_subqueries type abap_bool default abap_true
-    returning
-      value(result)      type ty_db_statement.
+  METHODS is_db_statement
+    IMPORTING
+      statement          TYPE if_ci_atc_source_code_provider=>ty_statement
+      get_dbtab_name     TYPE abap_bool DEFAULT abap_false
+      include_subqueries TYPE abap_bool DEFAULT abap_true
+    RETURNING
+      VALUE(result)      TYPE ty_db_statement.
 
   "! The method checks if clause is contained in tokens
   "! if so it returns the index of the first token of the first occurrence of the clause
   "! otherwise token_index = 0
-  methods find_clause_index
-    importing
-      tokens             type if_ci_atc_source_code_provider=>ty_tokens
-      clause             type string
-      start_index        type i default 1
-    returning
-      value(token_index) type i
-    raising
+  METHODS find_clause_index
+    IMPORTING
+      tokens             TYPE if_ci_atc_source_code_provider=>ty_tokens
+      clause             TYPE string
+      start_index        TYPE i DEFAULT 1
+    RETURNING
+      VALUE(token_index) TYPE i
+    RAISING
       /cc4a/cx_clause_is_initial .
-  methods is_token_keyword
-    importing
-      token         type if_ci_atc_source_code_provider=>ty_token
-      keyword       type string
-    returning
-      value(result) type abap_bool .
-  methods is_logical_connective
-    importing token type if_ci_atc_source_code_provider=>ty_token
-    returning value(is_logical_connective) type abap_bool.
-  methods parse_method_definition
-    importing statement type if_ci_atc_source_code_provider=>ty_statement
-    returning value(method_definition) type ty_method_definition.
-endinterface.
+  METHODS is_token_keyword
+    IMPORTING
+      token         TYPE if_ci_atc_source_code_provider=>ty_token
+      keyword       TYPE string
+    RETURNING
+      VALUE(result) TYPE abap_bool .
+  METHODS is_logical_connective
+    IMPORTING token                        TYPE if_ci_atc_source_code_provider=>ty_token
+    RETURNING VALUE(is_logical_connective) TYPE abap_bool.
+  METHODS parse_method_definition
+    IMPORTING statement                TYPE if_ci_atc_source_code_provider=>ty_statement
+    RETURNING VALUE(method_definition) TYPE ty_method_definition.
+ENDINTERFACE.

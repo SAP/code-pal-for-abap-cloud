@@ -226,31 +226,31 @@ class test implementation.
                                               ( ` ` ) ) ) ) )
                                          ( location = finding13
                                               quickfixes = value #( (
-                                              quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-charachter_equivalents
+                                              quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-character_equivalence
                                               location = finding13
                                               code = value #(
                                               ( `T = ABAP_TRUE .` ) ) ) ) )
                                          ( location = finding14
                                               quickfixes = value #( (
-                                              quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-charachter_equivalents
+                                              quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-character_equivalence
                                               location = finding14
                                               code = value #(
                                               ( `NUMBER_BOOL_STRUCTURE-BOOLEAN = ABAP_FALSE .` ) ) ) ) )
                                          ( location = finding15
                                               quickfixes = value #( (
-                                              quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-charachter_equivalents
+                                              quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-character_equivalence
                                               location = finding15
                                               code = value #(
                                               ( `A = ABAP_FALSE .` ) ) ) ) )
                                         ( location = finding16
                                               quickfixes = value #( (
-                                              quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-charachter_equivalents
+                                              quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-character_equivalence
                                               location = finding16
                                               code = value #(
                                               ( `TEST_STRUC_NAB-NAB-BOOLEAN = ABAP_TRUE .` ) ) ) ) )
                                         ( location = finding17
                                               quickfixes = value #( (
-                                              quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-charachter_equivalents
+                                              quickfix_code = /CC4A/PROPER_BOOL_EXPRESSION=>quickfix_codes-character_equivalence
                                               location = finding17
                                               code = value #(
                                               ( `CONSTANTS: BOOL TYPE abap_bool VALUE ABAP_TRUE.` ) ) ) ) )

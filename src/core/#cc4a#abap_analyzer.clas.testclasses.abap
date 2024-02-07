@@ -362,27 +362,27 @@ class flatten_tokens implementation.
       act = flat
       exp = `DATA(text) = method( |whatsoever| )` ).
 *            123456789012345678901234567890123456
-    data(lines) = /cc4a/abap_analyzer=>_break_into_lines( code = flat break_at = 20 ).
+    data(lines) = new /cc4a/abap_analyzer( )->_break_into_lines( code = flat break_at = 20 ).
     data(exp_lines) = value string_table( ( `DATA(text) = method(` ) ( `|whatsoever| )` ) ).
     cl_abap_unit_assert=>assert_equals( act = lines exp = exp_lines ).
   endmethod.
   method test_line_break.
     data lines type string_table.
     try.
-        lines = /cc4a/abap_analyzer=>_break_into_lines( code = `12345678901` break_at = 10 ).
+        lines = new /cc4a/abap_analyzer( )->_break_into_lines( code = `12345678901` break_at = 10 ).
         cl_abap_unit_assert=>fail( `Exception expected` ).
       catch /cc4a/cx_line_break_impossible.
 *     expected
     endtry.
     try.
-        lines = /cc4a/abap_analyzer=>_break_into_lines( code = `1234567890 123467890123` break_at = 10 ).
+        lines = new /cc4a/abap_analyzer( )->_break_into_lines( code = `1234567890 123467890123` break_at = 10 ).
         cl_abap_unit_assert=>fail( `Exception expected` ).
       catch /cc4a/cx_line_break_impossible.
 *     expected
     endtry.
 
     try.
-        lines = /cc4a/abap_analyzer=>_break_into_lines( code = `|23456789| blabla` break_at = 10 ).
+        lines = new /cc4a/abap_analyzer( )->_break_into_lines( code = `|23456789| blabla` break_at = 10 ).
         data(exp_lines) = value string_table( ( `|23456789|` ) ( `blabla` ) ).
         cl_abap_unit_assert=>assert_equals( act = lines exp = exp_lines ).
       catch /cc4a/cx_line_break_impossible.

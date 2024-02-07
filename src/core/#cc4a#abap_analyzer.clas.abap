@@ -24,15 +24,15 @@ class /cc4a/abap_analyzer definition
       end of ty_negation.
     class-data negations type table of ty_negation.
 
-    class-methods _flatten_tokens
+    methods _flatten_tokens
       changing  tokens      type if_ci_atc_source_code_provider=>ty_tokens
       returning value(flat) type string.
 
-    class-methods _flatten_template
+    methods _flatten_template
       changing  tokens      type if_ci_atc_source_code_provider=>ty_tokens
       returning value(flat) type string.
 
-    class-methods _break_into_lines
+    methods _break_into_lines
       importing value(code)       type string
                 break_at          type i
       returning value(code_lines) type string_table

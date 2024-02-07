@@ -2,5 +2,5 @@
 *"* local helper classes, interface definitions and type
 *"* declarations
 
-class lcx_error IMPLEMENTATION.
+class lcx_error implementation.
 endclass.

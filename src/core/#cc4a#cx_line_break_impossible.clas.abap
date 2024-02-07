@@ -1,23 +1,23 @@
-CLASS /cc4a/cx_line_break_impossible DEFINITION
-  PUBLIC
-  INHERITING FROM cx_dynamic_check
-  FINAL
-  CREATE PUBLIC .
+class /cc4a/cx_line_break_impossible definition
+  public
+  inheriting from cx_dynamic_check
+  final
+  create public .
 
-  PUBLIC SECTION.
+  public section.
 
-    METHODS constructor.
-  PROTECTED SECTION.
-  PRIVATE SECTION.
-ENDCLASS.
+    methods constructor.
+  protected section.
+  private section.
+endclass.
 
 
 
-CLASS /cc4a/cx_line_break_impossible IMPLEMENTATION.
-  METHOD constructor ##ADT_SUPPRESS_GENERATION.
+class /cc4a/cx_line_break_impossible implementation.
+  method constructor ##ADT_SUPPRESS_GENERATION.
 
     super->constructor( textid = textid previous = previous ).
 
-  ENDMETHOD.
+  endmethod.
 
-ENDCLASS.
+endclass.

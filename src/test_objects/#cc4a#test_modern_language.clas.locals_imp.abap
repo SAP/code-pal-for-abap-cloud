@@ -1,7 +1,3 @@
-*"* use this source file for the definition and implementation of
-*"* local helper classes, interface definitions and type
-*"* declarations
-
 CLASS lcx_error DEFINITION FINAL
   INHERITING FROM cx_static_check.
 ENDCLASS.
@@ -34,9 +30,9 @@ CLASS lcl_test DEFINITION FINAL.
       IMPORTING param1        TYPE string
                 param2        TYPE string
       RETURNING VALUE(result) TYPE string.
-    METHODS test6
-      IMPORTING param         TYPE string
-      RETURNING VALUE(result) TYPE string.
+    methods test6
+      importing param         type string
+      returning value(result) type string.
     METHODS test7
       IMPORTING param1        TYPE i
       EXPORTING param2        TYPE i

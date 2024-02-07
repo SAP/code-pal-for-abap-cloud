@@ -1,33 +1,33 @@
-CLASS /cc4a/test_modern_language DEFINITION
-  PUBLIC
-  FINAL
-  CREATE PUBLIC .
+class /cc4a/test_modern_language definition
+  public
+  final
+  create public .
 
-  PUBLIC SECTION.
-    METHODS test_move.
-    METHODS test_translate.
-    METHODS test_read.
-    METHODS test_loop.
-    METHODS test_create_object.
-    METHODS test_call_method.
-    METHODS test_exporting_receiving.
-    METHODS test_text_assembly.
-  PROTECTED SECTION.
-  PRIVATE SECTION.
-ENDCLASS.
-
-
-
-CLASS /cc4a/test_modern_language IMPLEMENTATION.
+  public section.
+    methods test_move.
+    methods test_translate.
+    methods test_read.
+    methods test_loop.
+    methods test_create_object.
+    methods test_call_method.
+    methods test_exporting_receiving.
+    methods test_text_assembly.
+  protected section.
+  private section.
+endclass.
 
 
-  METHOD test_move.
-    TYPES:
-      BEGIN OF ENUM number,
+
+class /cc4a/test_modern_language implementation.
+
+
+  method test_move.
+    types:
+      begin of enum number,
         n0, n1, n2,
-      END OF ENUM number.
+      end of enum number.
 
-    DATA num TYPE number  ##NEEDED.
+    data num type number  ##NEEDED.
 
 *    MOVE EXACT 1 TO num.
 *
@@ -45,314 +45,314 @@ CLASS /cc4a/test_modern_language IMPLEMENTATION.
 *    MOVE a TO b ##DUPLICATE_OK.
 *
 *    MOVE a TO b.                                    "#EC DEPRECATED_KEY
-  ENDMETHOD.
+  endmethod.
 
 
-  METHOD test_translate.
-    DATA(str1) = `This is Really Mixed` ##NEEDED ##NO_TEXT.
-    TRANSLATE str1 TO UPPER CASE.
-    TRANSLATE str1 TO LOWER CASE.
-    TRANSLATE str1 TO LOWER CASE.                   "#EC DEPRECATED_KEY
-  ENDMETHOD.
+  method test_translate.
+    data(str1) = `This is Really Mixed` ##NEEDED ##NO_TEXT.
+    translate str1 to upper case.
+    translate str1 to lower case.
+    translate str1 to lower case.                   "#EC DEPRECATED_KEY
+  endmethod.
 
 
-  METHOD test_read.
-    DATA itab TYPE STANDARD TABLE OF /cc4a/db_test1 WITH NON-UNIQUE SORTED KEY name COMPONENTS obj_name.
+  method test_read.
+    data itab type standard table of /cc4a/db_test1 with non-unique sorted key name components obj_name.
 
-    READ TABLE itab TRANSPORTING NO FIELDS WITH KEY pgmid = 'R3TR' object = 'CLAS' .
-    DATA(idx) = sy-tabix ##NEEDED.
+    read table itab transporting no fields with key pgmid = 'R3TR' object = 'CLAS' .
+    data(idx) = sy-tabix ##NEEDED.
 
-    READ TABLE itab WITH KEY pgmid = 'R3TR' object = 'CLAS' TRANSPORTING NO FIELDS .
-    IF sy-subrc = 0.
+    read table itab with key pgmid = 'R3TR' object = 'CLAS' transporting no fields .
+    if sy-subrc = 0.
       idx = sy-tabix.
-      DATA(exists) = abap_true.
-    ENDIF.
+      data(exists) = abap_true.
+    endif.
     "DATA(idx) = line_index( itab[ pgmid = 'R3TR' object = 'CLAS' ] ).
-    READ TABLE itab WITH KEY pgmid = 'R3TR' object = 'CLAS' BINARY SEARCH TRANSPORTING NO FIELDS . "no finding because of binary search
-    IF sy-subrc = 0.
+    read table itab with key pgmid = 'R3TR' object = 'CLAS' binary search transporting no fields . "no finding because of binary search
+    if sy-subrc = 0.
       idx = sy-tabix.
       exists = abap_true.
-    ENDIF.
+    endif.
 
-    READ TABLE itab WITH KEY name COMPONENTS obj_name = 'BLABLA' TRANSPORTING NO FIELDS.
+    read table itab with key name components obj_name = 'BLABLA' transporting no fields.
     idx = sy-tabix.
-    READ TABLE itab TRANSPORTING NO FIELDS WITH KEY name COMPONENTS obj_name = 'BLABLA'.
-    IF sy-subrc EQ 0.
+    read table itab transporting no fields with key name components obj_name = 'BLABLA'.
+    if sy-subrc eq 0.
       exists = abap_true.
       idx = sy-tabix.
-    ENDIF.
+    endif.
     "idx = line_index( itab[ KEY name COMPONENTS obj_name = 'BLABLA' ] ).
-    READ TABLE itab TRANSPORTING NO FIELDS WITH KEY name COMPONENTS obj_name = 'BLABLA'.
-    IF sy-subrc EQ 0.
+    read table itab transporting no fields with key name components obj_name = 'BLABLA'.
+    if sy-subrc eq 0.
       exists = abap_true.
       idx = sy-tabix.
       data(bla) = 'hallo' ##NO_TEXT.
-    ENDIF.
+    endif.
 
-    READ TABLE itab WITH KEY pgmid = 'R3TR' TRANSPORTING NO FIELDS.
+    read table itab with key pgmid = 'R3TR' transporting no fields.
     idx = sy-tabix.
 
-    READ TABLE itab WITH KEY pgmid = 'R3TR' TRANSPORTING NO FIELDS.
-    IF sy-subrc <> 0 OR exists = abap_true ##NEEDED.
-    ENDIF.
+    read table itab with key pgmid = 'R3TR' transporting no fields.
+    if sy-subrc <> 0 or exists = abap_true ##NEEDED.
+    endif.
 
-    READ TABLE itab TRANSPORTING NO FIELDS WITH KEY name COMPONENTS obj_name = 'BLUE'.
-    IF sy-subrc <> 0.
-      DATA(blue) = abap_false ##NEEDED.
-    ENDIF.
+    read table itab transporting no fields with key name components obj_name = 'BLUE'.
+    if sy-subrc <> 0.
+      data(blue) = abap_false ##NEEDED.
+    endif.
 
-    READ TABLE itab TRANSPORTING NO FIELDS WITH KEY name COMPONENTS obj_name = 'BLUE'.
-    IF sy-subrc <> 0.
+    read table itab transporting no fields with key name components obj_name = 'BLUE'.
+    if sy-subrc <> 0.
       blue = abap_false.
       idx = sy-tabix.
-    ENDIF.
+    endif.
 
-    READ TABLE itab TRANSPORTING NO FIELDS
-      WITH KEY pgmid = 'R3TR'.
-    IF sy-tabix = 0 ##NEEDED.
-    ENDIF.
+    read table itab transporting no fields
+      with key pgmid = 'R3TR'.
+    if sy-tabix = 0 ##NEEDED.
+    endif.
 
-    READ TABLE itab TRANSPORTING NO FIELDS
-      WITH KEY pgmid = 'R3TR'.
-    IF sy-tabix IS INITIAL ##NEEDED.
-    ENDIF.
+    read table itab transporting no fields
+      with key pgmid = 'R3TR'.
+    if sy-tabix is initial ##NEEDED.
+    endif.
 
-    READ TABLE itab TRANSPORTING NO FIELDS
-      WITH KEY pgmid = 'R3TR'.
-    IF sy-tabix IS NOT INITIAL ##NEEDED.
-    ENDIF.
+    read table itab transporting no fields
+      with key pgmid = 'R3TR'.
+    if sy-tabix is not initial ##NEEDED.
+    endif.
 
-    READ TABLE itab TRANSPORTING NO FIELDS
-      WITH KEY pgmid = 'R3TR'.                        "#EC PREF_LINE_EX
-    IF sy-tabix IS NOT INITIAL ##NEEDED.
-    ENDIF.
+    read table itab transporting no fields
+      with key pgmid = 'R3TR'.                        "#EC PREF_LINE_EX
+    if sy-tabix is not initial ##NEEDED.
+    endif.
 
-    DATA itab_string TYPE TABLE OF string.
-    READ TABLE itab_string TRANSPORTING NO FIELDS
-      WITH KEY table_line = 'blabla' ##NO_TEXT.
+    data itab_string type table of string.
+    read table itab_string transporting no fields
+      with key table_line = 'blabla' ##NO_TEXT.
     bla = 'Difference in contructor code/line' && sy-tabix ##NO_TEXT.
-    READ TABLE itab_string TRANSPORTING NO FIELDS
-      WITH KEY table_line = 'blub' ##NO_TEXT.
+    read table itab_string transporting no fields
+      with key table_line = 'blub' ##NO_TEXT.
 *    MESSAGE i011(sci) INTO DATA(lv_dummy) WITH sy-tabix ##NEEDED.
 
-    DATA(test) = NEW lcl_test4(  ).
-    READ TABLE itab WITH KEY pgmid = 'BLUB' TRANSPORTING NO FIELDS.
-    IF sy-subrc <> 0.
+    data(test) = new lcl_test4(  ).
+    read table itab with key pgmid = 'BLUB' transporting no fields.
+    if sy-subrc <> 0.
       test->test( param = abap_false ).
-    ENDIF.
-  ENDMETHOD.
+    endif.
+  endmethod.
 
 
-  METHOD test_loop.
-    DATA itab TYPE STANDARD TABLE OF /cc4a/db_test1.
+  method test_loop.
+    data itab type standard table of /cc4a/db_test1.
 
-    LOOP AT itab TRANSPORTING NO FIELDS WHERE pgmid = 'R3TR' AND object = 'CLAS' .
-      DATA(idx) = sy-tabix ##NEEDED.
-      EXIT.
-    ENDLOOP.
+    loop at itab transporting no fields where pgmid = 'R3TR' and object = 'CLAS' .
+      data(idx) = sy-tabix ##NEEDED.
+      exit.
+    endloop.
 
-    LOOP AT itab  TRANSPORTING NO FIELDS WHERE pgmid = 'R3TR' AND object = 'CLAS' .
+    loop at itab  transporting no fields where pgmid = 'R3TR' and object = 'CLAS' .
       idx = sy-tabix.
-      DATA(exists) = abap_true ##NEEDED.
-      EXIT.
-    ENDLOOP.
+      data(exists) = abap_true ##NEEDED.
+      exit.
+    endloop.
 
-    LOOP AT itab INTO DATA(l_entry) WHERE obj_name = 'BLA' ##INTO_OK. "no finding because l_entry is used
+    loop at itab into data(l_entry) where obj_name = 'BLA' ##INTO_OK. "no finding because l_entry is used
       exists = abap_true.
-      EXIT.
-    ENDLOOP.
+      exit.
+    endloop.
 *    WRITE l_entry-pgmid.
 
-    LOOP AT itab INTO l_entry WHERE obj_name = 'BLA' ##INTO_OK.
+    loop at itab into l_entry where obj_name = 'BLA' ##INTO_OK.
       exists = abap_true.
-      EXIT.
-    ENDLOOP.
+      exit.
+    endloop.
 
 
-    LOOP AT itab TRANSPORTING NO FIELDS WHERE obj_name = 'BLABLA' AND pgmid IS NOT INITIAL.
+    loop at itab transporting no fields where obj_name = 'BLABLA' and pgmid is not initial.
       exists = abap_true.
-      EXIT.
-    ENDLOOP.
+      exit.
+    endloop.
 
-    CONSTANTS c_where TYPE string VALUE 'blabla' ##NO_TEXT.
-    LOOP AT itab TRANSPORTING NO FIELDS WHERE (c_where).
+    constants c_where type string value 'blabla' ##NO_TEXT.
+    loop at itab transporting no fields where (c_where).
       exists = abap_true.
-      EXIT.
-    ENDLOOP.
+      exit.
+    endloop.
 
-    LOOP AT itab TRANSPORTING NO FIELDS WHERE obj_name = 'BLA'. "#EC PREF_LINE_EX
+    loop at itab transporting no fields where obj_name = 'BLA'. "#EC PREF_LINE_EX
       exists = abap_true.
-      EXIT.
-    ENDLOOP.
+      exit.
+    endloop.
 
-  ENDMETHOD.
+  endmethod.
 
 
-  METHOD test_create_object.
-    DATA object1 TYPE REF TO /cc4a/test_modern_language.
-    CREATE OBJECT object1 ##DUPLICATE_OK.
+  method test_create_object.
+    data object1 type ref to /cc4a/test_modern_language.
+    create object object1 ##DUPLICATE_OK.
 
-    CREATE OBJECT object1.
+    create object object1.
 
-    DATA class_ref TYPE REF TO lcl_test.
+    data class_ref type ref to lcl_test.
 
-    CREATE OBJECT class_ref
-      EXPORTING
+    create object class_ref
+      exporting
         param1 = 5
         param2 = 4.
 
-    DATA class_ref1 TYPE REF TO lcl_test1.
-    TRY.
-        CREATE OBJECT class_ref1
-          EXPORTING
+    data class_ref1 type ref to lcl_test1.
+    try.
+        create object class_ref1
+          exporting
             param1 = 15  ##NUMBER_OK.
-      CATCH lcx_error ##NO_HANDLER.
-    ENDTRY.
+      catch lcx_error ##NO_HANDLER.
+    endtry.
 
-    DATA class_ref2 TYPE REF TO lcl_test2.
-    CREATE OBJECT class_ref2
-      EXPORTING
+    data class_ref2 type ref to lcl_test2.
+    create object class_ref2
+      exporting
         param1 = 13  ##NUMBER_OK
-      EXCEPTIONS
+      exceptions
         error  = 1 ##SUBRC_OK.
-    IF sy-subrc <> 0 ##NEEDED.
-    ENDIF.
+    if sy-subrc <> 0 ##NEEDED.
+    endif.
 
-    DATA class_ref3 TYPE REF TO lcl_test3.
-    CREATE OBJECT class_ref3
-      EXPORTING
+    data class_ref3 type ref to lcl_test3.
+    create object class_ref3
+      exporting
         param1 = 'blabla' ##NO_TEXT
         param2 = |{ sy-datum } { sy-uzeit }|.
 
-    CREATE OBJECT class_ref3
-      EXPORTING
+    create object class_ref3
+      exporting
         param1 = |{ sy-datum } { sy-uzeit }|
         param2 = 'bla' ##DUPLICATE_OK.
 
-    CREATE OBJECT class_ref3
-      EXPORTING
+    create object class_ref3
+      exporting
         param1 = |{ sy-datum } { sy-uzeit }|
         param2 = 'bla'. "#EC PREF_NEW
 
 
-    DATA selfish TYPE REF TO lcl_test_selfish.
-    CREATE OBJECT selfish
-      EXPORTING
+    data selfish type ref to lcl_test_selfish.
+    create object selfish
+      exporting
         val = selfish->my_val.
-  ENDMETHOD.
+  endmethod.
 
 
-  METHOD test_call_method.
-    DATA test_string TYPE string.
+  method test_call_method.
+    data test_string type string.
 
-    DATA(class_ref) = NEW lcl_test( param1 = 5 param2 = 3 ).
+    data(class_ref) = new lcl_test( param1 = 5 param2 = 3 ).
 
-    CALL METHOD test_create_object( ).
+    call method test_create_object( ).
 
-    CALL METHOD test_create_object.
+    call method test_create_object.
 
-    CALL METHOD class_ref->test1
-      EXPORTING
+    call method class_ref->test1
+      exporting
         param1 = 15 ##NUMBER_OK
-      RECEIVING
-        result = DATA(result)  ##NEEDED.
+      receiving
+        result = data(result)  ##NEEDED.
 
-    CALL METHOD class_ref->test2
-      EXPORTING
+    call method class_ref->test2
+      exporting
         param1 = 'Blabla' ##NO_TEXT
-      IMPORTING
-        param2 = DATA(string_result)  ##NEEDED
-      CHANGING
+      importing
+        param2 = data(string_result)  ##NEEDED
+      changing
         param3 = test_string.
 
-    CALL METHOD class_ref->test3 "no finding because of exceptions
-      EXPORTING
+    call method class_ref->test3 "no finding because of exceptions
+      exporting
         param1 = 15 ##NUMBER_OK
-      RECEIVING
+      receiving
         result = result
-      EXCEPTIONS
+      exceptions
         error1 = 1
         error2 = 2 ##SUBRC_OK.
 
-    CALL METHOD class_ref->test4
-      EXPORTING
+    call method class_ref->test4
+      exporting
         param1 = 1
         param2 = 2
         param3 = 3
-      IMPORTING
+      importing
         param4 = result.
 
-    CALL METHOD class_ref->test1( param1 = 3 ).
+    call method class_ref->test1( param1 = 3 ).
 
-    CALL METHOD (test_string).
+    call method (test_string).
 
-    DATA ptab TYPE abap_parmbind_tab.
-    DATA xtab TYPE abap_excpbind_tab.
-    CALL METHOD ('class')=>('method')
-      PARAMETER-TABLE ptab
-      EXCEPTION-TABLE xtab.
+    data ptab type abap_parmbind_tab.
+    data xtab type abap_excpbind_tab.
+    call method ('class')=>('method')
+      parameter-table ptab
+      exception-table xtab.
 
-    CALL METHOD class_ref->test7(
-      EXPORTING
+    call method class_ref->test7(
+      exporting
         param1 = 5
-      IMPORTING
-        param2 = DATA(testnumber1)
-      RECEIVING
-        result = DATA(testnumber2) ) ##NEEDED.
+      importing
+        param2 = data(testnumber1)
+      receiving
+        result = data(testnumber2) ) ##NEEDED.
 
-    CALL METHOD test_create_object. "#EC CALL_METH_USAGE
+    call method test_create_object. "#EC CALL_METH_USAGE
 
-  ENDMETHOD.
+  endmethod.
 
 
-  METHOD test_exporting_receiving.
-    DATA test_string TYPE string.
+  method test_exporting_receiving.
+    data test_string type string.
 
-    DATA(class_ref) = NEW lcl_test( param1 = 5 param2 = 3 ).
+    data(class_ref) = new lcl_test( param1 = 5 param2 = 3 ).
 
-    DATA(result) = class_ref->test1(
-      EXPORTING
+    data(result) = class_ref->test1(
+      exporting
         param1 = 15 ) ##NEEDED ##NUMBER_OK.
 
     class_ref->test2(
-      EXPORTING
+      exporting
         param1 = 'Blabla' ##NO_TEXT
-      IMPORTING
-        param2 = DATA(string_result) ##NEEDED
-      CHANGING
+      importing
+        param2 = data(string_result) ##NEEDED
+      changing
         param3 = test_string )  ##NEEDED.
 
-    result = class_ref->test3( EXPORTING param1 = 15 ) ##NUMBER_OK.
+    result = class_ref->test3( exporting param1 = 15 ) ##NUMBER_OK.
 
-    result = class_ref->test1( EXPORTING param1 = class_ref->test3( EXPORTING param1 = 3 ) ).
+    result = class_ref->test1( exporting param1 = class_ref->test3( exporting param1 = 3 ) ).
 
 *   with receiving
     class_ref->test1(
-      EXPORTING
+      exporting
         param1 = 15  ##NUMBER_OK
-      RECEIVING result = result ).
+      receiving result = result ).
 
 
-    class_ref->test3( EXPORTING param1 = 15 RECEIVING result = result ) ##NUMBER_OK.
+    class_ref->test3( exporting param1 = 15 receiving result = result ) ##NUMBER_OK.
 
-    class_ref->test3( EXPORTING param1 = 15 RECEIVING result = result EXCEPTIONS error1 = 1 error2 = 2 ) ##SUBRC_OK ##NUMBER_OK.
+    class_ref->test3( exporting param1 = 15 receiving result = result exceptions error1 = 1 error2 = 2 ) ##SUBRC_OK ##NUMBER_OK.
 
-    class_ref->test1( EXPORTING param1 = class_ref->test3( EXPORTING param1 = 3 ) RECEIVING result = result ).
+    class_ref->test1( exporting param1 = class_ref->test3( exporting param1 = 3 ) receiving result = result ).
 
     class_ref->test7(                                     "#EC OPTL_EXP
-      EXPORTING
+      exporting
         param1 = 5
-      IMPORTING
-        param2 = DATA(testnumber1) ##NEEDED
-       RECEIVING
-         result = DATA(testnumber2) ) ##NEEDED.             "#EC RECEIVING_USAGE
+      importing
+        param2 = data(testnumber1) ##NEEDED
+       receiving
+         result = data(testnumber2) ) ##NEEDED.             "#EC RECEIVING_USAGE
 
-  ENDMETHOD.
+  endmethod.
 
 
-  METHOD test_text_assembly.
-    DATA class_ref TYPE REF TO lcl_test ##NEEDED.
-    DATA text1 TYPE string.
+  method test_text_assembly.
+    data class_ref type ref to lcl_test ##NEEDED.
+    data text1 type string.
     text1 = 'ab' && text1 && abap_true.
     text1 = class_ref->test5( param1 = 'a' param2 = 'b' ) && 'end'.
 
@@ -369,15 +369,15 @@ CLASS /cc4a/test_modern_language IMPLEMENTATION.
               ',{}' &&
             ']'.
 
-    DATA itab TYPE STANDARD TABLE OF /cc4a/db_test1.
+    data itab type standard table of /cc4a/db_test1.
     bla = itab[ 1 ]-object && 'a'.
     bla = 'a' && itab[ 1 ]-obj_name.
-    text1 = text1 && COND #( WHEN itab IS INITIAL THEN 'a' ELSE 'b' ).
+    text1 = text1 && cond #( when itab is initial then 'a' else 'b' ).
 
     text1 =  `\` && text1 && `-`.
 
     bla = 'a' && 'b'.                                "#EC TEXT_ASSEMBLY
 
     text1 = 'abc' && new lcl_test( param1 = 4 param2 = 5 )->test5( param1 = 'bla' param2 = 'blub' ).
-  ENDMETHOD.
-ENDCLASS.
+  endmethod.
+endclass.

@@ -97,7 +97,7 @@ class lcl_atc_check_db_stmt definition final.
     data assistant_factory type ref to cl_ci_atc_assistant_factory ##needed.
 
     methods analyze_procedure
-      importing !procedure       type if_ci_atc_source_code_provider=>ty_procedure
+      importing !procedure      type if_ci_atc_source_code_provider=>ty_procedure
       returning value(findings) type if_ci_atc_check=>ty_findings.
 endclass.
 
@@ -208,13 +208,14 @@ endclass.
 class shared definition final abstract.
   public section.
     class-methods tokenize
-      importing !code type string
+      importing !code            type string
       returning value(statement) type if_ci_atc_source_code_provider=>ty_statement.
 endclass.
 
 class shared implementation.
   method tokenize.
     split code at space into table data(tokens).
+    delete tokens where table_line = '.'.
     statement = value #( tokens = value #( for <tok> in tokens ( lexeme = to_upper( <tok> ) ) ) ).
     statement-keyword = statement-tokens[ 1 ]-lexeme.
   endmethod.
@@ -345,19 +346,59 @@ class flatten_tokens definition final for testing
     methods simple_statement for testing raising cx_static_check.
     methods string_template for testing raising cx_static_check.
     methods nested_string_template for testing raising cx_static_check.
+    methods test1 for testing raising cx_static_check.
+    methods test_line_break for testing raising cx_static_check.
 endclass.
 
+class /cc4a/abap_analyzer definition local friends flatten_tokens.
+
 class flatten_tokens implementation.
+  method test1.
+    data(analyzer) = /cc4a/abap_analyzer=>create( ).
+    data(flat) = analyzer->flatten_tokens( tokens = value #(
+           ( lexeme = `DATA(text)` ) ( lexeme = `=` )  ( lexeme = `method(` )
+           ( lexeme = `|` ) ( lexeme = '`whatsoever`' ) ( lexeme = `|` ) ( lexeme = `)` ) ) ).
+    cl_abap_unit_assert=>assert_equals(
+      act = flat
+      exp = `DATA(text) = method( |whatsoever| )` ).
+*            123456789012345678901234567890123456
+    data(lines) = new /cc4a/abap_analyzer( )->_break_into_lines( code = flat break_at = 20 ).
+    data(exp_lines) = value string_table( ( `DATA(text) = method(` ) ( `|whatsoever| )` ) ).
+    cl_abap_unit_assert=>assert_equals( act = lines exp = exp_lines ).
+  endmethod.
+  method test_line_break.
+    data lines type string_table.
+    try.
+        lines = new /cc4a/abap_analyzer( )->_break_into_lines( code = `12345678901` break_at = 10 ).
+        cl_abap_unit_assert=>fail( `Exception expected` ).
+      catch /cc4a/cx_line_break_impossible.
+*     expected
+    endtry.
+    try.
+        lines = new /cc4a/abap_analyzer( )->_break_into_lines( code = `1234567890 123467890123` break_at = 10 ).
+        cl_abap_unit_assert=>fail( `Exception expected` ).
+      catch /cc4a/cx_line_break_impossible.
+*     expected
+    endtry.
+
+    try.
+        lines = new /cc4a/abap_analyzer( )->_break_into_lines( code = `|23456789| blabla` break_at = 10 ).
+        data(exp_lines) = value string_table( ( `|23456789|` ) ( `blabla` ) ).
+        cl_abap_unit_assert=>assert_equals( act = lines exp = exp_lines ).
+      catch /cc4a/cx_line_break_impossible.
+        cl_abap_unit_assert=>fail( `No Exception expected` ).
+    endtry.
+  endmethod.
   method simple_statement.
     data(analyzer) = /cc4a/abap_analyzer=>create( ).
     cl_abap_unit_assert=>assert_equals(
       act = analyzer->flatten_tokens(
         shared=>tokenize( `data my_int type i.` )-tokens )
-      exp = `DATA MY_INT TYPE I. ` ).
+      exp = `DATA MY_INT TYPE I.` ).
     cl_abap_unit_assert=>assert_equals(
       act = analyzer->flatten_tokens(
         shared=>tokenize( `obj->meth( par = val ).` )-tokens )
-      exp = `OBJ->METH( PAR = VAL ). ` ).
+      exp = `OBJ->METH( PAR = VAL ).` ).
   endmethod.
 
   method string_template.

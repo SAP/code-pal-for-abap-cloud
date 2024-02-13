@@ -1,6 +1,3 @@
-*"* use this source file for the definition and implementation of
-*"* local helper classes, interface definitions and type
-*"* declarations
 class db_statement_analyzer definition deferred.
 class /cc4a/abap_analyzer definition local friends db_statement_analyzer.
 class db_statement_analyzer definition final.
@@ -164,12 +161,12 @@ class db_statement_analyzer implementation.
           if lines( token_db-references ) > 1.
             result-is_db = abap_false.
 *           no symbol - so try okay
-          elseif <ref1>-full_name(3) = '\' && tag_type.
+          elseif <ref1>-full_name(3) = |\\{ tag_type }|.
             result-is_db = abap_true.
           endif.
         when if_ci_atc_source_code_provider=>compiler_reference_kinds-data.
           result-is_db = abap_false.
-          if token_db-references[ 1 ]-full_name(3) = '\' && tag_common_part.
+          if token_db-references[ 1 ]-full_name(3) =           |\\{ tag_common_part }|.
             split token_db-references[ 1 ]-full_name+4 at |\\{ tag_data }:| into data(l_name1) data(l_name2).
             if l_name1 = l_name2.
               result-is_db = abap_true.

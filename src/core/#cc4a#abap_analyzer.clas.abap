@@ -12,6 +12,8 @@ class /cc4a/abap_analyzer definition
     aliases is_token_keyword for /cc4a/if_abap_analyzer~is_token_keyword.
     aliases is_db_statement for /cc4a/if_abap_analyzer~is_db_statement.
     aliases is_bracket for /cc4a/if_abap_analyzer~is_bracket.
+    aliases max_line_length for /cc4a/if_abap_analyzer~max_line_length.
+
   protected section.
   private section.
 
@@ -23,30 +25,28 @@ class /cc4a/abap_analyzer definition
     class-data negations type table of ty_negation.
 
     methods _flatten_tokens
-      changing tokens type if_ci_atc_source_code_provider=>ty_tokens
+      changing  tokens      type if_ci_atc_source_code_provider=>ty_tokens
       returning value(flat) type string.
+
     methods _flatten_template
-      changing tokens type if_ci_atc_source_code_provider=>ty_tokens
+      changing  tokens      type if_ci_atc_source_code_provider=>ty_tokens
       returning value(flat) type string.
-ENDCLASS.
+
+    methods _break_into_lines
+      importing value(code)       type string
+                break_at          type i
+      returning value(code_lines) type string_table
+      raising   /cc4a/cx_line_break_impossible.
+
+endclass.
 
 
 
-CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
+class /cc4a/abap_analyzer implementation.
 
 
   method /cc4a/if_abap_analyzer~break_into_lines.
-    constants allowed_line_length type i value 255.
-    data(remaining_chunk) = strlen( code ).
-    while remaining_chunk > 0.
-      data(already_chopped_chars) = lines( code_lines ) * allowed_line_length.
-      data(chars_to_chop) = cond #(
-        when remaining_chunk > allowed_line_length
-          then allowed_line_length
-          else remaining_chunk ).
-      insert code+already_chopped_chars(chars_to_chop) into table code_lines.
-      remaining_chunk -= chars_to_chop.
-    endwhile.
+    code_lines = _break_into_lines( code = code break_at = max_line_length ).
   endmethod.
 
 
@@ -284,6 +284,7 @@ CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
 
   endmethod.
 
+
   method _flatten_tokens.
     if not line_exists( tokens[ lexeme = '|' ] ).
       flat = reduce #( init str = `` for tok in tokens next str = |{ str }{ tok-lexeme } | ).
@@ -292,18 +293,23 @@ CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
       while lines( tokens ) > 0.
         if <token>-lexeme = '|'.
           delete tokens index 1.
-          flat &&= |\|{ _flatten_template( changing tokens = tokens ) }\||.
+          data(template) = _flatten_template( changing tokens = tokens ).
+          flat &&= |\|{ template }\| |.
         else.
           flat &&= |{ <token>-lexeme } |.
+          delete tokens index 1.
         endif.
-        delete tokens index 1.
         assign tokens[ 1 ] to <token>.
       endwhile.
+    endif.
+    data(len) = strlen( flat ) - 1.
+    if flat+len(1) = ` `.
+      flat = flat(len).
     endif.
   endmethod.
 
   method _flatten_template.
-    data(inside_braces) = abap_true.
+    data(inside_braces) = abap_false.
     assign tokens[ 1 ] to field-symbol(<token>).
     while lines( tokens ) > 0.
       case <token>-lexeme.
@@ -339,4 +345,77 @@ CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
     endwhile.
   endmethod.
 
-ENDCLASS.
+
+
+  method _break_into_lines.
+    data i type i.
+    data in_sqmarks type abap_bool.
+    data in_quotes type abap_bool.
+    data in_template type abap_bool.
+    data in_braces type abap_bool.
+    data last_space type i.
+    if strlen( code ) <= break_at.
+      code_lines = value #( ( code ) ).
+      return.
+    endif.
+
+    while i < strlen( code ).
+      case code+i(1).
+        when '`'.
+          if in_quotes = abap_false and in_template = abap_false.
+            in_sqmarks = cond #( when in_sqmarks = abap_false then abap_true else abap_false ).
+          endif.
+        when `'`.
+          if in_sqmarks = abap_false and in_template = abap_false.
+            in_quotes = cond #( when in_quotes = abap_false then abap_true else abap_false ).
+          endif.
+        when '|'.
+          if in_sqmarks = abap_false and in_quotes = abap_false.
+            in_template = cond #( when in_template = abap_false then abap_true else abap_false ).
+          endif.
+        when `\`.
+          i += 1.
+        when '{'.
+          if in_template = abap_true and in_sqmarks = abap_false and in_quotes = abap_false.
+            in_braces = abap_true.
+          endif.
+        when '}'.
+          if in_template = abap_true and in_sqmarks = abap_false and in_quotes = abap_false.
+            in_braces = abap_false.
+          endif.
+        when ` `.
+          if in_sqmarks = abap_false and in_quotes = abap_false and
+          ( in_template = abap_false or in_braces = abap_true ).
+            last_space = i.
+          endif.
+      endcase.
+      i += 1.
+      if i > break_at.
+        if last_space = 0.
+          raise exception type /cc4a/cx_line_break_impossible.
+        else.
+          append code(last_space) to code_lines.
+          last_space += 1.
+          if last_space >= strlen( code ).
+            return.
+          endif.
+          code = code+last_space.
+          if strlen( code ) <= break_at.
+            append code to code_lines.
+            return.
+          endif.
+          i = 0.
+          last_space = 0.
+          in_sqmarks = abap_false.
+          in_quotes = abap_false.
+          in_template = abap_false.
+        endif.
+      endif.
+    endwhile.
+    if i > break_at.
+      raise exception type /cc4a/cx_line_break_impossible.
+    else.
+      append code to code_lines.
+    endif.
+  endmethod.
+endclass.

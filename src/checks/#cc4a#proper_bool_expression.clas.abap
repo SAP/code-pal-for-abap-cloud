@@ -168,11 +168,11 @@ class /cc4a/proper_bool_expression implementation.
         endif.
 
         if reported_finding <> finding_kind-none.
-          findings = determine_quickfixes( i_procedure = procedure
+          insert lines of determine_quickfixes( i_procedure = procedure
                                            i_statement = <statement>
                                            i_statement_index = statement_index
                                            i_token = <token>
-                                           i_reported_finding = reported_finding ).
+                                           i_reported_finding = reported_finding ) into table findings.
         endif.
         if <token>-lexeme = 'ENDMETHOD'.
           delete booleans where is_local_variable = abap_true.
@@ -285,15 +285,17 @@ class /cc4a/proper_bool_expression implementation.
         data(counter) = sy-tabix.
 
         loop at structure_type_names assigning field-symbol(<line_of_table>)
-        where  ( corresp_struc_or_tabletype = current_statement-tokens[ sy-tabix + 1  ]-lexeme
-        or corresp_struc_or_tabletype = next_token3_lexeme ) and corresp_struc_or_tabletype is not initial.
-          insert value #( name = current_statement-tokens[ counter - 1  ]-lexeme
-          && cond #(
-            when <line_of_table>-corresp_struc_or_tabletype = next_token3_lexeme or <line_of_table>-is_table = abap_true
+            where  ( corresp_struc_or_tabletype = current_statement-tokens[ sy-tabix + 1  ]-lexeme
+                  or corresp_struc_or_tabletype = next_token3_lexeme ) and corresp_struc_or_tabletype is not initial.
+          data(main_structure) = current_statement-tokens[ counter - 1  ]-lexeme.
+          data(optional_table_expr) = cond string(
+            when   <line_of_table>-corresp_struc_or_tabletype = next_token3_lexeme
+                or <line_of_table>-is_table = abap_true
               then '[ * ]'
-              else '' )
-          && '-' && <line_of_table>-name_of_boolean
-                        is_local_variable = is_local_variable )
+              else '' ).
+          insert value #(
+            name = |{ main_structure }{ optional_table_expr }-{ <line_of_table>-name_of_boolean }|
+            is_local_variable = is_local_variable )
           into table booleans.
         endloop.
       endif.
@@ -337,10 +339,10 @@ class /cc4a/proper_bool_expression implementation.
               elseif <current_token>-lexeme in structure_names_range and <current_token>-lexeme <> structure_name.
                 loop at structure_type_names assigning field-symbol(<structure_name>)
                     where corresp_struc_or_tabletype =  <current_token>-lexeme.
+                  data(main_structure) = procedure-statements[ statement_counter  ]-tokens[ token_counter - 2 ]-lexeme.
+                  data(optional_table_expr) = cond #( when <structure_name>-is_table = abap_true then '[ * ]' else '' ).
                   insert value #(
-                    name_of_boolean = procedure-statements[ statement_counter  ]-tokens[ token_counter - 2 ]-lexeme &&
-                      cond #( when <structure_name>-is_table = abap_true then '[ * ]' else '' ) &&
-                      '-' && <structure_name>-name_of_boolean
+                    name_of_boolean = |{ main_structure }{ optional_table_expr }-{ <structure_name>-name_of_boolean }|
                     corresp_struc_or_tabletype = structure_name )
                   into table structure_type_names.
                 endloop.
@@ -392,26 +394,24 @@ class /cc4a/proper_bool_expression implementation.
 
   method exchangebool.
     data(new_statement) = statement.
-    if status = abap_true.
-      new_statement-tokens[ bool_constant_position ]-lexeme = 'ABAP_TRUE'.
-    else.
-      new_statement-tokens[ bool_constant_position ]-lexeme = 'ABAP_FALSE'.
-    endif.
-    data(flat_new_statement) = analyzer->flatten_tokens( new_statement-tokens ) && `.`.
+    new_statement-tokens[ bool_constant_position ]-lexeme = cond #(
+      when status = abap_true
+        then 'ABAP_TRUE'
+        else 'ABAP_FALSE' ).
+    data(flat_new_statement) = |{ analyzer->flatten_tokens( new_statement-tokens ) }.|.
     modified_statement = analyzer->break_into_lines( flat_new_statement ).
   endmethod.
 
   method removeinitial.
     data(new_statement) = statement.
     if new_statement-tokens[ variable_position + 1 ]-lexeme = 'NOT'.
-      new_statement-tokens[ variable_position  ]-lexeme = '='.
       new_statement-tokens[ variable_position  + 1 ]-lexeme = 'ABAP_TRUE'.
       new_statement-tokens[ variable_position  + 2 ]-lexeme = ''.
     else.
-      new_statement-tokens[ variable_position  ]-lexeme = '='.
       new_statement-tokens[ variable_position  + 1 ]-lexeme = 'ABAP_FALSE'.
     endif.
-    data(flat_new_statement) = analyzer->flatten_tokens( new_statement-tokens ) && `.`.
+    new_statement-tokens[ variable_position  ]-lexeme = '='.
+    data(flat_new_statement) = |{ analyzer->flatten_tokens( new_statement-tokens ) }.|.
     modified_statement = analyzer->break_into_lines( flat_new_statement ).
   endmethod.
 
@@ -421,7 +421,7 @@ class /cc4a/proper_bool_expression implementation.
     data(open_brackets) = 0.
     data is_exchanged type abap_bool value abap_false.
     data boolean_is_in_table type abap_bool value abap_false.
-    statement_string = next_statement-tokens[ 1 ]-lexeme && ' =' && ' xsdbool('.
+    statement_string = |{ next_statement-tokens[ 1 ]-lexeme } = xsdbool(|.
     loop at statement-tokens assigning field-symbol(<token>).
       is_exchanged = abap_false.
       counter += 1.
@@ -442,40 +442,45 @@ class /cc4a/proper_bool_expression implementation.
           if analyzer->token_is_comparison_operator( current_token ) and current_token-lexeme <> 'IS' and current_token-lexeme <> 'IN'.
             data(comparison_operator) = current_token-lexeme.
             data(negated_comparison_operator) = analyzer->negate_comparison_operator( comparison_operator ).
-            statement_string = statement_string && ` ` && negated_comparison_operator.
+            statement_string &&= | { negated_comparison_operator }|.
           else.
 
             if current_token-lexeme = 'IS'.
               loop at booleans assigning field-symbol(<boolean>).
                 if <boolean>-name = statement-tokens[ counter - 1 ]-lexeme
-                or is_boolean_in_booltable( current_position = counter statement = statement boolean_name = <boolean>-name ).
-                  statement_string = statement_string && ` `
-                  && cond #( when next_token-lexeme = 'NOT' then '=' &&  ` ` && 'ABAP_FALSE'
-                             when next_token-lexeme <> 'NOT' then 'IS' &&  ` ` && 'NOT' &&  ` ` && 'INITIAL' ).
-                  counter += cond #( when next_token-lexeme = 'NOT' then 2
-                                     when next_token-lexeme <> 'NOT' then 1 ).
+                    or is_boolean_in_booltable( current_position = counter statement = statement boolean_name = <boolean>-name ).
+                  data(rhs) = cond #(
+                    when next_token-lexeme = 'NOT'
+                      then `= ABAP_FALSE`
+                      else `IS NOT INITIAL` ).
+                  statement_string = |{ statement_string } { rhs }|.
+                  counter += cond #(
+                    when next_token-lexeme = 'NOT'
+                      then 2
+                      else 1 ).
                   is_exchanged = abap_true.
                 endif.
               endloop.
               if is_exchanged = abap_false.
+                statement_string &&= | { current_token-lexeme }|.
                 if next_token-lexeme = 'NOT'.
-                  statement_string = statement_string && ` ` && current_token-lexeme.
                   counter += 1.
                 else.
-                  statement_string = statement_string && ` ` && current_token-lexeme && ` ` && 'NOT'.
+                  statement_string &&= ` NOT`.
                 endif.
               endif.
             else.
               statement_string = cond #(
                 when current_token-lexeme = 'IN' and previous_token-lexeme = 'NOT'
-                  then substring( val = statement_string len = strlen( statement_string ) - 4 ) && ` ` && 'IN'
+                  then |{ substring( val = statement_string len = strlen( statement_string ) - 4 ) } IN|
                 when current_token-lexeme = 'IN' and previous_token-lexeme <> 'NOT'
-                  then statement_string && ` ` && `NOT`          && ` ` && 'IN'
+                  then |{ statement_string } NOT IN|
                 when current_token-lexeme = 'AND'
-                  then statement_string && ` ` && `OR`
+                  then |{ statement_string } OR|
                 when current_token-lexeme = 'OR'
-                  then statement_string && ` ` && `AND`
-                else statement_string &&   ` `  &&  current_token-lexeme ).
+                  then |{ statement_string } AND|
+                else
+                  |{ statement_string } { current_token-lexeme }| ).
             endif.
 
           endif.
@@ -488,31 +493,28 @@ class /cc4a/proper_bool_expression implementation.
                     current_position = counter
                     statement = statement
                     boolean_name = <bool>-name ).
-                statement_string = statement_string && ` `
-                  && cond #(
+                data(rhs_2) = cond #(
                     when next_token-lexeme <> 'NOT'
-                      then '=' &&  ` ` && 'ABAP_FALSE'
-                    when next_token-lexeme = 'NOT'
-                      then 'IS' &&  ` ` && 'NOT'  &&  ` ` && 'INITIAL' ).
+                      then `= ABAP_FALSE`
+                      else `IS NOT INITIAL` ).
+                statement_string = |{ statement_string } { rhs_2 }|.
                 counter += cond #( when next_token-lexeme = 'NOT' then 2
                                    when next_token-lexeme <> 'NOT' then 1 ).
                 boolean_is_in_table = abap_true.
               endif.
             endloop.
             if boolean_is_in_table = abap_false.
-              statement_string = statement_string && ` ` && current_token-lexeme.
+              statement_string &&= | { current_token-lexeme }|.
             endif.
           else.
-            statement_string = statement_string && ` ` && current_token-lexeme.
+            statement_string &&= | { current_token-lexeme }|.
           endif.
         endif.
       endif.
     endloop.
 
-    statement_string = statement_string && ` ` && ').'.
-
-    append statement_string
-    to modified_statement.
+    statement_string &&= ` ).`.
+    insert statement_string into table modified_statement.
   endmethod.
 
   method is_boolean_in_booltable.
@@ -524,14 +526,14 @@ class /cc4a/proper_bool_expression implementation.
     while last_part cp '*]*[*'.
       split last_part at ']' into data(first_part) last_part.
       counter += 1.
-      first_part = ']' && reverse( first_part ).
+      first_part = |]{ reverse( first_part ) }|.
       data(compared_token_lexeme) = value #( statement-tokens[ current_position - counter ]-lexeme optional ).
       if first_part <> compared_token_lexeme.
         has_exited = abap_true.
         exit.
       endif.
       split last_part at '[' into first_part last_part.
-      last_part = '[' && last_part.
+      last_part = |[{ last_part }|.
       counter += 1.
     endwhile.
     if has_exited = abap_false.
@@ -599,4 +601,3 @@ class /cc4a/proper_bool_expression implementation.
   endmethod.
 
 endclass.
-

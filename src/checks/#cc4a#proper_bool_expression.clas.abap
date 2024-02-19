@@ -52,7 +52,6 @@ class /cc4a/proper_bool_expression definition
 
     data booleans type table of ty_boolean_variable.
     data structure_type_names type table of ty_boolean_names_in_structure.
-    data procedure_number type i value 0.
 
     methods analyze_procedure
       importing !procedure      type if_ci_atc_source_code_provider=>ty_procedure
@@ -87,13 +86,12 @@ class /cc4a/proper_bool_expression definition
                 is_keyword_position   type i
       returning value(finding)        type ty_finding_kind.
 
-    methods exchangebool
-      importing !statement                type if_ci_atc_source_code_provider=>ty_statement
-                !status                   type abap_bool
-                bool_constant_position    type i
+    methods replace_literal_by_bool_const
+      importing !statement type if_ci_atc_source_code_provider=>ty_statement
+                token_index type i
       returning value(modified_statement) type if_ci_atc_quickfix=>ty_code.
 
-    methods removeinitial
+    methods replace_initial_by_bool_const
       importing !statement                type if_ci_atc_source_code_provider=>ty_statement
 
                 variable_position         type i
@@ -112,13 +110,14 @@ class /cc4a/proper_bool_expression definition
 
     methods determine_quickfixes
       importing
-        i_procedure        type if_ci_atc_source_code_provider=>ty_procedure
-        i_statement        type if_ci_atc_source_code_provider=>ty_statement
-        i_statement_index  type syst-tabix
-        i_token            type if_ci_atc_source_code_provider=>ty_token
-        i_reported_finding type /cc4a/proper_bool_expression=>ty_finding_kind
+        procedure        type if_ci_atc_source_code_provider=>ty_procedure
+        statement        type if_ci_atc_source_code_provider=>ty_statement
+        statement_index  type i
+        token            type if_ci_atc_source_code_provider=>ty_token
+        token_index      type i
+        reported_finding type /cc4a/proper_bool_expression=>ty_finding_kind
       returning
-        value(r_findings)  type if_ci_atc_check=>ty_findings.
+        value(findings)  type if_ci_atc_check=>ty_findings.
 endclass.
 
 class /cc4a/proper_bool_expression implementation.
@@ -126,6 +125,7 @@ class /cc4a/proper_bool_expression implementation.
     loop at procedure-statements assigning field-symbol(<statement>).
       data(statement_index) = sy-tabix.
       loop at <statement>-tokens assigning field-symbol(<token>).
+        data(token_index) = sy-tabix.
         data(reported_finding) = finding_kind-none.
         if procedure-id-kind = if_ci_atc_source_code_provider=>procedure_kinds-class_definition.
           if <token>-lexeme = 'TYPE'.
@@ -168,11 +168,14 @@ class /cc4a/proper_bool_expression implementation.
         endif.
 
         if reported_finding <> finding_kind-none.
-          insert lines of determine_quickfixes( i_procedure = procedure
-                                           i_statement = <statement>
-                                           i_statement_index = statement_index
-                                           i_token = <token>
-                                           i_reported_finding = reported_finding ) into table findings.
+          insert lines of determine_quickfixes(
+            procedure = procedure
+            statement = <statement>
+            statement_index = statement_index
+            token = <token>
+            reported_finding = reported_finding
+            token_index = token_index
+          ) into table findings.
         endif.
         if <token>-lexeme = 'ENDMETHOD'.
           delete booleans where is_local_variable = abap_true.
@@ -189,11 +192,11 @@ class /cc4a/proper_bool_expression implementation.
           description = 'Usage of inappropriate boolean'(des)
           remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
           finding_codes = value #(
-            ( code = finding_codes-test_boolean text = 'Usage of inappropriate boolean'(uib) ) )
+            ( code = finding_codes-test_boolean text = 'Usage of inappropriate boolean'(des) ) )
             quickfix_codes = value #(
-            ( code = quickfix_codes-if_else short_text = 'Replace with xsdbool'(qrs) )
-            ( code = quickfix_codes-character_equivalence short_text = 'Replace with correct boolean-term'(qrs) )
-            ( code = quickfix_codes-initial_boolean short_text = 'Replace with correct comparison'(qrs) ) ) ) ).
+            ( code = quickfix_codes-if_else short_text = 'Replace with xsdbool'(qie) )
+            ( code = quickfix_codes-character_equivalence short_text = 'Replace with correct boolean-term'(qce) )
+            ( code = quickfix_codes-initial_boolean short_text = 'Replace with correct comparison'(qib) ) ) ) ).
     analyzer = /cc4a/abap_analyzer=>create( ).
   endmethod.
 
@@ -213,7 +216,7 @@ class /cc4a/proper_bool_expression implementation.
     assistant_factory = factory.
   endmethod.
 
-  method if_ci_atc_check~verify_prerequisites.
+  method if_ci_atc_check~verify_prerequisites ##NEEDED.
   endmethod.
 
   method check_if_then_else.
@@ -229,11 +232,10 @@ class /cc4a/proper_bool_expression implementation.
           data(next_token) = value #( <statement>-tokens[ sy-tabix + 1 ] ).
           if next_token-lexeme = 'ABAP_TRUE' or
              next_token-lexeme = 'ABAP_FALSE' or
-             next_token-lexeme = |SPACE| or
-             next_token-lexeme = |' '| or
-             next_token-lexeme = |'X'|.
+             next_token-lexeme = 'SPACE' or
+             next_token-lexeme = `' '` or
+             next_token-lexeme = `'X'`.
             if bool_variable is initial.
-              data(tsgtsg) = procedure-statements[ statement_index + 1 ]-tokens[ 1 ]-lexeme.
               bool_variable = cond #(
                 when procedure-statements[ statement_index + 1 ]-tokens[ 1 ]-lexeme cp 'DATA(*)'
                   then substring(
@@ -241,9 +243,9 @@ class /cc4a/proper_bool_expression implementation.
                     off = 5
                     len =  strlen( <statement>-tokens[ sy-tabix - 1 ]-lexeme ) - 6 )
                   else <statement>-tokens[ sy-tabix - 1 ]-lexeme ).
-              bool_value = xsdbool( next_token-lexeme = 'ABAP_TRUE' or next_token-lexeme = |'X'| ).
+              bool_value = xsdbool( next_token-lexeme = 'ABAP_TRUE' or next_token-lexeme = `'X'` ).
             elseif bool_variable =  <statement>-tokens[ sy-tabix - 1 ]-lexeme
-                and bool_value <> xsdbool( next_token-lexeme = 'ABAP_TRUE' or next_token-lexeme = |'X'| ).
+                and bool_value <> xsdbool( next_token-lexeme = 'ABAP_TRUE' or next_token-lexeme = `'X'` ).
               if procedure-statements[ statement_index + 1 ]-tokens[ 1 ]-lexeme cp 'DATA(*)'.
                 finding = finding_kind-check_if_then_else.
               else.
@@ -304,14 +306,14 @@ class /cc4a/proper_bool_expression implementation.
         current_statement-tokens[ sy-tabix + 2  ]-lexeme = 'ABAP_TRUE'
         or current_statement-tokens[ sy-tabix + 2  ]-lexeme = 'ABAP_FALSE'
         or current_statement-tokens[ sy-tabix + 2  ]-lexeme = 'SPACE'
-        or current_statement-tokens[ sy-tabix + 2  ]-lexeme = |' '|
-        or current_statement-tokens[ sy-tabix + 2  ]-lexeme = |'X'| ).
+        or current_statement-tokens[ sy-tabix + 2  ]-lexeme = `' '`
+        or current_statement-tokens[ sy-tabix + 2  ]-lexeme = `'X'` ).
       insert value #( name = substring( val = current_token_lexeme off = 5 len =  strlen( current_token_lexeme ) - 6 )
                     is_local_variable = is_local_variable )
       into table booleans.
     endif.
-    if token_lexeme_after_eq = |' '| or token_lexeme_after_eq = |'X'| or token_lexeme_after_eq = |SPACE|
-    or token_lexeme_after_value = |' '| or token_lexeme_after_value = |'X'| or token_lexeme_after_value = |SPACE|.
+    if token_lexeme_after_eq = `' '` or token_lexeme_after_eq = `'X'` or token_lexeme_after_eq = `SPACE`
+        or token_lexeme_after_value = `' '` or token_lexeme_after_value = `'X'` or token_lexeme_after_value = `SPACE`.
       finding = finding_kind-check_correct_bool_usage.
     endif.
   endmethod.
@@ -369,7 +371,7 @@ class /cc4a/proper_bool_expression implementation.
   endmethod.
 
   method check_correct_bool_usage.
-    if next_token_lexeme = |'X'| or next_token_lexeme = |' '| or next_token_lexeme = 'SPACE'.
+    if next_token_lexeme = `'X'` or next_token_lexeme = `' '` or next_token_lexeme = 'SPACE'.
       if xsdbool_position_line + 1 <> code_provider->get_statement_location( statement )-position-line
       and xsdbool_position_line + 3 <> code_provider->get_statement_location( statement )-position-line.
         finding = finding_kind-check_correct_bool_usage.
@@ -392,23 +394,41 @@ class /cc4a/proper_bool_expression implementation.
     endloop.
   endmethod.
 
-  method exchangebool.
+  method replace_literal_by_bool_const.
     data(new_statement) = statement.
-    new_statement-tokens[ bool_constant_position ]-lexeme = cond #(
-      when status = abap_true
+    assign statement-tokens[ token_index ] to field-symbol(<token>).
+    data(token_to_change) = token_index + cond #(
+      when analyzer->token_is_comparison_operator( <token> )
+        and <token>-lexeme <> 'IS'
+        and <token>-lexeme <> 'IN'
+          then 1
+      when <token>-lexeme = 'TYPE'
+        then 3
+        else 2 ).
+    data(boolean_value_to_insert) = xsdbool( statement-tokens[
+      token_index + cond #(
+        when analyzer->token_is_comparison_operator( statement-tokens[ sy-tabix ] )
+          and <token>-lexeme <> 'IS'
+          and <token>-lexeme <> 'IN'
+            then 1
+        when <token>-lexeme = 'TYPE'
+          then 3
+          else 2 ) ]-lexeme = `'X'` ).
+    new_statement-tokens[ token_to_change ]-lexeme = cond #(
+      when boolean_value_to_insert = abap_true
         then 'ABAP_TRUE'
         else 'ABAP_FALSE' ).
     data(flat_new_statement) = |{ analyzer->flatten_tokens( new_statement-tokens ) }.|.
     modified_statement = analyzer->break_into_lines( flat_new_statement ).
   endmethod.
 
-  method removeinitial.
+  method replace_initial_by_bool_const.
     data(new_statement) = statement.
     if new_statement-tokens[ variable_position + 1 ]-lexeme = 'NOT'.
-      new_statement-tokens[ variable_position  + 1 ]-lexeme = 'ABAP_TRUE'.
-      new_statement-tokens[ variable_position  + 2 ]-lexeme = ''.
+      new_statement-tokens[ variable_position + 1 ]-lexeme = 'ABAP_TRUE'.
+      new_statement-tokens[ variable_position + 2 ]-lexeme = ''.
     else.
-      new_statement-tokens[ variable_position  + 1 ]-lexeme = 'ABAP_FALSE'.
+      new_statement-tokens[ variable_position + 1 ]-lexeme = 'ABAP_FALSE'.
     endif.
     new_statement-tokens[ variable_position  ]-lexeme = '='.
     data(flat_new_statement) = |{ analyzer->flatten_tokens( new_statement-tokens ) }.|.
@@ -421,7 +441,7 @@ class /cc4a/proper_bool_expression implementation.
     data(open_brackets) = 0.
     data is_exchanged type abap_bool value abap_false.
     data boolean_is_in_table type abap_bool value abap_false.
-    statement_string = |{ next_statement-tokens[ 1 ]-lexeme } = xsdbool(|.
+    statement_string = |{ next_statement-tokens[ 1 ]-lexeme } = XSDBOOL(|.
     loop at statement-tokens assigning field-symbol(<token>).
       is_exchanged = abap_false.
       counter += 1.
@@ -436,8 +456,8 @@ class /cc4a/proper_bool_expression implementation.
           open_brackets -= 1.
         endif.
         if ( next_statement-tokens[ 3 ]-lexeme = 'ABAP_FALSE'
-        or next_statement-tokens[ 3 ]-lexeme = |' '|
-        or next_statement-tokens[ 3 ]-lexeme = |SPACE| )
+        or next_statement-tokens[ 3 ]-lexeme = `' '`
+        or next_statement-tokens[ 3 ]-lexeme = 'SPACE' )
         and open_brackets < 1.
           if analyzer->token_is_comparison_operator( current_token ) and current_token-lexeme <> 'IS' and current_token-lexeme <> 'IN'.
             data(comparison_operator) = current_token-lexeme.
@@ -547,56 +567,47 @@ class /cc4a/proper_bool_expression implementation.
   endmethod.
 
   method determine_quickfixes.
-    data(available_quickfixes) = assistant_factory->create_quickfixes( ).
-    available_quickfixes = assistant_factory->create_quickfixes( ).
-    available_quickfixes->create_quickfix( switch #( i_reported_finding
+    data(quickfixes) = assistant_factory->create_quickfixes( ).
+    data(quickfix) = quickfixes->create_quickfix( switch #( reported_finding
       when finding_kind-check_correct_bool_usage or finding_kind-check_bool_value_usage
         then quickfix_codes-character_equivalence
       when finding_kind-check_if_then_else
         then quickfix_codes-if_else
-      when finding_kind-check_bool_initial then quickfix_codes-initial_boolean ) )->replace(
-    context = assistant_factory->create_quickfix_context( value #(
-    procedure_id = i_procedure-id
-    statements = value #( from = i_statement_index to = cond #(
-      when i_reported_finding = finding_kind-check_if_then_else
-        then i_statement_index + 4
-        else i_statement_index ) ) ) )
-    code = cond #(
-      when i_reported_finding = finding_kind-check_correct_bool_usage
-        then exchangebool(
-          statement = i_statement
-          status = xsdbool( i_statement-tokens[
-            sy-tabix + cond #(
-              when analyzer->token_is_comparison_operator( i_statement-tokens[ sy-tabix ] )
-                and i_token-lexeme <> 'IS'
-                and i_token-lexeme <> 'IN'
-                  then 1
-              when i_token-lexeme = 'TYPE'
-                then 3
-                else 2 ) ]-lexeme = |'X'| )
-          bool_constant_position = sy-tabix + cond #(
-            when analyzer->token_is_comparison_operator( i_token )
-              and i_token-lexeme <> 'IS'
-              and i_token-lexeme <> 'IN'
-                then 1
-            when i_token-lexeme = 'TYPE'
-              then 3
-              else 2 ) )
-     when i_reported_finding = finding_kind-check_if_then_else
-       then insert_xsdbool(
-         statement = i_procedure-statements[ i_statement_index ]
-         next_statement = i_procedure-statements[ i_statement_index + 1 ] )
-     when i_reported_finding = finding_kind-check_bool_initial
-       then removeinitial( statement = i_statement  variable_position = sy-tabix  )
-      else value #( ) ) ).
+      when finding_kind-check_bool_initial
+        then quickfix_codes-initial_boolean ) ).
+    data(context) = assistant_factory->create_quickfix_context( value #(
+      procedure_id = procedure-id
+      statements = value #(
+        from = statement_index
+        to = cond #(
+          when reported_finding = finding_kind-check_if_then_else
+            then statement_index + 4
+            else statement_index ) ) ) ).
+    quickfix->replace(
+      context = context
+      code = cond #(
+        when reported_finding = finding_kind-check_correct_bool_usage
+          then replace_literal_by_bool_const(
+            statement = statement
+            token_index = token_index )
+        when reported_finding = finding_kind-check_if_then_else
+          then insert_xsdbool(
+            statement = procedure-statements[ statement_index ]
+            next_statement = procedure-statements[ statement_index + 1 ] )
+        when reported_finding = finding_kind-check_bool_initial
+          then replace_initial_by_bool_const(
+            statement = statement
+            variable_position = token_index )
+        else value #( ) ) ).
 
-    insert value #( code = finding_codes-test_boolean
-    location = code_provider->get_statement_location( i_statement )
-    checksum = code_provider->get_statement_checksum( i_statement )
-    details = assistant_factory->create_finding_details( )->attach_quickfixes( available_quickfixes ) )
-    into table r_findings.
-    if i_reported_finding = finding_kind-check_if_then_else.
-      xsdbool_position_line = code_provider->get_statement_location( i_statement )-position-line.
+    insert value #(
+      code = finding_codes-test_boolean
+      location = code_provider->get_statement_location( statement )
+      checksum = code_provider->get_statement_checksum( statement )
+      details = assistant_factory->create_finding_details( )->attach_quickfixes( quickfixes ) )
+    into table findings.
+    if reported_finding = finding_kind-check_if_then_else.
+      xsdbool_position_line = code_provider->get_statement_location( statement )-position-line.
     endif.
   endmethod.
 

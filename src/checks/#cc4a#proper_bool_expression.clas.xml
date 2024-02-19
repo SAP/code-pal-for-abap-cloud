@@ -21,6 +21,24 @@
     </item>
     <item>
      <ID>I</ID>
+     <KEY>QCE</KEY>
+     <ENTRY>Replace with correct boolean-term</ENTRY>
+     <LENGTH>66</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>QIB</KEY>
+     <ENTRY>Replace with correct comparison</ENTRY>
+     <LENGTH>62</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>QIE</KEY>
+     <ENTRY>Replace with xsdbool</ENTRY>
+     <LENGTH>40</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
      <KEY>UIB</KEY>
      <ENTRY>Usage of inappropriate boolean</ENTRY>
      <LENGTH>88</LENGTH>

@@ -40,6 +40,12 @@ class /cc4a/proper_bool_expression definition
         check_correct_bool_usage,
         check_bool_value_usage,
       end of enum ty_finding_kind structure finding_kind.
+    types:
+      begin of enum ty_bool_literal_result structure bool_literal,
+        not_a_literal,
+        true,
+        false,
+      end of enum ty_bool_literal_result structure bool_literal.
 
     data code_provider     type ref to if_ci_atc_source_code_provider.
     data assistant_factory type ref to cl_ci_atc_assistant_factory.
@@ -107,6 +113,10 @@ class /cc4a/proper_bool_expression definition
                 !statement         type if_ci_atc_source_code_provider=>ty_statement
                 boolean_name       type string
       returning value(is_in_table) type abap_bool.
+
+    methods is_bool_value_literal
+      importing lexeme type string
+      returning value(is_bool_value_literal) type ty_bool_literal_result.
 
     methods determine_quickfixes
       importing
@@ -220,21 +230,18 @@ class /cc4a/proper_bool_expression implementation.
   endmethod.
 
   method check_if_then_else.
-    data bool_variable type string.
+    data(bool_variable) = ``.
+    data(bool_value) = abap_false.
     data(endif_statement) = value #( procedure-statements[ statement_index + 4 ] optional ).
-    data bool_value type abap_bool.
     if current_token-lexeme = 'IF'
-    and endif_statement is not initial
-    and endif_statement-keyword = 'ENDIF'.
+        and endif_statement is not initial
+        and endif_statement-keyword = 'ENDIF'.
 
       loop at procedure-statements assigning field-symbol(<statement>) from statement_index + 1 to statement_index + 3.
         loop at <statement>-tokens assigning field-symbol(<token>) where lexeme = '='.
           data(next_token) = value #( <statement>-tokens[ sy-tabix + 1 ] ).
-          if next_token-lexeme = 'ABAP_TRUE' or
-             next_token-lexeme = 'ABAP_FALSE' or
-             next_token-lexeme = 'SPACE' or
-             next_token-lexeme = `' '` or
-             next_token-lexeme = `'X'`.
+          data(is_bool_value_literal) = is_bool_value_literal( next_token-lexeme ).
+          if is_bool_value_literal <> bool_literal-not_a_literal.
             if bool_variable is initial.
               bool_variable = cond #(
                 when procedure-statements[ statement_index + 1 ]-tokens[ 1 ]-lexeme cp 'DATA(*)'
@@ -243,9 +250,9 @@ class /cc4a/proper_bool_expression implementation.
                     off = 5
                     len =  strlen( <statement>-tokens[ sy-tabix - 1 ]-lexeme ) - 6 )
                   else <statement>-tokens[ sy-tabix - 1 ]-lexeme ).
-              bool_value = xsdbool( next_token-lexeme = 'ABAP_TRUE' or next_token-lexeme = `'X'` ).
+              bool_value = xsdbool( is_bool_value_literal = bool_literal-true ).
             elseif bool_variable =  <statement>-tokens[ sy-tabix - 1 ]-lexeme
-                and bool_value <> xsdbool( next_token-lexeme = 'ABAP_TRUE' or next_token-lexeme = `'X'` ).
+                and bool_value <> xsdbool( is_bool_value_literal( next_token-lexeme ) = bool_literal-true ).
               if procedure-statements[ statement_index + 1 ]-tokens[ 1 ]-lexeme cp 'DATA(*)'.
                 finding = finding_kind-check_if_then_else.
               else.
@@ -255,6 +262,7 @@ class /cc4a/proper_bool_expression implementation.
               endif.
               exit.
             endif.
+
           endif.
         endloop.
       endloop.
@@ -609,6 +617,17 @@ class /cc4a/proper_bool_expression implementation.
     if reported_finding = finding_kind-check_if_then_else.
       xsdbool_position_line = code_provider->get_statement_location( statement )-position-line.
     endif.
+  endmethod.
+
+  method is_bool_value_literal.
+    is_bool_value_literal =
+      switch #( lexeme
+        when 'ABAP_TRUE' or 'X'
+          then bool_literal-true
+        when 'ABAP_FALSE' or `' '` or 'SPACE'
+          then bool_literal-false
+        else
+          bool_literal-not_a_literal ).
   endmethod.
 
 endclass.

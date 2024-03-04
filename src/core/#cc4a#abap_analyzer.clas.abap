@@ -23,6 +23,24 @@ class /cc4a/abap_analyzer definition
         negated  type string,
       end of ty_negation.
     class-data negations type table of ty_negation.
+    types:
+      begin of ty_token_span,
+        from type i,
+        to type i,
+      end of ty_token_span.
+    types:
+      begin of ty_logical_expression_node,
+        connective type /cc4a/if_abap_analyzer=>ty_logical_connective,
+        left type i,
+        right type i,
+        tokens type ty_token_span,
+      end of ty_logical_expression_node.
+    types ty_logical_expression type standard table of ty_logical_expression_node with empty key.
+    types:
+      begin of ty_offsets,
+        token type i,
+        table type i,
+      end of ty_offsets.
 
     methods _flatten_tokens
       changing  tokens      type if_ci_atc_source_code_provider=>ty_tokens
@@ -38,6 +56,13 @@ class /cc4a/abap_analyzer definition
       returning value(code_lines) type string_table
       raising   /cc4a/cx_line_break_impossible.
 
+    methods parse_logical_expression
+      importing tokens type if_ci_atc_source_code_provider=>ty_tokens
+      returning value(expression) type ty_logical_expression.
+    methods _parse_logical_expression
+      importing offsets type ty_offsets
+      changing tokens type if_ci_atc_source_code_provider=>ty_tokens
+      returning value(expression) type ty_logical_expression.
 endclass.
 
 
@@ -155,8 +180,15 @@ class /cc4a/abap_analyzer implementation.
 
 
   method /cc4a/if_abap_analyzer~is_logical_connective.
-    is_logical_connective = xsdbool(
-      token-references is initial and ( token-lexeme = 'AND' or token-lexeme = 'OR' or token-lexeme = 'EQUIV' ) ).
+    if token-references is initial.
+      return switch #( token-lexeme
+        when 'AND' then /cc4a/if_abap_analyzer=>logical_connective-and
+        when 'OR' then /cc4a/if_abap_analyzer=>logical_connective-or
+        when 'EQUIV' then /cc4a/if_abap_analyzer=>logical_connective-equiv
+        when 'NOT' then /cc4a/if_abap_analyzer=>logical_connective-not ).
+    else.
+      return /cc4a/if_abap_analyzer=>logical_connective-none.
+    endif.
   endmethod.
 
 
@@ -418,4 +450,89 @@ class /cc4a/abap_analyzer implementation.
       append code to code_lines.
     endif.
   endmethod.
+
+  method /cc4a/if_abap_analyzer~negate_logical_expression.
+    data(new_tokens) = tokens.
+    data(expression) = parse_logical_expression( tokens ).
+    insert value #( lexeme = 'NOT (' ) into new_tokens index 1.
+    insert value #( lexeme = ')' ) into table new_tokens.
+    return /cc4a/if_abap_analyzer~flatten_tokens( new_tokens ).
+  endmethod.
+
+  method parse_logical_expression.
+    data(_tokens) = tokens.
+    return _parse_logical_expression(
+      exporting offsets = value #( token = 1 table = 1 )
+      changing tokens = _tokens ).
+  endmethod.
+
+  method _parse_logical_expression.
+    if tokens is initial.
+      return.
+    else.
+      data(left_tokens) = value if_ci_atc_source_code_provider=>ty_tokens( ).
+      data(open_brackets) = 0.
+      if /cc4a/if_abap_analyzer~is_logical_connective( tokens[ 1 ] ) = /cc4a/if_abap_analyzer=>logical_connective-not.
+        delete tokens index 1.
+        return value #(
+          ( connective = /cc4a/if_abap_analyzer=>logical_connective-not left = offsets-table + 1 )
+          ( lines of _parse_logical_expression(
+            exporting offsets = value #( token = offsets-token + 1 table = offsets-table )
+            changing tokens = tokens ) ) ).
+      endif.
+      data(look_for_closing_paren) = xsdbool( tokens[ 1 ]-lexeme = '(' ).
+      if look_for_closing_paren = abap_true.
+        delete tokens index 1.
+        open_brackets = 1.
+      endif.
+      while tokens is not initial.
+        assign tokens[ 1 ] to field-symbol(<token>).
+        if open_brackets = 0.
+          if look_for_closing_paren = abap_true and open_brackets = 1 and <token>-lexeme = ')'.
+            look_for_closing_paren = abap_false.
+            delete tokens index 1.
+            open_brackets = 0.
+            continue.
+          endif.
+          data(connective) = /cc4a/if_abap_analyzer~is_logical_connective( <token> ).
+          case connective.
+            when /cc4a/if_abap_analyzer=>logical_connective-none or
+                 /cc4a/if_abap_analyzer=>logical_connective-not.
+              case /cc4a/if_abap_analyzer~is_bracket( <token> ).
+                when /cc4a/if_abap_analyzer=>bracket_type-opening.
+                  open_brackets += 1.
+                when /cc4a/if_abap_analyzer=>bracket_type-closing.
+                  open_brackets -= 1.
+              endcase.
+
+            when others.
+              data(left_token_len) = lines( left_tokens ).
+              data(left) = _parse_logical_expression(
+                exporting offsets = value #( token  = offsets-token table = offsets-table + 1 )
+                changing tokens = left_tokens ).
+              delete tokens index 1.
+              data(right) = _parse_logical_expression(
+                exporting offsets = value #( token = offsets-token + left_token_len + 1 table = offsets-table + 1 + lines( left ) )
+                changing tokens = tokens ).
+              return value #(
+                ( connective = connective left = offsets-table + 1 right = offsets-table + lines( left ) + 1 )
+                ( lines of left )
+                ( lines of right ) ).
+          endcase.
+        else.
+          case /cc4a/if_abap_analyzer~is_bracket( <token> ).
+            when /cc4a/if_abap_analyzer=>bracket_type-opening.
+              open_brackets += 1.
+            when /cc4a/if_abap_analyzer=>bracket_type-closing.
+              open_brackets -= 1.
+          endcase.
+        endif.
+        insert <token> into table left_tokens.
+        delete tokens index 1.
+      endwhile.
+      return value #(
+        ( tokens = value #( from = offsets-token to = offsets-token + lines( left_tokens ) - 1 ) ) ).
+    endif.
+  endmethod.
+
 endclass.

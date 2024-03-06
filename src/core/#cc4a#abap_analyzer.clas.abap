@@ -60,7 +60,7 @@ class /cc4a/abap_analyzer definition
       importing tokens type if_ci_atc_source_code_provider=>ty_tokens
       returning value(expression) type ty_logical_expression.
     methods _parse_logical_expression
-      importing offsets type ty_offsets
+      importing value(offsets) type ty_offsets
       changing tokens type if_ci_atc_source_code_provider=>ty_tokens
       returning value(expression) type ty_logical_expression.
 endclass.
@@ -454,8 +454,45 @@ class /cc4a/abap_analyzer implementation.
   method /cc4a/if_abap_analyzer~negate_logical_expression.
     data(new_tokens) = tokens.
     data(expression) = parse_logical_expression( tokens ).
-    insert value #( lexeme = 'NOT (' ) into new_tokens index 1.
-    insert value #( lexeme = ')' ) into table new_tokens.
+    " If true, this is a complex expression we probably don't want to negate "in a clever way".
+    if lines( expression ) > 3.
+      insert value #( lexeme = 'NOT (' ) into new_tokens index 1.
+      insert value #( lexeme = ')' ) into table new_tokens.
+    elseif lines( expression ) > 1.
+      assign expression[ 1 ] to field-symbol(<connective>).
+      case <connective>-connective.
+        when /cc4a/if_abap_analyzer=>logical_connective-and or /cc4a/if_abap_analyzer=>logical_connective-or.
+          data(left) = /cc4a/if_abap_analyzer~negate_logical_expression(
+            value #( for <t> in new_tokens from expression[ 2 ]-tokens-from to expression[ 2 ]-tokens-to ( <t> ) ) ).
+          data(right) = /cc4a/if_abap_analyzer~negate_logical_expression(
+            value #( for <t> in new_tokens from expression[ 3 ]-tokens-from to expression[ 3 ]-tokens-to ( <t> ) ) ).
+        case <connective>-connective.
+          when /cc4a/if_abap_analyzer=>logical_connective-and.
+            return |{ left } OR { right }|.
+          when /cc4a/if_abap_analyzer=>logical_connective-or.
+            return |{ left } AND { right }|.
+
+        endcase.
+      endcase.
+    else.
+      data(tokens_end) = lines( new_tokens ).
+      if is_token_keyword( token = new_tokens[ tokens_end ] keyword = 'INITIAL' ).
+        if is_token_keyword( token = new_tokens[ tokens_end - 1 ] keyword = 'NOT' ).
+          delete new_tokens index tokens_end - 1.
+        else.
+          insert value #( lexeme = 'NOT' ) into new_tokens index tokens_end.
+        endif.
+      elseif is_token_keyword( token = new_tokens[ 2 ] keyword = 'IN' ).
+        insert value #( lexeme = 'NOT' ) into new_tokens index 2.
+      elseif is_token_keyword( token = new_tokens[ 2 ] keyword = 'NOT' ).
+        delete new_tokens index 2.
+      elseif /cc4a/if_abap_analyzer~token_is_comparison_operator( token = new_tokens[ 2 ] ).
+        new_tokens[ 2 ]-lexeme = /cc4a/if_abap_analyzer~negate_comparison_operator( new_tokens[ 2 ]-lexeme ).
+      else.
+        insert value #( lexeme = 'NOT (' ) into new_tokens index 1.
+        insert value #( lexeme = ')' ) into table new_tokens.
+      endif.
+    endif.
     return /cc4a/if_abap_analyzer~flatten_tokens( new_tokens ).
   endmethod.
 
@@ -475,7 +512,8 @@ class /cc4a/abap_analyzer implementation.
       if /cc4a/if_abap_analyzer~is_logical_connective( tokens[ 1 ] ) = /cc4a/if_abap_analyzer=>logical_connective-not.
         delete tokens index 1.
         return value #(
-          ( connective = /cc4a/if_abap_analyzer=>logical_connective-not left = offsets-table + 1 )
+          ( connective = /cc4a/if_abap_analyzer=>logical_connective-not left = offsets-table + 1
+            tokens = value #( from = offsets-token to = offsets-token ) )
           ( lines of _parse_logical_expression(
             exporting offsets = value #( token = offsets-token + 1 table = offsets-table )
             changing tokens = tokens ) ) ).
@@ -483,17 +521,28 @@ class /cc4a/abap_analyzer implementation.
       data(look_for_closing_paren) = xsdbool( tokens[ 1 ]-lexeme = '(' ).
       if look_for_closing_paren = abap_true.
         delete tokens index 1.
+        offsets-token += 1.
         open_brackets = 1.
       endif.
       while tokens is not initial.
         assign tokens[ 1 ] to field-symbol(<token>).
-        if open_brackets = 0.
-          if look_for_closing_paren = abap_true and open_brackets = 1 and <token>-lexeme = ')'.
-            look_for_closing_paren = abap_false.
-            delete tokens index 1.
-            open_brackets = 0.
-            continue.
+        if look_for_closing_paren = abap_true and open_brackets = 1 and <token>-lexeme = ')'.
+          look_for_closing_paren = abap_false.
+          delete tokens index 1.
+          assign tokens[ 1 ] to <token>.
+          open_brackets = 0.
+          if tokens is initial.
+            data(left_bracketed) = _parse_logical_expression(
+              exporting offsets = value #( token = offsets-token table = offsets-table )
+              changing tokens = left_tokens ).
+            return left_bracketed.
+          else.
+            left_bracketed = _parse_logical_expression(
+              exporting offsets = value #( token = offsets-token table = offsets-table + 1 )
+              changing tokens = left_tokens ).
           endif.
+        endif.
+        if open_brackets = 0.
           data(connective) = /cc4a/if_abap_analyzer~is_logical_connective( <token> ).
           case connective.
             when /cc4a/if_abap_analyzer=>logical_connective-none or
@@ -506,16 +555,23 @@ class /cc4a/abap_analyzer implementation.
               endcase.
 
             when others.
-              data(left_token_len) = lines( left_tokens ).
-              data(left) = _parse_logical_expression(
-                exporting offsets = value #( token  = offsets-token table = offsets-table + 1 )
-                changing tokens = left_tokens ).
+              if left_bracketed is not initial.
+                data(left_token_len) = left_bracketed[ lines( left_bracketed ) ]-tokens-to - offsets-token + 2.
+                data(left) = left_bracketed.
+              else.
+                left_token_len = lines( left_tokens ).
+                left = _parse_logical_expression(
+                  exporting offsets = value #( token  = offsets-token table = offsets-table + 1 )
+                  changing tokens = left_tokens ).
+              endif.
               delete tokens index 1.
+              data(connective_token_offset) = offsets-token + left_token_len.
               data(right) = _parse_logical_expression(
-                exporting offsets = value #( token = offsets-token + left_token_len + 1 table = offsets-table + 1 + lines( left ) )
+                exporting offsets = value #( token = connective_token_offset + 1 table = offsets-table + 1 + lines( left ) )
                 changing tokens = tokens ).
               return value #(
-                ( connective = connective left = offsets-table + 1 right = offsets-table + lines( left ) + 1 )
+                ( connective = connective left = offsets-table + 1 right = offsets-table + lines( left ) + 1
+                  tokens = value #( from = connective_token_offset to = connective_token_offset ) )
                 ( lines of left )
                 ( lines of right ) ).
           endcase.

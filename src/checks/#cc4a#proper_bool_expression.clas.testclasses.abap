@@ -16,43 +16,19 @@ class test definition final
     methods if_then_else
       importing position type if_ci_atc_check=>ty_position
       returning value(location) type if_ci_atc_check=>ty_location.
+    methods bool_usage
+      importing position type if_ci_atc_check=>ty_position
+      returning value(location) type if_ci_atc_check=>ty_location.
+    methods bool_initial
+      importing position type if_ci_atc_check=>ty_position
+      returning value(location) type if_ci_atc_check=>ty_location.
+    methods public_section
+      importing position type if_ci_atc_check=>ty_position
+      returning value(location) type if_ci_atc_check=>ty_location.
 endclass.
 
 class test implementation.
   method execute_test_class.
-    data(finding13) = value if_ci_atc_check=>ty_location(
-          object   = cl_ci_atc_unit_driver=>get_method_object(
-            value #( class = test_class method = test_class_methods-test_correct_bool_usage ) )
-          position = value #( line = 3 column = 4 ) ).
-    data(finding14) = value if_ci_atc_check=>ty_location(
-          object   = cl_ci_atc_unit_driver=>get_method_object(
-            value #( class = test_class method = test_class_methods-test_correct_bool_usage ) )
-          position = value #( line = 4 column = 4 ) ).
-    data(finding15) = value if_ci_atc_check=>ty_location(
-          object   = cl_ci_atc_unit_driver=>get_method_object(
-            value #( class = test_class method = test_class_methods-test_correct_bool_usage ) )
-          position = value #( line = 5 column = 4 ) ).
-    data(finding16) = value if_ci_atc_check=>ty_location(
-           object   = cl_ci_atc_unit_driver=>get_method_object(
-             value #( class = test_class method = test_class_methods-test_correct_bool_usage ) )
-           position = value #( line = 6 column = 4 ) ).
-    data(finding17) = value if_ci_atc_check=>ty_location(
-          object   = cl_ci_atc_unit_driver=>get_class_section_object(
-          value #( class = test_class kind = cl_ci_atc_unit_driver=>class_section_kind-public ) )
-        position = value #( line = 7 column = 4 ) ).
-    data(finding18) = value if_ci_atc_check=>ty_location(
-          object   = cl_ci_atc_unit_driver=>get_method_object(
-            value #( class = test_class method = test_class_methods-test_bool_initial ) )
-          position = value #( line = 4 column = 4 ) ).
-    data(finding19) = value if_ci_atc_check=>ty_location(
-          object   = cl_ci_atc_unit_driver=>get_method_object(
-            value #( class = test_class method = test_class_methods-test_bool_initial ) )
-          position = value #( line = 2 column = 4 ) ).
-    data(finding20) = value if_ci_atc_check=>ty_location(
-          object   = cl_ci_atc_unit_driver=>get_method_object(
-            value #( class = test_class method = test_class_methods-test_bool_initial ) )
-          position = value #( line = 6 column = 4 ) ).
-
     data(transform_to_xsd_findings) = value if_ci_atc_unit_asserter=>ty_expected_findings(
       code = /cc4a/proper_bool_expression=>finding_codes-transform_to_xsd
         ( location = if_then_else( value #( line = 5 column = 4 ) )
@@ -130,22 +106,22 @@ class test implementation.
               ( `DATA(C) = xsdbool( TABLE2[ 4 ]-TABLE[ 1 ]-BOOLEAN = ABAP_FALSE  ).` ) ( ` ` ) ( ` ` ) ( ` ` ) ( ` ` ) ) ) ) ) ).
     data(bool_value_findings) = value if_ci_atc_unit_asserter=>ty_expected_findings(
       code = /cc4a/proper_bool_expression=>finding_codes-boolean_value
-      ( location = finding13
+      ( location = bool_usage( value #( line = 3 column = 4 ) )
           quickfixes = value #( (
           quickfix_code = /cc4a/proper_bool_expression=>quickfix_codes-character_equivalence
-          location = finding13
+          location = bool_usage( value #( line = 3 column = 4 ) )
           code = value #(
             ( `T = ABAP_TRUE .` ) ) ) ) )
-      ( location = finding14
+      ( location = bool_usage( value #( line = 4 column = 4 ) )
           quickfixes = value #( (
           quickfix_code = /cc4a/proper_bool_expression=>quickfix_codes-character_equivalence
-          location = finding14
+          location = bool_usage( value #( line = 4 column = 4 ) )
           code = value #(
             ( `NUMBER_BOOL_STRUCTURE-BOOLEAN = ABAP_FALSE .` ) ) ) ) )
-      ( location = finding15
+      ( location = bool_usage( value #( line = 5 column = 4 ) )
           quickfixes = value #( (
           quickfix_code = /cc4a/proper_bool_expression=>quickfix_codes-character_equivalence
-          location = finding15
+          location = bool_usage( value #( line = 5 column = 4 ) )
           code = value #(
             ( `A = ABAP_FALSE .` ) ) ) ) )
        ( location = if_then_else( value #( line = 49 column = 6 ) )
@@ -160,36 +136,36 @@ class test implementation.
            location = if_then_else( value #( line = 51 column = 6 ) )
            code = value #(
              ( `B = ABAP_TRUE.` ) ) ) ) )
-      ( location = finding16
+      ( location = bool_usage( value #( line = 6 column = 4 ) )
           quickfixes = value #( (
           quickfix_code = /cc4a/proper_bool_expression=>quickfix_codes-character_equivalence
-          location = finding16
+          location = bool_usage( value #( line = 6 column = 4 ) )
           code = value #(
             ( `TEST_STRUC_NAB-NAB-BOOLEAN = ABAP_TRUE .` ) ) ) ) )
-      ( location = finding17
+      ( location = public_section( value #( line = 7 column = 4 ) )
           quickfixes = value #( (
           quickfix_code = /cc4a/proper_bool_expression=>quickfix_codes-character_equivalence
-          location = finding17
+          location = public_section( value #( line = 7 column = 4 ) )
           code = value #(
             ( `CONSTANTS: BOOL TYPE abap_bool VALUE ABAP_TRUE.` ) ) ) ) ) ).
-    data(initial) = value if_ci_atc_unit_asserter=>ty_expected_findings(
+    data(initial_findings) = value if_ci_atc_unit_asserter=>ty_expected_findings(
       code = /cc4a/proper_bool_expression=>finding_codes-initial
-      ( location = finding18
+      ( location = bool_initial( value #( line = 4 column = 4 ) )
           quickfixes = value #( (
           quickfix_code = /cc4a/proper_bool_expression=>quickfix_codes-initial_boolean
-          location = finding18
+          location = bool_initial( value #( line = 4 column = 4 ) )
           code = value #(
             ( `IF TABLE2[ 4 ]-TABLE[ 1 ]-BOOLEAN = ABAP_FALSE  .` ) ) ) ) )
-      ( location = finding19
+      ( location = bool_initial( value #( line = 2 column = 4 ) )
           quickfixes = value #( (
           quickfix_code = /cc4a/proper_bool_expression=>quickfix_codes-initial_boolean
-          location = finding19
+          location = bool_initial( value #( line = 2 column = 4 ) )
           code = value #(
             ( `IF A = ABAP_FALSE .` ) ) ) ) )
-      ( location = finding20
+      ( location = bool_initial( value #( line = 6 column = 4 ) )
           quickfixes = value #( (
           quickfix_code = /cc4a/proper_bool_expression=>quickfix_codes-initial_boolean
-          location = finding20
+          location = bool_initial( value #( line = 6 column = 4 ) )
           code = value #(
             ( `IF TEST_STRUC_NAB-NAB-BOOLEAN = ABAP_FALSE  .` ) ) ) ) ) ).
 
@@ -198,13 +174,35 @@ class test implementation.
               object            = value #( type = 'CLASS' name = test_class )
               expected_findings = value #(
                 ( lines of transform_to_xsd_findings )
-                ( lines of bool_value_findings ) )
+                ( lines of bool_value_findings )
+                ( lines of initial_findings ) )
               asserter_config   = value #( quickfixes = abap_false ) ).
   endmethod.
   method if_then_else.
     return value #(
       object = cl_ci_atc_unit_driver=>get_method_object(
         value #( class = test_class method = test_class_methods-test_if_then_else ) )
+      position = position ).
+  endmethod.
+
+  method bool_usage.
+    return value #(
+      object = cl_ci_atc_unit_driver=>get_method_object(
+        value #( class = test_class method = test_class_methods-test_correct_bool_usage ) )
+      position = position ).
+  endmethod.
+
+  method bool_initial.
+    return value #(
+      object = cl_ci_atc_unit_driver=>get_method_object(
+        value #( class = test_class method = test_class_methods-test_bool_initial ) )
+      position = position ).
+  endmethod.
+
+  method public_section.
+    return value #(
+      object = cl_ci_atc_unit_driver=>get_class_section_object(
+        value #( class = test_class kind = cl_ci_atc_unit_driver=>class_section_kind-public ) )
       position = position ).
   endmethod.
 

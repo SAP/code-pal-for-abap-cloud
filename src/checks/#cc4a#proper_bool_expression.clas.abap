@@ -91,6 +91,11 @@ class /cc4a/proper_bool_expression definition
         procedure type if_ci_atc_source_code_provider=>ty_procedure
         statement_idx type i
       returning value(findings) type if_ci_atc_check=>ty_findings.
+    methods analyze_initial_bool_condition
+      importing
+        procedure type if_ci_atc_source_code_provider=>ty_procedure
+        statement_idx type i
+      returning value(findings) type if_ci_atc_check=>ty_findings.
     methods are_inverse_booleans
       importing
         bool_1 type ty_boolean
@@ -148,6 +153,9 @@ class /cc4a/proper_bool_expression implementation.
               pseudo_comment = 'BOOL_VAL' )
             ( code = finding_codes-transform_to_xsd
               text = 'IF...ENDIF block can be replaced by inline XSDBOOL( )'(xsd)
+              pseudo_comment = 'BOOL_VAL' )
+            ( code = finding_codes-initial
+              text = 'IS (NOT) INITIAL can be replaced by comparison with ABAP_BOOL'(ini)
               pseudo_comment = 'BOOL_VAL' ) )
             quickfix_codes = value #(
             ( code = quickfix_codes-if_else short_text = 'Replace with xsdbool'(qie) )
@@ -213,6 +221,8 @@ class /cc4a/proper_bool_expression implementation.
           insert lines of
             analyze_pot_xsd_transform( procedure = procedure statement_idx = statement_idx ) into table findings.
         endif.
+        insert lines of
+          analyze_initial_bool_condition( procedure = procedure statement_idx = statement_idx ) into table findings.
       endif.
       if <statement>-keyword = 'COMPUTE'.
         if <statement>-tokens[ lines( <statement>-tokens ) - 1 ]-lexeme = '='.
@@ -373,7 +383,10 @@ class /cc4a/proper_bool_expression implementation.
     assign declarations[ declared_identifier = <accessed_component> ]
       to field-symbol(<declaration>).
     if sy-subrc = 0.
-      return xsdbool( <declaration>-type-name = '\TY:ABAP_BOOL' or <declaration>-kind = declaration_kind-inline ).
+      return xsdbool(
+          <declaration>-type-name = '\TY:ABAP_BOOL'
+        or ( <declaration>-kind = declaration_kind-inline
+          and to_boolean( value #( lexeme = <declaration>-value ) ) ) ).
     else.
       if lines( token-references ) > 1.
         assign token-references[ 1 ]-full_name to field-symbol(<main_object>).
@@ -476,5 +489,28 @@ class /cc4a/proper_bool_expression implementation.
         statements = value #( from = statement_idx to = statement_idx + 4 ) ) )
       code = analyzer->break_into_lines( xsd_statement ) ).
   ENDMETHOD.
+
+  method analyze_initial_bool_condition.
+    assign procedure-statements[ statement_idx ] to field-symbol(<statement>).
+    loop at <statement>-tokens assigning field-symbol(<token>).
+      data(token_idx) = sy-tabix.
+      if analyzer->is_token_keyword( token = <token> keyword = 'INITIAL' ).
+        assign <statement>-tokens[ token_idx - 1 ] to field-symbol(<previous_token>).
+        if   ( analyzer->is_token_keyword( token = <previous_token> keyword = 'IS' )
+              and is_boolean_typed( <statement>-tokens[ token_idx - 2 ] ) )
+            or ( analyzer->is_token_keyword( token = <previous_token> keyword = 'NOT' )
+              and analyzer->is_token_keyword( token = <statement>-tokens[ token_idx - 2 ] keyword = 'IS' )
+              and is_boolean_typed( <statement>-tokens[ token_idx - 3 ] ) ).
+          insert value #(
+            code = finding_codes-initial
+            location = code_provider->get_statement_location( <statement> )
+            checksum = code_provider->get_statement_checksum( <statement> )
+            has_pseudo_comment = meta_data->has_valid_pseudo_comment(
+              statement = <statement>
+              finding_code = finding_codes-initial ) ) into table findings.
+        endif.
+      endif.
+    endloop.
+  endmethod.
 
 endclass.

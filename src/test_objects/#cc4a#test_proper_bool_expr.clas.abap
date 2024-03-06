@@ -38,6 +38,7 @@ CLASS /cc4a/test_proper_bool_expr DEFINITION
       RETURNING VALUE(rparameter) TYPE i.
 
   PROTECTED SECTION.
+    CONSTANTS: not_a_bool TYPE string VALUE ' '.
   PRIVATE SECTION.
     METHODS test_if_then_else.
     METHODS test_correct_bool_usage.

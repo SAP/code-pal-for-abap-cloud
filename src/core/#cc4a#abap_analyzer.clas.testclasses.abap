@@ -453,6 +453,7 @@ class logical_expressions definition final for testing
     METHODS twice_connected FOR TESTING RAISING cx_static_check.
     METHODS negations FOR TESTING RAISING cx_static_check.
     METHODS nested FOR TESTING RAISING cx_static_check.
+    METHODS nested_2 FOR TESTING RAISING cx_static_check.
 endclass.
 
 class /cc4a/abap_analyzer definition local friends logical_expressions.
@@ -479,21 +480,24 @@ class logical_expressions implementation.
       act = analyzer->parse_logical_expression(
         shared=>tokenize( `A = 1 AND B = 2` )-tokens )
       exp = value /cc4a/abap_analyzer=>ty_logical_expression(
-        ( connective = /cc4a/if_abap_analyzer=>logical_connective-and left = 2 right = 3 )
+        ( connective = /cc4a/if_abap_analyzer=>logical_connective-and left = 2 right = 3
+          tokens = value #( from = 4 to = 4 ) )
         ( tokens = value #( from = 1 to = 3 ) )
         ( tokens = value #( from = 5 to = 7 ) ) ) ).
     cl_abap_unit_assert=>assert_equals(
       act = analyzer->parse_logical_expression(
         shared=>tokenize( `A = METH( ) AND B = 2` )-tokens )
       exp = value /cc4a/abap_analyzer=>ty_logical_expression(
-        ( connective = /cc4a/if_abap_analyzer=>logical_connective-and left = 2 right = 3 )
+        ( connective = /cc4a/if_abap_analyzer=>logical_connective-and left = 2 right = 3
+          tokens = value #( from = 5 to = 5 ) )
         ( tokens = value #( from = 1 to = 4 ) )
         ( tokens = value #( from = 6 to = 8 ) ) ) ).
     cl_abap_unit_assert=>assert_equals(
       act = analyzer->parse_logical_expression(
         shared=>tokenize( `A = METH( ) OR B = METH( MORE_METH( ) )` )-tokens )
       exp = value /cc4a/abap_analyzer=>ty_logical_expression(
-        ( connective = /cc4a/if_abap_analyzer=>logical_connective-or left = 2 right = 3 )
+        ( connective = /cc4a/if_abap_analyzer=>logical_connective-or left = 2 right = 3
+          tokens = value #( from = 5 to = 5 ) )
         ( tokens = value #( from = 1 to = 4 ) )
         ( tokens = value #( from = 6 to = 11 ) ) ) ).
   endmethod.
@@ -504,18 +508,22 @@ class logical_expressions implementation.
       act = analyzer->parse_logical_expression(
         shared=>tokenize( `A = 1 AND B = 2 AND C = 3` )-tokens )
       exp = value /cc4a/abap_analyzer=>ty_logical_expression(
-        ( connective = /cc4a/if_abap_analyzer=>logical_connective-and left = 2 right = 3 )
+        ( connective = /cc4a/if_abap_analyzer=>logical_connective-and left = 2 right = 3
+          tokens = value #( from = 4 to = 4 ) )
         ( tokens = value #( from = 1 to = 3 ) )
-        ( connective = /cc4a/if_abap_analyzer=>logical_connective-and left = 4 right = 5 )
+        ( connective = /cc4a/if_abap_analyzer=>logical_connective-and left = 4 right = 5
+          tokens = value #( from = 8 to = 8 ) )
         ( tokens = value #( from = 5 to = 7 ) )
         ( tokens = value #( from = 9 to = 11 ) ) ) ).
     cl_abap_unit_assert=>assert_equals(
       act = analyzer->parse_logical_expression(
         shared=>tokenize( `is_bool( ) AND B = 2 AND C = meth( par = 1 par_2 = 2 )` )-tokens )
       exp = value /cc4a/abap_analyzer=>ty_logical_expression(
-        ( connective = /cc4a/if_abap_analyzer=>logical_connective-and left = 2 right = 3 )
+        ( connective = /cc4a/if_abap_analyzer=>logical_connective-and left = 2 right = 3
+          tokens = value #( from = 3 to = 3 )  )
         ( tokens = value #( from = 1 to = 2 ) )
-        ( connective = /cc4a/if_abap_analyzer=>logical_connective-and left = 4 right = 5 )
+        ( connective = /cc4a/if_abap_analyzer=>logical_connective-and left = 4 right = 5
+          tokens = value #( from = 7 to = 7 ) )
         ( tokens = value #( from = 4 to = 6 ) )
         ( tokens = value #( from = 8 to = 17 ) ) ) ).
   endmethod.
@@ -526,7 +534,8 @@ class logical_expressions implementation.
       act = analyzer->parse_logical_expression(
         shared=>tokenize( `NOT A = 1` )-tokens )
       exp = value /cc4a/abap_analyzer=>ty_logical_expression(
-        ( connective = /cc4a/if_abap_analyzer=>logical_connective-not left = 2 )
+        ( connective = /cc4a/if_abap_analyzer=>logical_connective-not left = 2
+          tokens = value #( from = 1 to = 1 ) )
         ( tokens = value #( from = 2 to = 4 ) ) ) ).
     cl_abap_unit_assert=>assert_equals(
       act = analyzer->parse_logical_expression(
@@ -541,13 +550,40 @@ class logical_expressions implementation.
       act = analyzer->parse_logical_expression(
         shared=>tokenize( `( A = 1 AND B = 2 ) OR ( C = 3 AND D = 4 )` )-tokens )
       exp = value /cc4a/abap_analyzer=>ty_logical_expression(
-        ( connective = /cc4a/if_abap_analyzer=>logical_connective-or left = 2 right = 5 )
-        ( connective = /cc4a/if_abap_analyzer=>logical_connective-and left = 3 right = 4 )
+        ( connective = /cc4a/if_abap_analyzer=>logical_connective-or left = 2 right = 5
+          tokens = value #( from = 10 to = 10 ) )
+        ( connective = /cc4a/if_abap_analyzer=>logical_connective-and left = 3 right = 4
+          tokens = value #( from = 5 to = 5 ) )
         ( tokens = value #( from = 2 to = 4 ) )
         ( tokens = value #( from = 6 to = 8 ) )
-        ( connective = /cc4a/if_abap_analyzer=>logical_connective-and left = 6 right = 7 )
+        ( connective = /cc4a/if_abap_analyzer=>logical_connective-and left = 6 right = 7
+          tokens = value #( from = 15 to = 15 ) )
         ( tokens = value #( from = 12 to = 14 ) )
         ( tokens = value #( from = 16 to = 18 ) ) ) ).
+  endmethod.
+
+  method nested_2.
+    data(analyzer) = new /cc4a/abap_analyzer( ).
+    cl_abap_unit_assert=>assert_equals(
+      act = analyzer->parse_logical_expression(
+        shared=>tokenize( `( A = 1 AND B = 2 ) OR ( C = 3 AND D = 4 ) AND ( E = 5 OR F = 6 )` )-tokens )
+      exp = value /cc4a/abap_analyzer=>ty_logical_expression(
+        ( connective = /cc4a/if_abap_analyzer=>logical_connective-or left = 2 right = 5
+          tokens = value #( from = 10 to = 10 ) )
+        ( connective = /cc4a/if_abap_analyzer=>logical_connective-and left = 3 right = 4
+          tokens = value #( from = 5 to = 5 ) )
+        ( tokens = value #( from = 2 to = 4 ) )
+        ( tokens = value #( from = 6 to = 8 ) )
+        ( connective = /cc4a/if_abap_analyzer=>logical_connective-and left = 6 right = 9
+          tokens = value #( from = 20 to = 20 ) )
+        ( connective = /cc4a/if_abap_analyzer=>logical_connective-and left = 7 right = 8
+          tokens = value #( from = 15 to = 15 ) )
+        ( tokens = value #( from = 12 to = 14 ) )
+        ( tokens = value #( from = 16 to = 18 ) )
+        ( connective = /cc4a/if_abap_analyzer=>logical_connective-or left = 10 right = 11
+          tokens = value #( from = 25 to = 25 ) )
+        ( tokens = value #( from = 22 to = 24 ) )
+        ( tokens = value #( from = 26 to = 28 ) ) ) ).
   endmethod.
 
 endclass.

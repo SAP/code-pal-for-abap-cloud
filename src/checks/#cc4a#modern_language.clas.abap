@@ -1,147 +1,147 @@
-class /cc4a/modern_language definition
-  public
-  final
-  create public .
+CLASS /cc4a/modern_language DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
 
-  public section.
+  PUBLIC SECTION.
 
-    interfaces if_ci_atc_check .
+    INTERFACES if_ci_atc_check .
 
-  protected section.
-  private section.
-    constants:
-      begin of message_codes,
-        move                type if_ci_atc_check=>ty_finding_code value 'MOVE',
-        translate           type if_ci_atc_check=>ty_finding_code value 'TRANSLATE',
-        line_exists         type if_ci_atc_check=>ty_finding_code value 'LINE_EXIST',
-        prefer_new          type if_ci_atc_check=>ty_finding_code value 'PREFER_NEW',
-        call_method         type if_ci_atc_check=>ty_finding_code value 'CALL_METH',
-        method_exporting    type if_ci_atc_check=>ty_finding_code value 'METH_EXP',
-        exporting_receiving type if_ci_atc_check=>ty_finding_code value 'EXP_REC',
-        text_assembly       type if_ci_atc_check=>ty_finding_code value 'TEXT_ASM',
-      end of message_codes.
-    constants:
-      begin of quickfix_codes,
-        move                type cl_ci_atc_quickfixes=>ty_quickfix_code value 'QF_MOVE',
-        translate           type cl_ci_atc_quickfixes=>ty_quickfix_code value 'QF_TRANSL',
-        line_exists         type cl_ci_atc_quickfixes=>ty_quickfix_code value 'QF_LINEEX',
-        prefer_new          type cl_ci_atc_quickfixes=>ty_quickfix_code value 'QF_PREFNEW',
-        call_method         type cl_ci_atc_quickfixes=>ty_quickfix_code value 'QF_CALLM',
-        method_exporting    type cl_ci_atc_quickfixes=>ty_quickfix_code value 'QF_MEXP',
-        exporting_receiving type cl_ci_atc_quickfixes=>ty_quickfix_code value 'QF_EXP_REC',
-        text_assembly       type cl_ci_atc_quickfixes=>ty_quickfix_code value 'QF_TEXTASM',
-      end of quickfix_codes.
-    constants:
-      begin of pseudo_comments,
-        deprecated_key      type string value 'DEPRECATED_KEY',
-        line_exists         type string value 'PREF_LINE_EX',
-        prefer_new          type string value 'PREF_NEW',
-        call_method         type string value 'CALL_METH_USAGE',
-        method_exporting    type string value 'OPTL_EXP',
-        exporting_receiving type string value 'RECEIVING_USAGE',
-        text_assembly       type string value 'TEXT_ASSEMBLY',
-      end of pseudo_comments.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+    CONSTANTS:
+      BEGIN OF message_codes,
+        move                TYPE if_ci_atc_check=>ty_finding_code VALUE 'MOVE',
+        translate           TYPE if_ci_atc_check=>ty_finding_code VALUE 'TRANSLATE',
+        line_exists         TYPE if_ci_atc_check=>ty_finding_code VALUE 'LINE_EXIST',
+        prefer_new          TYPE if_ci_atc_check=>ty_finding_code VALUE 'PREFER_NEW',
+        call_method         TYPE if_ci_atc_check=>ty_finding_code VALUE 'CALL_METH',
+        method_exporting    TYPE if_ci_atc_check=>ty_finding_code VALUE 'METH_EXP',
+        exporting_receiving TYPE if_ci_atc_check=>ty_finding_code VALUE 'EXP_REC',
+        text_assembly       TYPE if_ci_atc_check=>ty_finding_code VALUE 'TEXT_ASM',
+      END OF message_codes.
+    CONSTANTS:
+      BEGIN OF quickfix_codes,
+        move                TYPE cl_ci_atc_quickfixes=>ty_quickfix_code VALUE 'QF_MOVE',
+        translate           TYPE cl_ci_atc_quickfixes=>ty_quickfix_code VALUE 'QF_TRANSL',
+        line_exists         TYPE cl_ci_atc_quickfixes=>ty_quickfix_code VALUE 'QF_LINEEX',
+        prefer_new          TYPE cl_ci_atc_quickfixes=>ty_quickfix_code VALUE 'QF_PREFNEW',
+        call_method         TYPE cl_ci_atc_quickfixes=>ty_quickfix_code VALUE 'QF_CALLM',
+        method_exporting    TYPE cl_ci_atc_quickfixes=>ty_quickfix_code VALUE 'QF_MEXP',
+        exporting_receiving TYPE cl_ci_atc_quickfixes=>ty_quickfix_code VALUE 'QF_EXP_REC',
+        text_assembly       TYPE cl_ci_atc_quickfixes=>ty_quickfix_code VALUE 'QF_TEXTASM',
+      END OF quickfix_codes.
+    CONSTANTS:
+      BEGIN OF pseudo_comments,
+        deprecated_key      TYPE string VALUE 'DEPRECATED_KEY',
+        line_exists         TYPE string VALUE 'PREF_LINE_EX',
+        prefer_new          TYPE string VALUE 'PREF_NEW',
+        call_method         TYPE string VALUE 'CALL_METH_USAGE',
+        method_exporting    TYPE string VALUE 'OPTL_EXP',
+        exporting_receiving TYPE string VALUE 'RECEIVING_USAGE',
+        text_assembly       TYPE string VALUE 'TEXT_ASSEMBLY',
+      END OF pseudo_comments.
 
-    types: begin of ty_receiving_infos,
-             receiving_idx type i,
-             end_idx       type i,
-             result_line   type string,
-           end of ty_receiving_infos.
-    data code_provider     type ref to if_ci_atc_source_code_provider.
-    data analyzer type ref to /cc4a/if_abap_analyzer.
-    data assistant_factory type ref to cl_ci_atc_assistant_factory.
+    TYPES: BEGIN OF ty_receiving_infos,
+             receiving_idx TYPE i,
+             end_idx       TYPE i,
+             result_line   TYPE string,
+           END OF ty_receiving_infos.
+    DATA code_provider     TYPE REF TO if_ci_atc_source_code_provider.
+    DATA analyzer TYPE REF TO /cc4a/if_abap_analyzer.
+    DATA assistant_factory TYPE REF TO cl_ci_atc_assistant_factory.
 
-    methods analyze_procedure
-      importing procedure       type if_ci_atc_source_code_provider=>ty_procedure
-      returning value(findings) type if_ci_atc_check=>ty_findings.
-    methods analyze_move
-      importing procedure       type if_ci_atc_source_code_provider=>ty_procedure
-                statement_index type i
-      returning value(findings) type if_ci_atc_check=>ty_findings.
-    methods analyze_translate
-      importing procedure       type if_ci_atc_source_code_provider=>ty_procedure
-                statement_index type i
-      returning value(findings) type if_ci_atc_check=>ty_findings.
-    methods analyze_read
-      importing procedure       type if_ci_atc_source_code_provider=>ty_procedure
-                statement_index type i
-      returning value(findings) type if_ci_atc_check=>ty_findings.
-    methods analyze_loop
-      importing procedure       type if_ci_atc_source_code_provider=>ty_procedure
-                statement_index type i
-      returning value(findings) type if_ci_atc_check=>ty_findings.
-    methods analyze_create_object
-      importing procedure       type if_ci_atc_source_code_provider=>ty_procedure
-                statement_index type i
-      returning value(findings) type if_ci_atc_check=>ty_findings.
-    methods analyze_call_method
-      importing procedure       type if_ci_atc_source_code_provider=>ty_procedure
-                statement_index type i
-      returning value(findings) type if_ci_atc_check=>ty_findings.
-    methods analyze_exporting_receiving
-      importing procedure       type if_ci_atc_source_code_provider=>ty_procedure
-                statement_index type i
-      returning value(findings) type if_ci_atc_check=>ty_findings.
-    methods analyze_text_assembly
-      importing procedure       type if_ci_atc_source_code_provider=>ty_procedure
-                statement_index type i
-      returning value(findings) type if_ci_atc_check=>ty_findings.
-    methods add_finding
-      importing quickfixes      type ref to cl_ci_atc_quickfixes optional
-                procedure       type if_ci_atc_source_code_provider=>ty_procedure
-                statement_index type i
-                code            type cl_ci_atc_quickfixes=>ty_quickfix_code
-                pseudo_comment  type string
-      changing  findings        type if_ci_atc_check=>ty_findings.
-    methods is_used
-      importing
-        procedure     type if_ci_atc_source_code_provider=>ty_procedure
-        from_index    type i
-        full_name     type string
-      returning
-        value(result) type abap_bool.
+    METHODS analyze_procedure
+      IMPORTING procedure       TYPE if_ci_atc_source_code_provider=>ty_procedure
+      RETURNING VALUE(findings) TYPE if_ci_atc_check=>ty_findings.
+    METHODS analyze_move
+      IMPORTING procedure       TYPE if_ci_atc_source_code_provider=>ty_procedure
+                statement_index TYPE i
+      RETURNING VALUE(findings) TYPE if_ci_atc_check=>ty_findings.
+    METHODS analyze_translate
+      IMPORTING procedure       TYPE if_ci_atc_source_code_provider=>ty_procedure
+                statement_index TYPE i
+      RETURNING VALUE(findings) TYPE if_ci_atc_check=>ty_findings.
+    METHODS analyze_read
+      IMPORTING procedure       TYPE if_ci_atc_source_code_provider=>ty_procedure
+                statement_index TYPE i
+      RETURNING VALUE(findings) TYPE if_ci_atc_check=>ty_findings.
+    METHODS analyze_loop
+      IMPORTING procedure       TYPE if_ci_atc_source_code_provider=>ty_procedure
+                statement_index TYPE i
+      RETURNING VALUE(findings) TYPE if_ci_atc_check=>ty_findings.
+    METHODS analyze_create_object
+      IMPORTING procedure       TYPE if_ci_atc_source_code_provider=>ty_procedure
+                statement_index TYPE i
+      RETURNING VALUE(findings) TYPE if_ci_atc_check=>ty_findings.
+    METHODS analyze_call_method
+      IMPORTING procedure       TYPE if_ci_atc_source_code_provider=>ty_procedure
+                statement_index TYPE i
+      RETURNING VALUE(findings) TYPE if_ci_atc_check=>ty_findings.
+    METHODS analyze_exporting_receiving
+      IMPORTING procedure       TYPE if_ci_atc_source_code_provider=>ty_procedure
+                statement_index TYPE i
+      RETURNING VALUE(findings) TYPE if_ci_atc_check=>ty_findings.
+    METHODS analyze_text_assembly
+      IMPORTING procedure       TYPE if_ci_atc_source_code_provider=>ty_procedure
+                statement_index TYPE i
+      RETURNING VALUE(findings) TYPE if_ci_atc_check=>ty_findings.
+    METHODS add_finding
+      IMPORTING quickfixes      TYPE REF TO cl_ci_atc_quickfixes OPTIONAL
+                procedure       TYPE if_ci_atc_source_code_provider=>ty_procedure
+                statement_index TYPE i
+                code            TYPE cl_ci_atc_quickfixes=>ty_quickfix_code
+                pseudo_comment  TYPE string
+      CHANGING  findings        TYPE if_ci_atc_check=>ty_findings.
+    METHODS is_used
+      IMPORTING
+        procedure     TYPE if_ci_atc_source_code_provider=>ty_procedure
+        from_index    TYPE i
+        full_name     TYPE string
+      RETURNING
+        VALUE(result) TYPE abap_bool.
 
-    methods check_remove_exporting
-      importing
-        statement     type if_ci_atc_source_code_provider=>ty_statement
-        token_idx     type i
-      returning
-        value(result) type abap_bool.
-    methods get_value
-      importing token         type if_ci_atc_source_code_provider=>ty_token
-      returning value(result) type string
-      raising   lcx_error.
-    methods append_token
-      importing token  type if_ci_atc_source_code_provider=>ty_token
-      changing  result type string.
-    methods append_tokens
-      importing tokens          type if_ci_atc_source_code_provider=>ty_tokens
-                value(from_idx) type i optional
-                value(to_idx)   type i optional
-      changing  result          type string.
-    methods get_receiving_infos
-      importing
-                tokens        type if_ci_atc_source_code_provider=>ty_tokens
-      returning value(result) type ty_receiving_infos.
-    methods get_move_changed_line
-      importing statement     type if_ci_atc_source_code_provider=>ty_statement
-      returning value(result) type string.
-endclass.
-
-
-
-class /cc4a/modern_language implementation.
+    METHODS check_remove_exporting
+      IMPORTING
+        statement     TYPE if_ci_atc_source_code_provider=>ty_statement
+        token_idx     TYPE i
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+    METHODS get_value
+      IMPORTING token         TYPE if_ci_atc_source_code_provider=>ty_token
+      RETURNING VALUE(result) TYPE string
+      RAISING   lcx_error.
+    METHODS append_token
+      IMPORTING token  TYPE if_ci_atc_source_code_provider=>ty_token
+      CHANGING  result TYPE string.
+    METHODS append_tokens
+      IMPORTING tokens          TYPE if_ci_atc_source_code_provider=>ty_tokens
+                VALUE(from_idx) TYPE i OPTIONAL
+                VALUE(to_idx)   TYPE i OPTIONAL
+      CHANGING  result          TYPE string.
+    METHODS get_receiving_infos
+      IMPORTING
+                tokens        TYPE if_ci_atc_source_code_provider=>ty_tokens
+      RETURNING VALUE(result) TYPE ty_receiving_infos.
+    METHODS get_move_changed_line
+      IMPORTING statement     TYPE if_ci_atc_source_code_provider=>ty_statement
+      RETURNING VALUE(result) TYPE string.
+ENDCLASS.
 
 
 
+CLASS /cc4a/modern_language IMPLEMENTATION.
 
 
-  method if_ci_atc_check~get_meta_data.
+
+
+
+  METHOD if_ci_atc_check~get_meta_data.
     meta_data = /cc4a/check_meta_data=>create(
-        value #( checked_types = /cc4a/check_meta_data=>checked_types-abap_programs
+        VALUE #( checked_types = /cc4a/check_meta_data=>checked_types-abap_programs
         description = 'Modern Language'(des)
         remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
-        finding_codes = value #( ( code = message_codes-move  text = 'MOVE is obsolete'(001) pseudo_comment = pseudo_comments-deprecated_key )
+        finding_codes = VALUE #( ( code = message_codes-move  text = 'MOVE is obsolete'(001) pseudo_comment = pseudo_comments-deprecated_key )
                                  ( code = message_codes-translate text = 'TRANSLATE TO UPPER/LOWERCASE is obsolete'(002) pseudo_comment = pseudo_comments-deprecated_key )
                                  ( code = message_codes-line_exists text = 'Prefer LINE_EXISTS/LINE_INDEX'(003) pseudo_comment = pseudo_comments-line_exists )
                                  ( code = message_codes-prefer_new text = 'Prefer NEW instead of CREATE OBJECT'(004) pseudo_comment = pseudo_comments-prefer_new )
@@ -149,7 +149,7 @@ class /cc4a/modern_language implementation.
                                  ( code = message_codes-method_exporting text = 'Omit EXPORTING in functional Method Call if possible'(006) pseudo_comment = pseudo_comments-method_exporting )
                                  ( code = message_codes-exporting_receiving text = 'Do not use RECEIVING in functional Method Call if possible'(007) pseudo_comment = pseudo_comments-exporting_receiving )
                                  ( code = message_codes-text_assembly text = 'Use string templates instead of &&'(008) pseudo_comment = pseudo_comments-text_assembly ) )
-        quickfix_codes = value #( ( code = quickfix_codes-move short_text = 'Replace MOVE statement'(qf1) )
+        quickfix_codes = VALUE #( ( code = quickfix_codes-move short_text = 'Replace MOVE statement'(qf1) )
                                   ( code = quickfix_codes-translate short_text = 'Replace TRANSLATE statement'(qf2) )
                                   ( code = quickfix_codes-line_exists short_text = 'Use LINE_EXISTS/LINE_INDEX'(qf3) )
                                   ( code = quickfix_codes-prefer_new short_text = 'Use NEW instead of CREATE OBJECT'(qf4) )
@@ -158,931 +158,969 @@ class /cc4a/modern_language implementation.
                                   ( code = quickfix_codes-exporting_receiving short_text = 'Do not use EXPORTING/RECEIVING'(qf7) )
                                   ( code = quickfix_codes-text_assembly short_text = 'Replace && by string templates'(qf8) )
                                    ) ) ).
-  endmethod.
+  ENDMETHOD.
 
 
-  method if_ci_atc_check~run.
+  METHOD if_ci_atc_check~run.
     code_provider = data_provider->get_code_provider( ).
     analyzer = /cc4a/abap_analyzer=>create( ).
-    data(procedures) = code_provider->get_procedures( code_provider->object_to_comp_unit( object ) ).
-    loop at procedures->* assigning field-symbol(<procedure>).
-      insert lines of analyze_procedure( <procedure> ) into table findings.
-    endloop.
-  endmethod.
+    DATA(procedures) = code_provider->get_procedures( code_provider->object_to_comp_unit( object ) ).
+    LOOP AT procedures->* ASSIGNING FIELD-SYMBOL(<procedure>).
+      INSERT LINES OF analyze_procedure( <procedure> ) INTO TABLE findings.
+    ENDLOOP.
+  ENDMETHOD.
 
 
-  method if_ci_atc_check~set_assistant_factory.
+  METHOD if_ci_atc_check~set_assistant_factory.
     assistant_factory = factory.
-  endmethod.
+  ENDMETHOD.
 
 
-  method if_ci_atc_check~set_attributes ##NEEDED.
-  endmethod.
+  METHOD if_ci_atc_check~set_attributes ##NEEDED.
+  ENDMETHOD.
 
 
-  method if_ci_atc_check~verify_prerequisites ##NEEDED.
-  endmethod.
+  METHOD if_ci_atc_check~verify_prerequisites ##NEEDED.
+  ENDMETHOD.
 
 
-  method add_finding.
-    data finding like line of findings.
-    data(statement) = procedure-statements[ statement_index ].
-    if quickfixes is initial.
-      finding = value #( code = code
+  METHOD add_finding.
+    DATA finding LIKE LINE OF findings.
+    DATA(statement) = procedure-statements[ statement_index ].
+    IF quickfixes IS INITIAL.
+      finding = VALUE #( code = code
               location = code_provider->get_statement_location( statement )
               checksum = code_provider->get_statement_checksum( statement )
               has_pseudo_comment = xsdbool( line_exists( statement-pseudo_comments[ table_line = pseudo_comment ] ) )
                ).
 
-    else.
-      finding = value #( code = code
+    ELSE.
+      finding = VALUE #( code = code
               location = code_provider->get_statement_location( statement )
               checksum = code_provider->get_statement_checksum( statement )
               has_pseudo_comment = xsdbool( line_exists( statement-pseudo_comments[ table_line = pseudo_comment ] ) )
               details = assistant_factory->create_finding_details( )->attach_quickfixes( quickfixes ) ).
-    endif.
-    insert finding into table findings.
-  endmethod.
+    ENDIF.
+    INSERT finding INTO TABLE findings.
+  ENDMETHOD.
 
-  method get_move_changed_line.
-    data source type string.
-    data dest type string.
-    data between type string.
+  METHOD get_move_changed_line.
+    DATA source TYPE string.
+    DATA dest TYPE string.
+    DATA between TYPE string.
 
-    data(from_token) = 2.
-    if statement-tokens[ 2 ]-lexeme = 'EXACT' and statement-tokens[ 2 ]-references is initial.
-      data(exact) = abap_true.
+    DATA(from_token) = 2.
+    IF statement-tokens[ 2 ]-lexeme = 'EXACT' AND statement-tokens[ 2 ]-references IS INITIAL.
+      DATA(exact) = abap_true.
       from_token = 3.
-    endif.
-    loop at statement-tokens from from_token assigning field-symbol(<token>).
+    ENDIF.
+    LOOP AT statement-tokens FROM from_token ASSIGNING FIELD-SYMBOL(<token>).
 
-      if <token>-references is initial.
-        case <token>-lexeme.
-          when 'TO'.
-            if exact = abap_true.
+      IF <token>-references IS INITIAL.
+        CASE <token>-lexeme.
+          WHEN 'TO'.
+            IF exact = abap_true.
               between = `= EXACT #(`.
-            else.
+            ELSE.
               between = `=`.
-            endif.
-            continue.
-          when '?TO'.
+            ENDIF.
+            CONTINUE.
+          WHEN '?TO'.
             between = `?=`.
-            continue.
-        endcase.
-      endif.
-      if between is initial.
+            CONTINUE.
+        ENDCASE.
+      ENDIF.
+      IF between IS INITIAL.
         source = |{ source } { <token>-lexeme }|.
-      else.
+      ELSE.
         dest = |{ dest } { <token>-lexeme }|.
-      endif.
-    endloop.
+      ENDIF.
+    ENDLOOP.
     result = |{ dest } { between } { source }|.
-    if exact = abap_true.
+    IF exact = abap_true.
       result = |{ result } )|.
-    endif.
+    ENDIF.
     result = |{ result }.|.
-  endmethod.
+  ENDMETHOD.
 
-  method analyze_move.
-    data(statement) = procedure-statements[ statement_index ].
+  METHOD analyze_move.
+    DATA(statement) = procedure-statements[ statement_index ].
 
-    if analyzer->find_clause_index( tokens = statement-tokens clause = 'PERCENTAGE' ) <> 0.
+    IF analyzer->find_clause_index( tokens = statement-tokens clause = 'PERCENTAGE' ) <> 0.
       add_finding(
-      exporting
+      EXPORTING
          procedure = procedure
          statement_index = statement_index
          code = message_codes-move
          pseudo_comment = pseudo_comments-deprecated_key
-      changing findings = findings ).
-    else.
-      data(line) = get_move_changed_line( statement ).
-      data(quickfixes) = assistant_factory->create_quickfixes( ).
-      data(quickfix) = quickfixes->create_quickfix( quickfix_codes-move ).
+      CHANGING findings = findings ).
+    ELSE.
+      DATA(line) = get_move_changed_line( statement ).
+      DATA(quickfixes) = assistant_factory->create_quickfixes( ).
+      DATA(quickfix) = quickfixes->create_quickfix( quickfix_codes-move ).
       quickfix->replace(
           context = assistant_factory->create_quickfix_context(
-             value #( procedure_id = procedure-id statements = value #( from = statement_index to = statement_index ) ) )
-                      code = value #( ( line ) ) ).
+             VALUE #( procedure_id = procedure-id statements = VALUE #( from = statement_index to = statement_index ) ) )
+                      code = VALUE #( ( line ) ) ).
 
       add_finding(
-      exporting
+      EXPORTING
          procedure = procedure
          statement_index = statement_index
          code = message_codes-move
          pseudo_comment = pseudo_comments-deprecated_key
          quickfixes = quickfixes
-      changing findings = findings ).
-    endif.
-  endmethod.
+      CHANGING findings = findings ).
+    ENDIF.
+  ENDMETHOD.
 
 
-  method analyze_translate.
-    data(statement) = procedure-statements[ statement_index ].
-    if analyzer->find_clause_index(  tokens = statement-tokens clause = 'USING MASK' ) <> 0.
-      return.
-    endif.
-    if analyzer->find_clause_index( tokens = statement-tokens clause = 'TO UPPER CASE' ) = 3
-    or analyzer->find_clause_index( tokens = statement-tokens clause = 'TO LOWER CASE' ) = 3.
+  METHOD analyze_translate.
+    DATA(statement) = procedure-statements[ statement_index ].
+    IF analyzer->find_clause_index(  tokens = statement-tokens clause = 'USING MASK' ) <> 0.
+      RETURN.
+    ENDIF.
+    IF analyzer->find_clause_index( tokens = statement-tokens clause = 'TO UPPER CASE' ) = 3
+    OR analyzer->find_clause_index( tokens = statement-tokens clause = 'TO LOWER CASE' ) = 3.
 
       add_finding(
-      exporting
+      EXPORTING
          procedure = procedure
          statement_index = statement_index
          code = message_codes-translate
          pseudo_comment = pseudo_comments-deprecated_key
-      changing findings = findings ).
-    endif.
-  endmethod.
+      CHANGING findings = findings ).
+    ENDIF.
+  ENDMETHOD.
 
 
-  method analyze_read.
-    data code_line_index type string.
-    data code_line_exists type string.
-    data code_lines type if_ci_atc_quickfix=>ty_code.
-    data key  type string.
-    data token_idx type i.
-    data(statement) = procedure-statements[ statement_index ].
+  METHOD analyze_read.
+    DATA code_line_index TYPE string.
+    DATA code_line_exists TYPE string.
+    DATA code_lines TYPE if_ci_atc_quickfix=>ty_code.
+    DATA key  TYPE string.
+    DATA token_idx TYPE i.
+    DATA(statement) = procedure-statements[ statement_index ].
+    DATA(table_key_add) = 0.
+
+    IF lines( statement-tokens ) <= 2 OR statement-tokens[ 2 ]-lexeme <> 'TABLE' OR statement-tokens[ 2 ]-references IS NOT INITIAL
+    OR lines( procedure-statements ) = statement_index
+    OR analyzer->find_clause_index(  tokens = statement-tokens clause = 'TRANSPORTING NO FIELDS' ) = 0
+    OR analyzer->find_clause_index( tokens = statement-tokens clause = 'INDEX' ) <> 0
+    OR analyzer->find_clause_index( tokens = statement-tokens clause = 'BINARY SEARCH' ) <> 0
+    OR statement-tokens[ 3 ]-lexeme CP '*('.
+      RETURN.
+    ENDIF.
+    DATA(key_idx) = analyzer->find_clause_index(  tokens = statement-tokens clause = 'WITH KEY' ).
+    IF key_idx = 0.
+      key_idx = analyzer->find_clause_index(  tokens = statement-tokens clause = 'WITH TABLE KEY' ).
+      IF key_idx <> 0.
+        table_key_add = 1.
+      ENDIF.
+      IF key_idx = 0.
+        RETURN.
+      ENDIF.
+    ENDIF.
+    DATA(start_idx) = analyzer->find_clause_index(  tokens = statement-tokens clause = 'COMPONENTS'
+                                                    start_index = key_idx + table_key_add + 1 ).
+    IF start_idx = 0. "with key... / with table key
+      start_idx = key_idx + 2 + table_key_add.
+    ELSE. "with key name components ...
+      start_idx -= 2.
+    ENDIF.
+    DATA(keylen) = 0.
+    DATA(to_idx) =  analyzer->find_clause_index( tokens = statement-tokens clause = 'TRANSPORTING' start_index = start_idx ) - 1.
+    IF to_idx <= 0.
+      to_idx = lines( statement-tokens ).
+    ENDIF.
+    IF statement-tokens[ key_idx + 2 + table_key_add ]-lexeme = '='.
+      key = 'TABLE_LINE'.
+      append_tokens( EXPORTING tokens = statement-tokens from_idx = key_idx + 2 + table_key_add to_idx = to_idx
+                     CHANGING result = key ).
+    ELSE.
+      append_tokens( EXPORTING tokens = statement-tokens from_idx = start_idx to_idx = to_idx
+                     CHANGING result = key ).
+    ENDIF.
+    keylen = to_idx - start_idx + 1.
 
 
-    if lines( statement-tokens ) <= 2 or statement-tokens[ 2 ]-lexeme <> 'TABLE' or statement-tokens[ 2 ]-references is not initial
-    or lines( procedure-statements ) = statement_index
-    or analyzer->find_clause_index(  tokens = statement-tokens clause = 'TRANSPORTING NO FIELDS' ) = 0
-    or analyzer->find_clause_index( tokens = statement-tokens clause = 'INDEX' ) <> 0
-    or analyzer->find_clause_index( tokens = statement-tokens clause = 'BINARY SEARCH' ) <> 0
-    or statement-tokens[ 3 ]-lexeme cp '*('.
-      return.
-    endif.
-    data(key_idx) = analyzer->find_clause_index(  tokens = statement-tokens clause = 'WITH KEY' ).
-    if key_idx = 0.
-      return.
-    else.
-
-      data(start_idx) = analyzer->find_clause_index(  tokens = statement-tokens clause = 'COMPONENTS'
-                                                      start_index = key_idx + 1 ).
-      if start_idx = 0. "with key...
-        start_idx = key_idx + 2.
-      else. "with key name components ...
-        start_idx -= 2.
-      endif.
-      data(keylen) = 0.
-      data(to_idx) =  analyzer->find_clause_index( tokens = statement-tokens clause = 'TRANSPORTING' start_index = start_idx ) - 1.
-      if to_idx <= 0.
-        to_idx = lines( statement-tokens ).
-      endif.
-      if statement-tokens[ key_idx + 2 ]-lexeme = '='.
-        key = 'TABLE_LINE'.
-        append_tokens( exporting tokens = statement-tokens from_idx = key_idx + 2 to_idx = to_idx
-                       changing result = key ).
-      else.
-        append_tokens( exporting tokens = statement-tokens from_idx = start_idx to_idx = to_idx
-                       changing result = key ).
-      endif.
-      keylen = to_idx - start_idx + 1.
-
-    endif.
-    if keylen = 1.
-*     finding without quickfix since obsolete version read table with key val.
+    IF keylen = 1.
+*       finding without quickfix since obsolete version read table with key val.
       add_finding(
-      exporting
+      EXPORTING
          procedure = procedure
          statement_index = statement_index
          code = message_codes-line_exists
          pseudo_comment = pseudo_comments-line_exists
-      changing findings = findings ).
-      return.
-    endif.
-    data(quickfixable) = abap_true.
-    data(table) = statement-tokens[ 3 ]-lexeme.
-    if table cp '*[]'.
-      data(len) = strlen( table ) - 2.
+      CHANGING findings = findings ).
+      RETURN.
+    ENDIF.
+    DATA(quickfixable) = abap_true.
+    DATA(table) = statement-tokens[ 3 ]-lexeme.
+    IF table CP '*[]'.
+      DATA(len) = strlen( table ) - 2.
       table = table(len).
-    endif.
-    data(idx) = statement_index + 1.
-    assign procedure-statements[ idx ] to field-symbol(<next_statement>).
-    if <next_statement>-keyword = 'IF' and lines( <next_statement>-tokens ) = 4
-    and <next_statement>-tokens[ 2 ]-lexeme = 'SY-SUBRC'
-
-    and <next_statement>-tokens[ 4 ]-lexeme = '0'.
-      case  <next_statement>-tokens[ 3 ]-lexeme.
-        when '=' or 'EQ' .
-          data(if_sysubrc) = 1.
-        when '<>' or 'NE'.
+    ENDIF.
+    DATA(idx) = statement_index + 1.
+    ASSIGN procedure-statements[ idx ] TO FIELD-SYMBOL(<next_statement>).
+    IF <next_statement>-keyword = 'IF' AND lines( <next_statement>-tokens ) = 4
+    AND <next_statement>-tokens[ 2 ]-lexeme = 'SY-SUBRC'
+    AND <next_statement>-tokens[ 4 ]-lexeme = '0'.
+      LOOP AT procedure-blocks TRANSPORTING NO FIELDS
+      WHERE parent =  <next_statement>-block
+      AND type = if_ci_atc_source_code_provider=>block_type-condition
+      AND ( statement_type = if_ci_atc_source_code_provider=>statement_type-else
+          OR statement_type = if_ci_atc_source_code_provider=>statement_type-elseif ).
+        quickfixable = abap_false.
+        EXIT.
+      ENDLOOP.
+      CASE  <next_statement>-tokens[ 3 ]-lexeme.
+        WHEN '=' OR 'EQ' .
+          DATA(if_sysubrc) = 1.
+        WHEN '<>' OR 'NE'.
           if_sysubrc = 2.
-      endcase.
+      ENDCASE.
       idx += 1.
-    endif.
-    data(end_idx) = idx.
-    if if_sysubrc <> 0.
-      to_idx = lines(  procedure-statements ).
-    else.
-      to_idx = idx.
-    endif.
-    loop at procedure-statements from idx to to_idx assigning field-symbol(<statement>).
-      data(tabix) = sy-tabix.
-      if <statement>-keyword = 'ENDIF'.
-        end_idx = sy-tabix.
-        exit.
-      endif.
-      data(sytabix_idx) = line_index( <statement>-tokens[ lexeme = 'SY-TABIX' ] ).
+    ENDIF.
+    IF quickfixable = abap_true.
+      DATA(end_idx) = idx.
+      IF if_sysubrc <> 0.
+        to_idx = lines(  procedure-statements ).
+      ELSE.
+        to_idx = idx.
+      ENDIF.
+      LOOP AT procedure-statements FROM idx TO to_idx ASSIGNING FIELD-SYMBOL(<statement>).
+        DATA(tabix) = sy-tabix.
+        DATA(sytabix_idx) = 0.
+        IF <statement>-keyword = 'ENDIF' OR <statement>-keyword = 'ELSE'.
+          end_idx = sy-tabix.
+          EXIT.
+        ENDIF.
 
-      if sytabix_idx <> 0.
-        if sytabix_idx > 1 and <statement>-tokens[ sytabix_idx - 1 ]-lexeme = '&&'.
-          quickfixable = abap_false.
-          exit.
-        endif.
-        if sytabix_idx > 1 and <statement>-tokens[ sytabix_idx - 1 ]-references is initial
-        and <statement>-tokens[ sytabix_idx - 1 ]-lexeme = 'LIKE'
-        and <statement>-keyword = 'DATA'.
-          quickfixable = abap_false.
-          exit.
-        endif.
-        case <statement>-keyword.
-          when 'MOVE'.
-            code_line_index = get_move_changed_line( <statement> ).
-            replace first occurrence of 'SY-TABIX' in code_line_index with |line_index( { table }[ { key } ] )| ##NO_TEXT.
-            append code_line_index to code_lines.
-          when 'MESSAGE' or 'PERFORM' or '+CALL_MACRO'.
+        LOOP AT <statement>-tokens ASSIGNING FIELD-SYMBOL(<token>)
+        WHERE lexeme = 'SY-TABIX'.
+          sytabix_idx = sy-tabix.
+          IF <statement>-keyword = `ADD`
+          OR <statement>-keyword = `SUBTRACT`
+  OR <statement>-keyword = `MULTIPLY`
+  OR <statement>-keyword = `DIVIDE`.
             quickfixable = abap_false.
-            exit.
-          when 'SET'.
-            if <statement>-tokens[ 2 ]-references is initial and <statement>-tokens[ 2 ]-lexeme = 'BIT'.
+            EXIT.
+          ENDIF.
+          LOOP AT <statement>-tokens[ sytabix_idx ]-references TRANSPORTING NO FIELDS
+            WHERE usage_mode  = if_ci_atc_source_code_provider=>usage_modes-write
+            OR usage_mode = if_ci_atc_source_code_provider=>usage_modes-write_partial
+            OR usage_mode = if_ci_atc_source_code_provider=>usage_modes-read_and_write.
+            quickfixable = abap_false.
+            EXIT.
+          ENDLOOP.
+          IF quickfixable = abap_false.
+            EXIT.
+          ENDIF.
+          IF sytabix_idx > 1 AND <statement>-tokens[ sytabix_idx - 1 ]-lexeme = '&&'.
+            quickfixable = abap_false.
+            EXIT.
+          ENDIF.
+          IF sytabix_idx > 1 AND <statement>-tokens[ sytabix_idx - 1 ]-references IS INITIAL
+          AND <statement>-tokens[ sytabix_idx - 1 ]-lexeme = 'LIKE'
+          AND <statement>-keyword = 'DATA'.
+            quickfixable = abap_false.
+            EXIT.
+          ENDIF.
+          CASE <statement>-keyword.
+            WHEN 'MOVE'.
+              code_line_index = get_move_changed_line( <statement> ).
+              REPLACE FIRST OCCURRENCE OF 'SY-TABIX' IN code_line_index WITH |line_index( { table }[ { key } ] )| ##NO_TEXT.
+              APPEND code_line_index TO code_lines.
+            WHEN 'MESSAGE' OR 'PERFORM' OR '+CALL_MACRO'.
               quickfixable = abap_false.
-            endif.
-          when others.
-            if if_sysubrc <> 2.
-              code_line_index = analyzer->flatten_tokens( tokens = <statement>-tokens ).
-              replace first occurrence of 'SY-TABIX IS INITIAL' in code_line_index with |line_index( { table }[ { key } ] ) = 0| ##NO_TEXT.
-              replace first occurrence of 'SY-TABIX IS NOT INITIAL' in code_line_index with |line_index( { table }[ { key } ] ) <> 0| ##NO_TEXT.
-              replace first occurrence of 'SY-TABIX' in code_line_index with |line_index( { table }[ { key } ] )| ##NO_TEXT.
-              code_line_index = |{ code_line_index }.|.
-              append code_line_index to code_lines.
-            endif.
-        endcase.
-      elseif if_sysubrc <> 0 and tabix > statement_index + 1.
-        if <statement>-keyword = 'CALL' or <statement>-keyword = '+CALL_METHOD'.
-          quickfixable = abap_false.
-          exit.
-        endif.
-        case if_sysubrc.
-          when 1.
-            token_idx = analyzer->find_clause_index( tokens = <statement>-tokens clause = '=' ).
-            if token_idx = 0 or <statement>-tokens[ token_idx + 1 ]-lexeme <> 'ABAP_TRUE'.
-              quickfixable = abap_false.
-              exit.
-            endif.
-          when 2.
-            token_idx = analyzer->find_clause_index( tokens = <statement>-tokens clause = '=' ).
-            if token_idx = 0 or <statement>-tokens[ token_idx + 1 ]-lexeme <> 'ABAP_FALSE'
-            or procedure-statements[ tabix + 1 ]-keyword <> 'ENDIF'.
-              quickfixable = abap_false.
-              exit.
-            endif.
-        endcase.
-        append_tokens( exporting tokens = <statement>-tokens to_idx = token_idx - 1 changing result = code_line_exists ).
-        if if_sysubrc = 1.
-          code_line_exists = |{ code_line_exists } = xsdbool( line_exists( { table }[ { key } ] ) ).| ##NO_TEXT.
-        else.
-          code_line_exists = |{ code_line_exists } = xsdbool( NOT line_exists( { table }[ { key } ] ) ).| ##NO_TEXT.
-        endif.
-        append code_line_exists to code_lines.
-      endif.
-      if if_sysubrc = 0.
-        exit.
-      endif.
-    endloop.
+              EXIT.
+            WHEN 'SET'.
+              IF <statement>-tokens[ 2 ]-references IS INITIAL AND <statement>-tokens[ 2 ]-lexeme = 'BIT'.
+                quickfixable = abap_false.
+              ENDIF.
+            WHEN OTHERS.
+              IF if_sysubrc <> 2.
+                code_line_index = analyzer->flatten_tokens( tokens = <statement>-tokens ).
+                REPLACE FIRST OCCURRENCE OF 'SY-TABIX IS INITIAL' IN code_line_index WITH |line_index( { table }[ { key } ] ) = 0| ##NO_TEXT.
+                REPLACE FIRST OCCURRENCE OF 'SY-TABIX IS NOT INITIAL' IN code_line_index WITH |line_index( { table }[ { key } ] ) <> 0| ##NO_TEXT.
+                REPLACE FIRST OCCURRENCE OF 'SY-TABIX' IN code_line_index WITH |line_index( { table }[ { key } ] )| ##NO_TEXT.
+                code_line_index = |{ code_line_index }.|.
+                APPEND code_line_index TO code_lines.
+              ENDIF.
+          ENDCASE.
+        ENDLOOP.
 
-    if quickfixable = abap_true and ( code_line_index is not initial or code_line_exists is not initial ).
-      data(quickfixes) = assistant_factory->create_quickfixes( ).
-      data(quickfix) = quickfixes->create_quickfix( quickfix_codes-line_exists ).
+        IF quickfixable = abap_true AND sytabix_idx = 0 AND if_sysubrc <> 0 AND tabix > statement_index + 1.
+          IF <statement>-keyword <> 'COMPUTE'.
+            quickfixable = abap_false.
+            EXIT.
+          ENDIF.
+          IF <statement>-keyword = 'CALL' OR <statement>-keyword = '+CALL_METHOD'.
+            quickfixable = abap_false.
+            EXIT.
+          ENDIF.
+          CASE if_sysubrc.
+            WHEN 1.
+              token_idx = analyzer->find_clause_index( tokens = <statement>-tokens clause = '=' ).
+              IF token_idx = 0 OR <statement>-tokens[ token_idx + 1 ]-lexeme <> 'ABAP_TRUE'.
+                quickfixable = abap_false.
+                EXIT.
+              ENDIF.
+            WHEN 2.
+              token_idx = analyzer->find_clause_index( tokens = <statement>-tokens clause = '=' ).
+              IF token_idx = 0 OR <statement>-tokens[ token_idx + 1 ]-lexeme <> 'ABAP_FALSE'
+              OR procedure-statements[ tabix + 1 ]-keyword <> 'ENDIF'.
+                quickfixable = abap_false.
+                EXIT.
+              ENDIF.
+          ENDCASE.
+          append_tokens( EXPORTING tokens = <statement>-tokens to_idx = token_idx - 1 CHANGING result = code_line_exists ).
+          IF if_sysubrc = 1.
+            code_line_exists = |{ code_line_exists } = xsdbool( line_exists( { table }[ { key } ] ) ).| ##NO_TEXT.
+          ELSE.
+            code_line_exists = |{ code_line_exists } = xsdbool( NOT line_exists( { table }[ { key } ] ) ).| ##NO_TEXT.
+          ENDIF.
+          APPEND code_line_exists TO code_lines.
+        ENDIF.
+        IF if_sysubrc = 0.
+          EXIT.
+        ENDIF.
+      ENDLOOP.
+    ENDIF.
+    IF quickfixable = abap_true AND ( code_line_index IS NOT INITIAL OR code_line_exists IS NOT INITIAL ).
+      DATA(quickfixes) = assistant_factory->create_quickfixes( ).
+      DATA(quickfix) = quickfixes->create_quickfix( quickfix_codes-line_exists ).
 
       quickfix->replace(
           context = assistant_factory->create_quickfix_context(
-             value #( procedure_id = procedure-id statements = value #( from = statement_index to = end_idx ) ) )
+             VALUE #( procedure_id = procedure-id statements = VALUE #( from = statement_index to = end_idx ) ) )
                       code = code_lines ).
       add_finding(
-      exporting
+      EXPORTING
          procedure = procedure
          statement_index = statement_index
          code = message_codes-line_exists
          pseudo_comment = pseudo_comments-line_exists
          quickfixes = quickfixes
-      changing findings = findings ).
-    else.
+      CHANGING findings = findings ).
+    ELSE.
       add_finding(
-      exporting
+      EXPORTING
          procedure = procedure
          statement_index = statement_index
          code = message_codes-line_exists
          pseudo_comment = pseudo_comments-line_exists
-      changing findings = findings ).
-    endif.
+      CHANGING findings = findings ).
+    ENDIF.
 
-  endmethod.
+  ENDMETHOD.
 
 
-  method analyze_loop.
-    data code_line_index type string.
-    data code_line_exists type string.
-    data code_lines type if_ci_atc_quickfix=>ty_code.
-    data key  type string.
+  METHOD analyze_loop.
+    DATA code_line_index TYPE string.
+    DATA code_line_exists TYPE string.
+    DATA code_lines TYPE if_ci_atc_quickfix=>ty_code.
+    DATA key  TYPE string.
 
-    data(statement) = procedure-statements[ statement_index ].
-    if analyzer->find_clause_index(  tokens = statement-tokens clause = 'OR' ) <> 0
-    or analyzer->find_clause_index(  tokens = statement-tokens clause = 'ASSIGNING' ) <> 0
-    or analyzer->find_clause_index(  tokens = statement-tokens clause = 'INITIAL' ) <> 0
-    or analyzer->find_clause_index(  tokens = statement-tokens clause = 'NOT' ) <> 0.
-      return.
-    endif.
-    data(key_idx) = analyzer->find_clause_index(  tokens = statement-tokens clause = 'WHERE' ).
-    if key_idx = 0 or statement-tokens[ key_idx + 1 ]-lexeme cp '(*'.
-      return.
-    endif.
-    data(table) = statement-tokens[ 3 ]-lexeme.
-    if table cp '*('.
-      return.
-    endif.
-    data(result_idx) = analyzer->find_clause_index( tokens = statement-tokens clause = 'INTO' ).
-    if result_idx <> 0.
-      assign statement-tokens[ result_idx + 1 ] to field-symbol(<token>).
-      if is_used( procedure = procedure from_index = statement_index + 1 full_name = <token>-references[ lines( <token>-references ) ]-full_name ).
-        return.
-      endif.
-    endif.
-    if analyzer->find_clause_index( tokens = statement-tokens start_index = key_idx + 1 clause = '(' ) <> 0
-    or analyzer->find_clause_index( tokens = statement-tokens start_index = key_idx + 1 clause = ')' ) <> 0.
-      return.
-    endif.
-    data(token_idx) = key_idx + 1.
-    do.
-      assign statement-tokens[ token_idx ] to <token>.
-      append_token( exporting token = <token> changing result = key ).
+    DATA(statement) = procedure-statements[ statement_index ].
+    IF analyzer->find_clause_index(  tokens = statement-tokens clause = 'OR' ) <> 0
+    OR analyzer->find_clause_index(  tokens = statement-tokens clause = 'ASSIGNING' ) <> 0
+    OR analyzer->find_clause_index(  tokens = statement-tokens clause = 'INITIAL' ) <> 0
+    OR analyzer->find_clause_index(  tokens = statement-tokens clause = 'NOT' ) <> 0.
+      RETURN.
+    ENDIF.
+    DATA(key_idx) = analyzer->find_clause_index(  tokens = statement-tokens clause = 'WHERE' ).
+    IF key_idx = 0 OR statement-tokens[ key_idx + 1 ]-lexeme CP '(*'.
+      RETURN.
+    ENDIF.
+    DATA(table) = statement-tokens[ 3 ]-lexeme.
+    IF table CP '*('.
+      RETURN.
+    ENDIF.
+    DATA(result_idx) = analyzer->find_clause_index( tokens = statement-tokens clause = 'INTO' ).
+    IF result_idx <> 0.
+      ASSIGN statement-tokens[ result_idx + 1 ] TO FIELD-SYMBOL(<token>).
+      IF is_used( procedure = procedure from_index = statement_index + 1 full_name = <token>-references[ lines( <token>-references ) ]-full_name ).
+        RETURN.
+      ENDIF.
+    ENDIF.
+    IF analyzer->find_clause_index( tokens = statement-tokens start_index = key_idx + 1 clause = '(' ) <> 0
+    OR analyzer->find_clause_index( tokens = statement-tokens start_index = key_idx + 1 clause = ')' ) <> 0.
+      RETURN.
+    ENDIF.
+    DATA(token_idx) = key_idx + 1.
+    DO.
+      ASSIGN statement-tokens[ token_idx ] TO <token>.
+      append_token( EXPORTING token = <token> CHANGING result = key ).
       token_idx += 1.
-      assign statement-tokens[ token_idx ] to <token>.
-      case <token>-lexeme.
-        when '=' or 'EQ'.
+      ASSIGN statement-tokens[ token_idx ] TO <token>.
+      CASE <token>-lexeme.
+        WHEN '=' OR 'EQ'.
           key = |{ key } = |.
-        when others.
-          return.
-      endcase.
-      data(and_idx) = analyzer->find_clause_index( tokens = statement-tokens start_index = token_idx + 1 clause = 'AND' ).
-      if and_idx = 0.
-        append_tokens( exporting tokens = statement-tokens from_idx = token_idx + 1 changing result = key ).
-        exit.
-      else.
-        append_tokens( exporting tokens = statement-tokens from_idx = token_idx + 1 to_idx = and_idx - 1 changing result = key ).
+        WHEN OTHERS.
+          RETURN.
+      ENDCASE.
+      DATA(and_idx) = analyzer->find_clause_index( tokens = statement-tokens start_index = token_idx + 1 clause = 'AND' ).
+      IF and_idx = 0.
+        append_tokens( EXPORTING tokens = statement-tokens from_idx = token_idx + 1 CHANGING result = key ).
+        EXIT.
+      ELSE.
+        append_tokens( EXPORTING tokens = statement-tokens from_idx = token_idx + 1 to_idx = and_idx - 1 CHANGING result = key ).
         token_idx = and_idx + 1.
-      endif.
-    enddo.
-    data(quickfixable) = abap_true.
-    loop at procedure-statements from statement_index + 1 assigning field-symbol(<statement>).
-      case <statement>-keyword.
-        when 'ENDLOOP'.
-          data(end_idx) = sy-tabix.
-          exit.
-        when 'EXIT'.
-          data(contains_exit) = abap_true.
-        when 'MOVE'.
-          if line_exists( <statement>-tokens[ lexeme = 'SY-TABIX' ] ).
+      ENDIF.
+    ENDDO.
+    DATA(quickfixable) = abap_true.
+    LOOP AT procedure-statements FROM statement_index + 1 ASSIGNING FIELD-SYMBOL(<statement>).
+      CASE <statement>-keyword.
+        WHEN 'ENDLOOP'.
+          DATA(end_idx) = sy-tabix.
+          EXIT.
+        WHEN 'EXIT'.
+          DATA(contains_exit) = abap_true.
+        WHEN 'MOVE'.
+          IF line_exists( <statement>-tokens[ lexeme = 'SY-TABIX' ] ).
             code_line_index = get_move_changed_line( <statement> ).
-            replace first occurrence of 'SY-TABIX' in code_line_index with |line_index( { table }[ { key } ] )| ##NO_TEXT.
-            append code_line_index to code_lines.
-          endif.
-        when 'MESSAGE' or 'PERFORM' or '+CALL_MACRO'.
-          if line_exists( <statement>-tokens[ lexeme = 'SY-TABIX' ] ).
+            REPLACE FIRST OCCURRENCE OF 'SY-TABIX' IN code_line_index WITH |line_index( { table }[ { key } ] )| ##NO_TEXT.
+            APPEND code_line_index TO code_lines.
+          ENDIF.
+        WHEN 'MESSAGE' OR 'PERFORM' OR '+CALL_MACRO'.
+          IF line_exists( <statement>-tokens[ lexeme = 'SY-TABIX' ] ).
             quickfixable = abap_false.
-            exit.
-          endif.
-        when 'SET'.
-          if line_exists( <statement>-tokens[ lexeme = 'SY-TABIX' ] )
-            and <statement>-tokens[ 2 ]-references is initial and <statement>-tokens[ 2 ]-lexeme = 'BIT'.
+            EXIT.
+          ENDIF.
+        WHEN 'SET'.
+          IF line_exists( <statement>-tokens[ lexeme = 'SY-TABIX' ] )
+            AND <statement>-tokens[ 2 ]-references IS INITIAL AND <statement>-tokens[ 2 ]-lexeme = 'BIT'.
             quickfixable = abap_false.
-          endif.
-        when others.
-          if line_exists( <statement>-tokens[ lexeme = 'SY-TABIX' ] ).
-            loop at <statement>-tokens assigning <token>.
-              if <token>-lexeme = 'SY-TABIX'.
+          ENDIF.
+        WHEN OTHERS.
+          IF line_exists( <statement>-tokens[ lexeme = 'SY-TABIX' ] ).
+            LOOP AT <statement>-tokens ASSIGNING <token>.
+              IF <token>-lexeme = 'SY-TABIX'.
                 code_line_index = |{ code_line_index } line_index( { table }[ { key } ] )| ##NO_TEXT.
-              elseif code_line_index is initial.
+              ELSEIF code_line_index IS INITIAL.
                 code_line_index = <token>-lexeme.
-              else.
+              ELSE.
                 code_line_index = |{ code_line_index } { <token>-lexeme }|.
-              endif.
-            endloop.
+              ENDIF.
+            ENDLOOP.
             code_line_index = |{ code_line_index }.|.
-            append code_line_index to code_lines.
-          else.
-            data(idx) = analyzer->find_clause_index( tokens = <statement>-tokens clause = '=' ).
-            if idx = 0 or <statement>-tokens[ idx + 1 ]-lexeme <> 'ABAP_TRUE'.
-              return.
-            endif.
-            loop at <statement>-tokens to idx - 1 assigning <token>.
-              if code_line_exists is initial.
+            APPEND code_line_index TO code_lines.
+          ELSE.
+            DATA(idx) = analyzer->find_clause_index( tokens = <statement>-tokens clause = '=' ).
+            IF idx = 0 OR <statement>-tokens[ idx + 1 ]-lexeme <> 'ABAP_TRUE'.
+              RETURN.
+            ENDIF.
+            LOOP AT <statement>-tokens TO idx - 1 ASSIGNING <token>.
+              IF code_line_exists IS INITIAL.
                 code_line_exists = <token>-lexeme.
-              else.
+              ELSE.
                 code_line_exists = |{ code_line_exists } { <token>-lexeme }|.
-              endif.
-            endloop.
+              ENDIF.
+            ENDLOOP.
             code_line_exists = |{ code_line_exists } = xsdbool( line_exists( { table }[ { key } ] ) ).| ##NO_TEXT.
-            append code_line_exists to code_lines.
-          endif.
-      endcase.
-    endloop.
-    if contains_exit = abap_true.
-      data quickfixes type ref to cl_ci_atc_quickfixes.
-      if quickfixable = abap_true.
+            APPEND code_line_exists TO code_lines.
+          ENDIF.
+      ENDCASE.
+    ENDLOOP.
+    IF contains_exit = abap_true.
+      DATA quickfixes TYPE REF TO cl_ci_atc_quickfixes.
+      IF quickfixable = abap_true.
         quickfixes = assistant_factory->create_quickfixes( ).
-        data(quickfix) = quickfixes->create_quickfix( quickfix_codes-line_exists ).
+        DATA(quickfix) = quickfixes->create_quickfix( quickfix_codes-line_exists ).
         quickfix->replace(
             context = assistant_factory->create_quickfix_context(
-               value #( procedure_id = procedure-id statements = value #( from = statement_index to = end_idx ) ) )
+               VALUE #( procedure_id = procedure-id statements = VALUE #( from = statement_index to = end_idx ) ) )
                         code = code_lines ).
-      endif.
+      ENDIF.
       add_finding(
-      exporting
+      EXPORTING
          procedure = procedure
          statement_index = statement_index
          code = message_codes-line_exists
          pseudo_comment = pseudo_comments-line_exists
          quickfixes = quickfixes
-      changing findings = findings ).
-    endif.
-  endmethod.
+      CHANGING findings = findings ).
+    ENDIF.
+  ENDMETHOD.
 
 
-  method analyze_create_object.
-    data code_line type string.
-    data(statement) = procedure-statements[ statement_index ].
-    data(replace_data) = abap_true.
+  METHOD analyze_create_object.
+    DATA code_line TYPE string.
+    DATA(statement) = procedure-statements[ statement_index ].
+    DATA(replace_data) = abap_true.
 
-    if analyzer->find_clause_index( tokens = statement-tokens clause = 'TYPE' ) <> 0
-    or analyzer->find_clause_index( tokens = statement-tokens clause = 'AREA HANDLE' ) <> 0
-    or analyzer->find_clause_index( tokens = statement-tokens clause = 'EXCEPTIONS' ) <> 0 "old exceptions cannot be handled with NEW
-    or analyzer->find_clause_index( tokens = statement-tokens clause = 'FOR TESTING' ) <> 0.
-      return.
-    endif.
+    IF analyzer->find_clause_index( tokens = statement-tokens clause = 'TYPE' ) <> 0
+    OR analyzer->find_clause_index( tokens = statement-tokens clause = 'AREA HANDLE' ) <> 0
+    OR analyzer->find_clause_index( tokens = statement-tokens clause = 'EXCEPTIONS' ) <> 0 "old exceptions cannot be handled with NEW
+    OR analyzer->find_clause_index( tokens = statement-tokens clause = 'FOR TESTING' ) <> 0.
+      RETURN.
+    ENDIF.
 
-    data(object_name) = statement-tokens[ 3 ]-lexeme.
-    data(full_name) = statement-tokens[ 3 ]-references[ lines( statement-tokens[ 3 ]-references ) ]-full_name.
+    DATA(object_name) = statement-tokens[ 3 ]-lexeme.
+    DATA(full_name) = statement-tokens[ 3 ]-references[ lines( statement-tokens[ 3 ]-references ) ]-full_name.
 *   self reference is working with create object but not with new
-    loop at statement-tokens assigning field-symbol(<token>) from 4 where lexeme cp |{ object_name }*| and references is not initial.
-      loop at <token>-references transporting no fields where full_name cp |{ full_name }*|.
+    LOOP AT statement-tokens ASSIGNING FIELD-SYMBOL(<token>) FROM 4 WHERE lexeme CP |{ object_name }*| AND references IS NOT INITIAL.
+      LOOP AT <token>-references TRANSPORTING NO FIELDS WHERE full_name CP |{ full_name }*|.
         replace_data = abap_false.
-        exit.
-      endloop.
-    endloop.
+        EXIT.
+      ENDLOOP.
+    ENDLOOP.
 *   find data statement
-    data(data_idx) = statement_index - 1.
-    while data_idx > 0.
-      if procedure-statements[ data_idx ]-keyword = 'DATA'
-      and procedure-statements[ data_idx ]-tokens[ 2 ]-lexeme = object_name.
-        assign procedure-statements[ data_idx ] to field-symbol(<statement>).
-        data(type_idx) = analyzer->find_clause_index( tokens = <statement>-tokens clause = 'TYPE REF TO' ).
-        if type_idx = 0.
-          return.
-        endif.
-        if replace_data = abap_true and data_idx = statement_index - 1.
-          data(type_name) = <statement>-tokens[ type_idx + 3 ]-lexeme.
+    DATA(data_idx) = statement_index - 1.
+    WHILE data_idx > 0.
+      IF procedure-statements[ data_idx ]-keyword = 'DATA'
+      AND procedure-statements[ data_idx ]-tokens[ 2 ]-lexeme = object_name.
+        ASSIGN procedure-statements[ data_idx ] TO FIELD-SYMBOL(<statement>).
+        DATA(type_idx) = analyzer->find_clause_index( tokens = <statement>-tokens clause = 'TYPE REF TO' ).
+        IF type_idx = 0.
+          RETURN.
+        ENDIF.
+        IF replace_data = abap_true AND data_idx = statement_index - 1.
+          DATA(type_name) = <statement>-tokens[ type_idx + 3 ]-lexeme.
           code_line = |DATA({ object_name }) = NEW { type_name }( |.
-          data(from_idx) = data_idx.
-        else.
+          DATA(from_idx) = data_idx.
+        ELSE.
           code_line = |{ object_name } = NEW #( |.
           from_idx = statement_index.
-        endif.
-      endif.
+        ENDIF.
+      ENDIF.
       data_idx -= 1.
-    endwhile.
-    if code_line is initial.
+    ENDWHILE.
+    IF code_line IS INITIAL.
       add_finding(
-      exporting
+      EXPORTING
          procedure = procedure
          statement_index = statement_index
          code = message_codes-prefer_new
          pseudo_comment = pseudo_comments-prefer_new
-      changing findings = findings ).
-      return.
-    endif.
-    data(exporting_idx) = analyzer->find_clause_index( tokens = statement-tokens clause = 'EXPORTING' ).
+      CHANGING findings = findings ).
+      RETURN.
+    ENDIF.
+    DATA(exporting_idx) = analyzer->find_clause_index( tokens = statement-tokens clause = 'EXPORTING' ).
 
-    data(quickfixes) = assistant_factory->create_quickfixes( ).
-    data(quickfix) = quickfixes->create_quickfix( quickfix_codes-prefer_new ).
-    if from_idx < statement_index.
+    DATA(quickfixes) = assistant_factory->create_quickfixes( ).
+    DATA(quickfix) = quickfixes->create_quickfix( quickfix_codes-prefer_new ).
+    IF from_idx < statement_index.
       quickfix->replace(
           context = assistant_factory->create_quickfix_context(
-             value #( procedure_id = procedure-id statements = value #( from = from_idx to = statement_index - 1 ) ) )
-                      code = value #( ( `` )  ) ).
-    endif.
-    if exporting_idx = 0.
-      data(to_idx) = 3.
-    else.
+             VALUE #( procedure_id = procedure-id statements = VALUE #( from = from_idx to = statement_index - 1 ) ) )
+                      code = VALUE #( ( `` )  ) ).
+    ENDIF.
+    IF exporting_idx = 0.
+      DATA(to_idx) = 3.
+    ELSE.
       to_idx = exporting_idx.
-    endif.
+    ENDIF.
     quickfix->replace(
         context = assistant_factory->create_quickfix_context(
-           value #( procedure_id = procedure-id
-                    statements = value #( from = statement_index to = statement_index )
-                    tokens = value #( from = 1 to = to_idx ) ) )
-                    code = value #( ( code_line )  ) ).
+           VALUE #( procedure_id = procedure-id
+                    statements = VALUE #( from = statement_index to = statement_index )
+                    tokens = VALUE #( from = 1 to = to_idx ) ) )
+                    code = VALUE #( ( code_line )  ) ).
     quickfix->insert_after(
     context = assistant_factory->create_quickfix_context(
-    value #( procedure_id = procedure-id
-        statements = value #( from = statement_index to = statement_index )
-        tokens = value #( from = lines( statement-tokens ) to = lines( statement-tokens ) ) ) )
-        code = value #( ( `)` )  ) ).
+    VALUE #( procedure_id = procedure-id
+        statements = VALUE #( from = statement_index to = statement_index )
+        tokens = VALUE #( from = lines( statement-tokens ) to = lines( statement-tokens ) ) ) )
+        code = VALUE #( ( `)` )  ) ).
 
     add_finding(
-    exporting
+    EXPORTING
        procedure = procedure
        statement_index = statement_index
        code = message_codes-prefer_new
        pseudo_comment = pseudo_comments-prefer_new
        quickfixes = quickfixes
-    changing findings = findings ).
-  endmethod.
+    CHANGING findings = findings ).
+  ENDMETHOD.
 
 
-  method analyze_call_method.
-    data code_line type string.
-    data(statement) = procedure-statements[ statement_index ].
-    if statement-tokens[ 3 ]-references is initial and statement-tokens[ 3 ]-lexeme = 'OF'. "ole
-      return.
-    endif.
-    data(method_name) = statement-tokens[ 3 ]-lexeme.
-    if method_name(1) = '(' or method_name cp '*->(*' or method_name cp '*=>(*' or method_name cp '(*)'
-      or analyzer->find_clause_index( tokens = statement-tokens clause = 'PARAMETER-TABLE' ) <> 0
-      or analyzer->find_clause_index( tokens = statement-tokens clause = 'EXCEPTION-TABLE' ) <> 0
-      or analyzer->find_clause_index( tokens = statement-tokens clause = 'EXCEPTIONS' ) <> 0.
+  METHOD analyze_call_method.
+    DATA code_line TYPE string.
+    DATA(statement) = procedure-statements[ statement_index ].
+    IF statement-tokens[ 3 ]-references IS INITIAL AND statement-tokens[ 3 ]-lexeme = 'OF'. "ole
+      RETURN.
+    ENDIF.
+    DATA(method_name) = statement-tokens[ 3 ]-lexeme.
+    IF method_name(1) = '(' OR method_name CP '*->(*' OR method_name CP '*=>(*' OR method_name CP '(*)'
+      OR analyzer->find_clause_index( tokens = statement-tokens clause = 'PARAMETER-TABLE' ) <> 0
+      OR analyzer->find_clause_index( tokens = statement-tokens clause = 'EXCEPTION-TABLE' ) <> 0
+      OR analyzer->find_clause_index( tokens = statement-tokens clause = 'EXCEPTIONS' ) <> 0.
 *     dynamic call / exceptions
-      return.
-    endif.
+      RETURN.
+    ENDIF.
 
-    if method_name np '*('.
-      data(method_line) = |{ method_name }(|.
-    else.
+    IF method_name NP '*('.
+      DATA(method_line) = |{ method_name }(|.
+    ELSE.
       method_line = method_name.
-    endif.
-    if  analyzer->find_clause_index( tokens = statement-tokens clause = 'IMPORTING' ) = 0
-    and analyzer->find_clause_index( tokens = statement-tokens clause = 'CHANGING' ) = 0 .
-      data(exporting_idx) = analyzer->find_clause_index( tokens = statement-tokens clause = 'EXPORTING' ).
-      data(receiving_infos) = get_receiving_infos( tokens = statement-tokens ).
-    endif.
-    data(quickfixes) = assistant_factory->create_quickfixes( ).
-    data(quickfix) = quickfixes->create_quickfix( quickfix_codes-call_method ).
-    if lines( statement-tokens ) = 3
-    or lines( statement-tokens ) = 4.
+    ENDIF.
+    IF  analyzer->find_clause_index( tokens = statement-tokens clause = 'IMPORTING' ) = 0
+    AND analyzer->find_clause_index( tokens = statement-tokens clause = 'CHANGING' ) = 0 .
+      DATA(exporting_idx) = analyzer->find_clause_index( tokens = statement-tokens clause = 'EXPORTING' ).
+      DATA(receiving_infos) = get_receiving_infos( tokens = statement-tokens ).
+    ENDIF.
+    DATA(quickfixes) = assistant_factory->create_quickfixes( ).
+    DATA(quickfix) = quickfixes->create_quickfix( quickfix_codes-call_method ).
+    IF lines( statement-tokens ) = 3
+    OR lines( statement-tokens ) = 4.
       quickfix->replace(
          context = assistant_factory->create_quickfix_context(
-            value #( procedure_id = procedure-id
-                     statements = value #( from = statement_index to = statement_index ) ) )
-         code = value #( ( |{  method_line } ).| ) ) ).
-    else.
-      if exporting_idx <> 0.
+            VALUE #( procedure_id = procedure-id
+                     statements = VALUE #( from = statement_index to = statement_index ) ) )
+         code = VALUE #( ( |{  method_line } ).| ) ) ).
+    ELSE.
+      IF exporting_idx <> 0.
         quickfix->replace(
           context = assistant_factory->create_quickfix_context(
-             value #( procedure_id = procedure-id
-                      statements = value #( from = statement_index to = statement_index )
-                      tokens = value #( from = exporting_idx to = exporting_idx ) ) )
-          code = value #( ( `` ) ) ).
-      endif.
-      if receiving_infos-result_line is not initial.
-        if receiving_infos-end_idx = lines( statement-tokens ).
+             VALUE #( procedure_id = procedure-id
+                      statements = VALUE #( from = statement_index to = statement_index )
+                      tokens = VALUE #( from = exporting_idx to = exporting_idx ) ) )
+          code = VALUE #( ( `` ) ) ).
+      ENDIF.
+      IF receiving_infos-result_line IS NOT INITIAL.
+        IF receiving_infos-end_idx = lines( statement-tokens ).
           code_line = ')'.
-        else.
+        ELSE.
           code_line = ''.
-        endif.
+        ENDIF.
         quickfix->replace(
            context = assistant_factory->create_quickfix_context(
-              value #( procedure_id = procedure-id
-                       statements = value #( from = statement_index to = statement_index )
-                       tokens = value #( from = receiving_infos-receiving_idx to = receiving_infos-end_idx ) ) )
-           code = value #( ( code_line ) ) ).
+              VALUE #( procedure_id = procedure-id
+                       statements = VALUE #( from = statement_index to = statement_index )
+                       tokens = VALUE #( from = receiving_infos-receiving_idx to = receiving_infos-end_idx ) ) )
+           code = VALUE #( ( code_line ) ) ).
         method_line = |{ receiving_infos-result_line } = { method_line }|.
-      endif.
+      ENDIF.
 
       quickfix->replace(
         context = assistant_factory->create_quickfix_context(
-           value #( procedure_id = procedure-id
-                    statements = value #( from = statement_index to = statement_index )
-                    tokens = value #( from = 1 to = 3 ) ) )
-        code = value #( ( method_line ) ) ).
+           VALUE #( procedure_id = procedure-id
+                    statements = VALUE #( from = statement_index to = statement_index )
+                    tokens = VALUE #( from = 1 to = 3 ) ) )
+        code = VALUE #( ( method_line ) ) ).
 
-      if receiving_infos-end_idx <> lines( statement-tokens ) and method_name np '*('.
+      IF receiving_infos-end_idx <> lines( statement-tokens ) AND method_name NP '*('.
         quickfix->insert_after(
           context = assistant_factory->create_quickfix_context(
-             value #( procedure_id = procedure-id
-                      statements = value #( from = statement_index to = statement_index )
-                      tokens = value #( from = lines( statement-tokens ) to = lines( statement-tokens ) ) ) )
-          code = value #( (  `)` ) ) ).
-      endif.
-    endif.
+             VALUE #( procedure_id = procedure-id
+                      statements = VALUE #( from = statement_index to = statement_index )
+                      tokens = VALUE #( from = lines( statement-tokens ) to = lines( statement-tokens ) ) ) )
+          code = VALUE #( (  `)` ) ) ).
+      ENDIF.
+    ENDIF.
     add_finding(
-    exporting
+    EXPORTING
        procedure = procedure
        statement_index = statement_index
        code = message_codes-call_method
        pseudo_comment = pseudo_comments-call_method
        quickfixes = quickfixes
-    changing findings = findings ).
-  endmethod.
+    CHANGING findings = findings ).
+  ENDMETHOD.
 
 
-  method analyze_exporting_receiving.
-    data exporting_idxs type sorted table of i with unique key table_line.
-    data(statement) = procedure-statements[ statement_index ].
-    if analyzer->find_clause_index( tokens = statement-tokens clause = 'EXCEPTIONS' ) <> 0
-    or analyzer->find_clause_index( tokens = statement-tokens clause = 'IMPORTING' ) <> 0
-    or analyzer->find_clause_index( tokens = statement-tokens clause = 'CHANGING' ) <> 0.
-      return.
-    endif.
-    loop at statement-tokens assigning field-symbol(<token>) where references is initial and lexeme = 'EXPORTING'.
-      data(token_idx) = sy-tabix.
-      if check_remove_exporting( statement = statement token_idx = token_idx ) = abap_true.
-        insert token_idx into table exporting_idxs.
-      endif.
-    endloop.
+  METHOD analyze_exporting_receiving.
+    DATA exporting_idxs TYPE SORTED TABLE OF i WITH UNIQUE KEY table_line.
+    DATA(statement) = procedure-statements[ statement_index ].
+    IF analyzer->find_clause_index( tokens = statement-tokens clause = 'EXCEPTIONS' ) <> 0
+    OR analyzer->find_clause_index( tokens = statement-tokens clause = 'IMPORTING' ) <> 0
+    OR analyzer->find_clause_index( tokens = statement-tokens clause = 'CHANGING' ) <> 0.
+      RETURN.
+    ENDIF.
+    LOOP AT statement-tokens ASSIGNING FIELD-SYMBOL(<token>) WHERE references IS INITIAL AND lexeme = 'EXPORTING'.
+      DATA(token_idx) = sy-tabix.
+      IF check_remove_exporting( statement = statement token_idx = token_idx ) = abap_true.
+        INSERT token_idx INTO TABLE exporting_idxs.
+      ENDIF.
+    ENDLOOP.
 
-    data(receiving_infos) = get_receiving_infos( tokens = statement-tokens ).
+    DATA(receiving_infos) = get_receiving_infos( tokens = statement-tokens ).
 
-    if receiving_infos-result_line is initial and exporting_idxs is initial.
-      return.
-    endif.
-    data(quickfixes) = assistant_factory->create_quickfixes( ).
-    data pseudo_comment type string.
-    if receiving_infos-result_line is not initial.
-      data(finding_code) = message_codes-exporting_receiving.
+    IF receiving_infos-result_line IS INITIAL AND exporting_idxs IS INITIAL.
+      RETURN.
+    ENDIF.
+    DATA(quickfixes) = assistant_factory->create_quickfixes( ).
+    DATA pseudo_comment TYPE string.
+    IF receiving_infos-result_line IS NOT INITIAL.
+      DATA(finding_code) = message_codes-exporting_receiving.
       pseudo_comment = pseudo_comments-exporting_receiving.
-      data(quickfix) = quickfixes->create_quickfix( quickfix_codes-exporting_receiving ).
+      DATA(quickfix) = quickfixes->create_quickfix( quickfix_codes-exporting_receiving ).
       receiving_infos-result_line = |{ receiving_infos-result_line } = { statement-tokens[ 1 ]-lexeme }|.
       quickfix->replace( context = assistant_factory->create_quickfix_context(
-            value #( procedure_id = procedure-id
-                     statements = value #( from = statement_index to = statement_index )
-                     tokens = value #( from = 1 to = 1 ) ) )
-            code = value #( ( receiving_infos-result_line ) ) ).
+            VALUE #( procedure_id = procedure-id
+                     statements = VALUE #( from = statement_index to = statement_index )
+                     tokens = VALUE #( from = 1 to = 1 ) ) )
+            code = VALUE #( ( receiving_infos-result_line ) ) ).
       quickfix->replace(
           context = assistant_factory->create_quickfix_context(
-              value #( procedure_id = procedure-id
-                       statements = value #( from = statement_index to = statement_index )
-                       tokens = value #( from = receiving_infos-receiving_idx to = receiving_infos-end_idx ) ) )
-              code = value #( ( `` ) ) ).
-    else.
+              VALUE #( procedure_id = procedure-id
+                       statements = VALUE #( from = statement_index to = statement_index )
+                       tokens = VALUE #( from = receiving_infos-receiving_idx to = receiving_infos-end_idx ) ) )
+              code = VALUE #( ( `` ) ) ).
+    ELSE.
       finding_code = message_codes-method_exporting.
       pseudo_comment = pseudo_comments-method_exporting.
       quickfix = quickfixes->create_quickfix( quickfix_codes-method_exporting ).
-    endif.
-    loop at exporting_idxs into data(exporting_idx).
+    ENDIF.
+    LOOP AT exporting_idxs INTO DATA(exporting_idx).
       quickfix->replace(
           context = assistant_factory->create_quickfix_context(
-              value #( procedure_id = procedure-id
-                       statements = value #( from = statement_index to = statement_index )
-                       tokens = value #( from = exporting_idx to = exporting_idx + 1 ) ) )
-              code = value #( ( statement-tokens[ exporting_idx + 1 ]-lexeme ) ) ).
-    endloop.
+              VALUE #( procedure_id = procedure-id
+                       statements = VALUE #( from = statement_index to = statement_index )
+                       tokens = VALUE #( from = exporting_idx to = exporting_idx + 1 ) ) )
+              code = VALUE #( ( statement-tokens[ exporting_idx + 1 ]-lexeme ) ) ).
+    ENDLOOP.
     add_finding(
-    exporting
+    EXPORTING
        procedure = procedure
        statement_index = statement_index
        code = finding_code
        pseudo_comment = pseudo_comment
        quickfixes = quickfixes
-    changing findings = findings ).
-  endmethod.
+    CHANGING findings = findings ).
+  ENDMETHOD.
 
 
-  method analyze_text_assembly.
+  METHOD analyze_text_assembly.
 
-    data(statement) = procedure-statements[ statement_index ].
+    DATA(statement) = procedure-statements[ statement_index ].
 
-    data start_idx type i.
-    data end_idx type i.
-    data last_idx type i.
-    data code_line type string.
-    data(quickfixes) = assistant_factory->create_quickfixes( ).
-    data(quickfix) = quickfixes->create_quickfix( quickfix_codes-text_assembly ).
-    data(quickfixable) = abap_true.
-    try.
-        loop at statement-tokens assigning field-symbol(<token>) where lexeme = '&&'.
-          data(tabix) = sy-tabix.
-          if tabix - 1 <> last_idx.
-            if code_line is not initial.
+    DATA start_idx TYPE i.
+    DATA end_idx TYPE i.
+    DATA last_idx TYPE i.
+    DATA code_line TYPE string.
+    DATA(quickfixes) = assistant_factory->create_quickfixes( ).
+    DATA(quickfix) = quickfixes->create_quickfix( quickfix_codes-text_assembly ).
+    DATA(quickfixable) = abap_true.
+    TRY.
+        LOOP AT statement-tokens ASSIGNING FIELD-SYMBOL(<token>) WHERE lexeme = '&&'.
+          DATA(tabix) = sy-tabix.
+          IF tabix - 1 <> last_idx.
+            IF code_line IS NOT INITIAL.
 *             store old code_line
               code_line = |{ code_line }\||.
-              if strlen( code_line ) >= analyzer->max_line_length - 1.
+              IF strlen( code_line ) >= analyzer->max_line_length - 1.
                 quickfixable = abap_false.
-                exit.
-              else.
+                EXIT.
+              ELSE.
                 quickfix->replace(
                     context = assistant_factory->create_quickfix_context(
-                       value #( procedure_id = procedure-id
-                                statements = value #( from = statement_index to = statement_index )
-                                tokens = value #( from = start_idx to = end_idx ) ) )
-                    code = value #( ( code_line ) ) ).
-              endif.
-            endif.
+                       VALUE #( procedure_id = procedure-id
+                                statements = VALUE #( from = statement_index to = statement_index )
+                                tokens = VALUE #( from = start_idx to = end_idx ) ) )
+                    code = VALUE #( ( code_line ) ) ).
+              ENDIF.
+            ENDIF.
 *           new && connection
             code_line = '|'.
             start_idx = tabix - 1.
-            data(value) = get_value( statement-tokens[ tabix - 1 ] ).
+            DATA(value) = get_value( statement-tokens[ tabix - 1 ] ).
             code_line = |{ code_line }{ value }|.
-          endif.
+          ENDIF.
           value = get_value( statement-tokens[ tabix + 1 ] ).
           code_line = |{ code_line }{ value }|.
           end_idx = tabix + 1.
           last_idx = tabix + 1.
-        endloop.
-        if quickfixable = abap_true and code_line is not initial.
+        ENDLOOP.
+        IF quickfixable = abap_true AND code_line IS NOT INITIAL.
           code_line = |{ code_line }\||.
-          if strlen( code_line ) >= analyzer->max_line_length - 1.
+          IF strlen( code_line ) >= analyzer->max_line_length - 1.
             quickfixable = abap_false.
-          else.
+          ELSE.
             quickfix->replace(
                 context = assistant_factory->create_quickfix_context(
-                   value #( procedure_id = procedure-id
-                            statements = value #( from = statement_index to = statement_index )
-                            tokens = value #( from = start_idx to = end_idx ) ) )
-                code = value #( ( code_line ) ) ).
-          endif.
-        endif.
-      catch lcx_error.
+                   VALUE #( procedure_id = procedure-id
+                            statements = VALUE #( from = statement_index to = statement_index )
+                            tokens = VALUE #( from = start_idx to = end_idx ) ) )
+                code = VALUE #( ( code_line ) ) ).
+          ENDIF.
+        ENDIF.
+      CATCH lcx_error.
         quickfixable = abap_false.
-    endtry.
-    if quickfixable = abap_false.
-      clear quickfixes.
-    endif.
+    ENDTRY.
+    IF quickfixable = abap_false.
+      CLEAR quickfixes.
+    ENDIF.
     add_finding(
-    exporting
+    EXPORTING
        procedure = procedure
        statement_index = statement_index
        code = message_codes-text_assembly
        pseudo_comment = pseudo_comments-text_assembly
        quickfixes = quickfixes
-    changing findings = findings ).
+    CHANGING findings = findings ).
 
-  endmethod.
+  ENDMETHOD.
 
 
-  method analyze_procedure.
+  METHOD analyze_procedure.
 
-    loop at procedure-statements assigning field-symbol(<statement>).
-      data(idx) = sy-tabix.
-      case <statement>-keyword.
-        when 'MOVE'.
-          insert lines of analyze_move( procedure = procedure statement_index = idx ) into table findings.
-        when 'TRANSLATE'.
-          insert lines of analyze_translate( procedure = procedure statement_index = idx ) into table findings.
-        when 'READ'.
-          insert lines of analyze_read( procedure = procedure statement_index = idx ) into table findings.
-        when 'LOOP'.
-          insert lines of analyze_loop( procedure = procedure statement_index = idx ) into table findings.
-        when 'CREATE'.
-          if <statement>-tokens[ 2 ]-lexeme = 'OBJECT' and <statement>-tokens[ 2 ]-references is initial.
-            insert lines of analyze_create_object( procedure = procedure statement_index = idx ) into table findings.
-          endif.
-        when 'CALL'.
-          if <statement>-tokens[ 2 ]-lexeme = 'METHOD' and <statement>-tokens[ 2 ]-references is initial.
-            insert lines of analyze_call_method( procedure = procedure statement_index = idx ) into table findings.
-          endif.
-        when 'METHODS' or 'CLASS-METHODS'.
-          continue.
-      endcase.
+    LOOP AT procedure-statements ASSIGNING FIELD-SYMBOL(<statement>).
+      DATA(idx) = sy-tabix.
+      CASE <statement>-keyword.
+        WHEN 'MOVE'.
+          INSERT LINES OF analyze_move( procedure = procedure statement_index = idx ) INTO TABLE findings.
+        WHEN 'TRANSLATE'.
+          INSERT LINES OF analyze_translate( procedure = procedure statement_index = idx ) INTO TABLE findings.
+        WHEN 'READ'.
+          INSERT LINES OF analyze_read( procedure = procedure statement_index = idx ) INTO TABLE findings.
+        WHEN 'LOOP'.
+          INSERT LINES OF analyze_loop( procedure = procedure statement_index = idx ) INTO TABLE findings.
+        WHEN 'CREATE'.
+          IF <statement>-tokens[ 2 ]-lexeme = 'OBJECT' AND <statement>-tokens[ 2 ]-references IS INITIAL.
+            INSERT LINES OF analyze_create_object( procedure = procedure statement_index = idx ) INTO TABLE findings.
+          ENDIF.
+        WHEN 'CALL'.
+          IF <statement>-tokens[ 2 ]-lexeme = 'METHOD' AND <statement>-tokens[ 2 ]-references IS INITIAL.
+            INSERT LINES OF analyze_call_method( procedure = procedure statement_index = idx ) INTO TABLE findings.
+          ENDIF.
+        WHEN 'METHODS' OR 'CLASS-METHODS'.
+          CONTINUE.
+      ENDCASE.
 *     functional method call may occur in many statements
-      if <statement>-keyword <> 'CALL' and <statement>-keyword <> 'CREATE'
-      and analyzer->find_clause_index( tokens = <statement>-tokens clause = 'EXPORTING' ) <> 0.
-        insert lines of analyze_exporting_receiving( procedure = procedure statement_index = idx  ) into table findings.
-      endif.
+      IF <statement>-keyword <> 'CALL' AND <statement>-keyword <> 'CREATE'
+      AND analyzer->find_clause_index( tokens = <statement>-tokens clause = 'EXPORTING' ) <> 0.
+        INSERT LINES OF analyze_exporting_receiving( procedure = procedure statement_index = idx  ) INTO TABLE findings.
+      ENDIF.
 *     text assembly
-      if analyzer->find_clause_index( tokens = <statement>-tokens clause = '&&' ) <> 0
-      and <statement>-keyword <> 'CONCATENATE'
-      and <statement>-keyword <> 'SPLIT'
-      and analyzer->is_db_statement( statement = <statement> ) is initial.
-        insert lines of analyze_text_assembly( procedure = procedure statement_index = idx ) into table findings.
-      endif.
-    endloop.
-  endmethod.
+      IF analyzer->find_clause_index( tokens = <statement>-tokens clause = '&&' ) <> 0
+      AND <statement>-keyword <> 'CONCATENATE'
+      AND <statement>-keyword <> 'SPLIT'
+      AND analyzer->is_db_statement( statement = <statement> ) IS INITIAL.
+        INSERT LINES OF analyze_text_assembly( procedure = procedure statement_index = idx ) INTO TABLE findings.
+      ENDIF.
+    ENDLOOP.
+  ENDMETHOD.
 
 
-  method is_used.
+  METHOD is_used.
     result = abap_false.
-    loop at procedure-statements from from_index assigning field-symbol(<statement>).
-      loop at <statement>-tokens assigning field-symbol(<token>)
-      where references is not initial.
+    LOOP AT procedure-statements FROM from_index ASSIGNING FIELD-SYMBOL(<statement>).
+      LOOP AT <statement>-tokens ASSIGNING FIELD-SYMBOL(<token>)
+      WHERE references IS NOT INITIAL.
         result = xsdbool( line_exists(  <token>-references[ full_name = full_name ] ) ).
-        if result = abap_true.
-          return.
-        endif.
-      endloop.
-    endloop.
-  endmethod.
+        IF result = abap_true.
+          RETURN.
+        ENDIF.
+      ENDLOOP.
+    ENDLOOP.
+  ENDMETHOD.
 
 
-  method check_remove_exporting.
+  METHOD check_remove_exporting.
     result = abap_false.
-    assign statement-tokens[ token_idx - 1 ] to field-symbol(<token>).
-    if not <token>-lexeme cp '*('.
-      return.
-    endif.
-    loop at <token>-references assigning field-symbol(<ref>)
-      where  kind = if_ci_atc_source_code_provider=>compiler_reference_kinds-method
-      and usage_grade <> if_ci_atc_source_code_provider=>usage_grades-definition.
-      data(is_method_call) = abap_true.
-      exit.
-    endloop.
-    if is_method_call = abap_false.
-      return.
-    endif.
-    if analyzer->find_clause_index( tokens = statement-tokens clause = 'IMPORTING' ) <> 0
-    or analyzer->find_clause_index( tokens = statement-tokens clause = 'CHANGING' ) <> 0.
-      return.
-    endif.
+    ASSIGN statement-tokens[ token_idx - 1 ] TO FIELD-SYMBOL(<token>).
+    IF NOT <token>-lexeme CP '*('.
+      RETURN.
+    ENDIF.
+    LOOP AT <token>-references ASSIGNING FIELD-SYMBOL(<ref>)
+      WHERE  kind = if_ci_atc_source_code_provider=>compiler_reference_kinds-method
+      AND usage_grade <> if_ci_atc_source_code_provider=>usage_grades-definition.
+      DATA(is_method_call) = abap_true.
+      EXIT.
+    ENDLOOP.
+    IF is_method_call = abap_false.
+      RETURN.
+    ENDIF.
+    IF analyzer->find_clause_index( tokens = statement-tokens clause = 'IMPORTING' ) <> 0
+    OR analyzer->find_clause_index( tokens = statement-tokens clause = 'CHANGING' ) <> 0.
+      RETURN.
+    ENDIF.
     result = abap_true.
-  endmethod.
+  ENDMETHOD.
 
 
-  method get_value.
-    if token-lexeme cp '*('
-    or token-lexeme cp '*['
-    or token-lexeme(1) = ']'
-    or token-lexeme(1) = ')'.
-      raise exception type lcx_error.
-    endif.
+  METHOD get_value.
+    IF token-lexeme CP '*('
+    OR token-lexeme CP '*['
+    OR token-lexeme(1) = ']'
+    OR token-lexeme(1) = ')'.
+      RAISE EXCEPTION TYPE lcx_error.
+    ENDIF.
 
-    if token-references is initial.
-      case token-lexeme.
-        when ')' or '|'.
-          raise exception type lcx_error.
-        when others.
-          if token-lexeme cp '`*`' or token-lexeme cp `'*'`.
-            data(len) = strlen( token-lexeme ) - 2.
+    IF token-references IS INITIAL.
+      CASE token-lexeme.
+        WHEN ')' OR '|'.
+          RAISE EXCEPTION TYPE lcx_error.
+        WHEN OTHERS.
+          IF token-lexeme CP '`*`' OR token-lexeme CP `'*'`.
+            DATA(len) = strlen( token-lexeme ) - 2.
             result = token-lexeme+1(len).
-            if result ca '|'.
-              raise exception type lcx_error.
-            endif.
+            IF result CA '|'.
+              RAISE EXCEPTION TYPE lcx_error.
+            ENDIF.
             result = replace( val = result sub = '\' with = '\\' occ = 0 ).
             result = replace( val = result sub = '{' with = '\{' occ = 0 ).
             result = replace( val = result sub = '}' with = '\}' occ = 0 ).
-          else.
-            raise exception type lcx_error.
-          endif.
-      endcase.
-    else.
-      if token-lexeme = 'NEW'.
-        raise exception type lcx_error.
-      endif.
+          ELSE.
+            RAISE EXCEPTION TYPE lcx_error.
+          ENDIF.
+      ENDCASE.
+    ELSE.
+      IF token-lexeme = 'NEW'.
+        RAISE EXCEPTION TYPE lcx_error.
+      ENDIF.
       result = |\{ { token-lexeme } \}|.
-    endif.
-  endmethod.
+    ENDIF.
+  ENDMETHOD.
 
 
-  method append_token.
-    if result is initial.
+  METHOD append_token.
+    IF result IS INITIAL.
       result = token-lexeme.
-    else.
+    ELSE.
       result = |{ result } { token-lexeme }|.
-    endif.
-  endmethod.
+    ENDIF.
+  ENDMETHOD.
 
 
-  method append_tokens.
-    data itab like tokens.
-    if from_idx is supplied or to_idx is supplied.
-      if from_idx = 0.
+  METHOD append_tokens.
+    DATA itab LIKE tokens.
+    IF from_idx IS SUPPLIED OR to_idx IS SUPPLIED.
+      IF from_idx = 0.
         from_idx = 1.
-      endif.
-      if to_idx = 0.
+      ENDIF.
+      IF to_idx = 0.
         to_idx = lines( tokens ).
-      endif.
-      loop at tokens from from_idx to to_idx assigning field-symbol(<token>).
-        append <token> to itab.
-      endloop.
-      data(flattened) = analyzer->flatten_tokens( tokens = itab ).
-    else.
+      ENDIF.
+      LOOP AT tokens FROM from_idx TO to_idx ASSIGNING FIELD-SYMBOL(<token>).
+        APPEND <token> TO itab.
+      ENDLOOP.
+      DATA(flattened) = analyzer->flatten_tokens( tokens = itab ).
+    ELSE.
       flattened = analyzer->flatten_tokens( tokens = tokens ).
-    endif.
-    if result is initial.
+    ENDIF.
+    IF result IS INITIAL.
       result = flattened.
-    else.
+    ELSE.
       result = |{ result } { flattened }|.
-    endif.
-  endmethod.
+    ENDIF.
+  ENDMETHOD.
 
 
-  method get_receiving_infos.
-    clear result-end_idx.
-    clear result-result_line.
+  METHOD get_receiving_infos.
+    CLEAR result-end_idx.
+    CLEAR result-result_line.
     result-receiving_idx = analyzer->find_clause_index( tokens = tokens clause = 'RECEIVING ' ).
-    if result-receiving_idx = 0.
-      return.
-    endif.
-    data(copy_idx) = analyzer->find_clause_index(  tokens = tokens start_index = result-receiving_idx + 1 clause = '=' ).
-    if copy_idx <> 0.
+    IF result-receiving_idx = 0.
+      RETURN.
+    ENDIF.
+    DATA(copy_idx) = analyzer->find_clause_index(  tokens = tokens start_index = result-receiving_idx + 1 clause = '=' ).
+    IF copy_idx <> 0.
       result-end_idx = lines( tokens ).
-      loop at tokens from copy_idx + 1 assigning field-symbol(<token>)
-      where references is initial.
-        case <token>-lexeme.
-          when ')' or 'EXPORTING'.
+      LOOP AT tokens FROM copy_idx + 1 ASSIGNING FIELD-SYMBOL(<token>)
+      WHERE references IS INITIAL.
+        CASE <token>-lexeme.
+          WHEN ')' OR 'EXPORTING'.
             result-end_idx = sy-tabix - 1.
-            exit.
-        endcase.
-      endloop.
-      append_tokens( exporting tokens = tokens from_idx = copy_idx + 1 to_idx = result-end_idx changing result = result-result_line ).
-    endif.
+            EXIT.
+        ENDCASE.
+      ENDLOOP.
+      append_tokens( EXPORTING tokens = tokens from_idx = copy_idx + 1 to_idx = result-end_idx CHANGING result = result-result_line ).
+    ENDIF.
 
-  endmethod.
-endclass.
+  ENDMETHOD.
+ENDCLASS.

@@ -135,12 +135,31 @@ class test implementation.
        location = value #( object = test_read position = value #( line = 76 column = 4 ) )
        has_pseudo_comment = abap_true )
 
-
-     ( code = /cc4a/modern_language=>message_codes-line_exists
+    ( code = /cc4a/modern_language=>message_codes-line_exists
        location = value #( object = test_read position = value #( line = 81 column = 4 ) )
        has_pseudo_comment = abap_true  )
 
      ( code = /cc4a/modern_language=>message_codes-line_exists
+       location = value #( object = test_read position = value #( line = 87 column = 4 ) )
+       has_pseudo_comment = abap_true
+       quickfixes = value #( (
+         quickfix_code = /cc4a/modern_language=>quickfix_codes-line_exists
+         span = value #( object = test_read from = 87 to = 88 )
+         code_lines = value #( ( `    IF line_index( ITAB1[ PGMID = 'BLUB' OBJECT = 'PROG' OBJ_NAME = 'BLABLA' ] ) = 0.` ) ) ) ) )
+
+    ( code = /cc4a/modern_language=>message_codes-line_exists
+       location = value #( object = test_read position = value #( line = 91 column = 4 ) )
+       has_pseudo_comment = abap_true  )
+
+    ( code = /cc4a/modern_language=>message_codes-line_exists
+       location = value #( object = test_read position = value #( line = 95 column = 4 ) )
+       has_pseudo_comment = abap_true  )
+
+    ( code = /cc4a/modern_language=>message_codes-line_exists
+       location = value #( object = test_read position = value #( line = 106 column = 4 ) )
+       has_pseudo_comment = abap_true  )
+
+    ( code = /cc4a/modern_language=>message_codes-line_exists
        location = value #( object = test_loop position = value #( line = 4 column = 4 ) )
        quickfixes = value #( (
          quickfix_code = /cc4a/modern_language=>quickfix_codes-line_exists

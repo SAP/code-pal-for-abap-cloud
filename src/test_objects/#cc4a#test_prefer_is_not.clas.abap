@@ -1,179 +1,217 @@
-class /cc4a/test_prefer_is_not definition
-  public
-  final
-  create public .
+CLASS /cc4a/test_prefer_is_not DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
 
-  public section.
-  protected section.
-  private section.
+  PUBLIC SECTION.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
 
-    types: begin of table_type,
-             position type i,
-             name     type string,
-           end of table_type.
+    TYPES: BEGIN OF table_type,
+             position TYPE i,
+             name     TYPE string,
+           END OF table_type.
 
-    methods without_brackets.
-    methods with_brackets.
-    methods with_pseudo_comments.
-    methods chained_method_call.
+    METHODS without_brackets.
+    METHODS with_brackets.
+    METHODS with_pseudo_comments.
+    METHODS chained_method_call.
+    METHODS itabs.
+    METHODS several_nots.
+    METHODS comparators.
+    METHODS getint
+      IMPORTING zahl1      TYPE i OPTIONAL
+                zahl2      TYPE i OPTIONAL
+      RETURNING VALUE(int) TYPE i.
+    METHODS getbool
+      IMPORTING true        TYPE abap_bool OPTIONAL
+      RETURNING VALUE(bool) TYPE abap_bool.
+    METHODS get_tester
+      RETURNING VALUE(tester) TYPE REF TO tester.
 
-
-    methods getint
-      importing zahl1      type i optional
-                zahl2      type i optional
-      returning value(int) type i.
-    methods getbool
-      importing true        type abap_bool optional
-      returning value(bool) type abap_bool.
-    methods get_tester
-      returning value(tester) type ref to tester.
-
-    data x type i.
-    data obj type ref to object.
-    data int_tab type range of i.
+    DATA x TYPE i.
+    DATA obj TYPE REF TO object.
+    DATA int_tab TYPE RANGE OF i.
 ENDCLASS.
 
 
 
-CLASS /CC4A/TEST_PREFER_IS_NOT IMPLEMENTATION.
+CLASS /cc4a/test_prefer_is_not IMPLEMENTATION.
 
 
-  method chained_method_call.
-    if not get_tester( )->check( 2 ).
-    endif.
-  endmethod.
+  METHOD chained_method_call.
+    IF NOT get_tester( )->check( 2 ).
+    ENDIF.
+  ENDMETHOD.
 
 
-  method getbool.
+  METHOD getbool.
 
-  endmethod.
-
-
-  method getint.
-
-  endmethod.
+  ENDMETHOD.
 
 
-  method get_tester.
+  METHOD getint.
 
-  endmethod.
-
-
-  method without_brackets.
-
-    assert not getint( ) = getbool( ).
-
-    if not x > 1.
-    endif.
-
-    if not x <> getint( ).
-    elseif not x < getint( zahl1 = 2 zahl2 = 3 ).
-    endif.
-
-    if not x in int_tab.
-    endif.
-
-    if not obj is initial.
-    elseif not obj is bound.
-    endif.
-
-    if not x <= getbool( ).
-    endif.
-
-    if not x ne xsdbool( 1 = 2 ).
-    endif.
-
-    if not x lt 1 or not x ge getbool( xsdbool( 1 = 2 ) ).
-    endif.
-
-    if not x le 1 and not x eq 2 .
-    endif.
-
-    assert not 1 <> 2.
-
-    if not getbool( true = abap_false ).
-    endif.
-
-    if not getbool( ).
-    endif.
-  endmethod.
+  ENDMETHOD.
 
 
-  method with_brackets.
+  METHOD get_tester.
 
-    assert not ( getint( ) = getbool( ) ).
-
-    if not ( x = 1 ).
-    endif.
-
-    if not ( x <> getint( ) ).
-    elseif not ( x < getint( zahl1 = 2 zahl2 = 3 ) ).
-    endif.
-
-    if not ( x in int_tab ).
-    endif.
-
-    if not ( obj is initial ).
-    elseif not ( obj is bound ).
-    endif.
-
-    if not ( x <= getbool( ) ).
-    endif.
-
-    if not ( x ne xsdbool( 1 = xsdbool( 1 = 2 ) ) ).
-    endif.
-
-    if not ( x lt 1 or x ge getbool( xsdbool( 1 = 2 ) ) ).
-    endif.
-
-    if not ( x le 1 and not x eq 2 ).
-    endif.
-
-    assert not ( 1 <> 2 ).
-
-    if not ( ( 1 + 2 ) = 3 ).
-    endif.
-
-    if not ( ( 1 + 2 ) + 3 = 3 ).
-    endif.
-
-    if not ( ( 1 + 2 ) + ( 3 + 3 ) = 3 ).
-    endif.
-
-  endmethod.
+  ENDMETHOD.
 
 
-  method with_pseudo_comments.
+  METHOD without_brackets.
 
-    assert not getint( ) = getbool( ).               "#EC PREFER_IS_NOT
+    ASSERT NOT getint( ) = getbool( ).
 
-    if not x = 1.                                    "#EC PREFER_IS_NOT
-    endif.
+    IF NOT x > 1.
+    ENDIF.
 
-    if not x <> getint( ).                           "#EC PREFER_IS_NOT
-    elseif not x < getint( zahl1 = 2 zahl2 = 3 ).    "#EC PREFER_IS_NOT
-    endif.
+    IF NOT x <> getint( ).
+    ELSEIF NOT x < getint( zahl1 = 2 zahl2 = 3 ).
+    ENDIF.
 
-    if not x in int_tab.                             "#EC PREFER_IS_NOT
-    endif.
+    IF NOT x IN int_tab.
+    ENDIF.
 
-    if not obj is initial.                           "#EC PREFER_IS_NOT
-    elseif not obj is bound.                         "#EC PREFER_IS_NOT
-    endif.
+    IF NOT obj IS INITIAL.
+    ELSEIF NOT obj IS BOUND.
+    ENDIF.
 
-    if not ( x <= getbool( ) ).                      "#EC PREFER_IS_NOT
-    endif.
+    IF NOT x <= getbool( ).
+    ENDIF.
 
-    if not ( x ne xsdbool( 1 = xsdbool( 1 = 2 ) ) ). "#EC PREFER_IS_NOT
-    endif.
+    IF NOT x NE xsdbool( 1 = 2 ).
+    ENDIF.
 
-    if not ( x lt 1 or x ge getbool( xsdbool( 1 = 2 ) ) ).
-    endif.
+    IF NOT x LT 1 OR NOT x GE getbool( xsdbool( 1 = 2 ) ).
+    ENDIF.
 
-    if not ( x le 1 and not x eq 2 ).                "#EC PREFER_IS_NOT
-    endif.
+    IF NOT x LE 1 AND NOT x EQ 2 .
+    ENDIF.
 
-    assert not ( 1 <> 2 ).                           "#EC PREFER_IS_NOT
+    ASSERT NOT 1 <> 2.
 
-  endmethod.
+    IF NOT getbool( true = abap_false ).
+    ENDIF.
+
+    IF NOT getbool( ).
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD with_brackets.
+
+    ASSERT NOT ( getint( ) = getbool( ) ).
+
+    IF NOT ( x = 1 ).
+    ENDIF.
+
+    IF NOT ( x <> getint( ) ).
+    ELSEIF NOT ( x < getint( zahl1 = 2 zahl2 = 3 ) ).
+    ENDIF.
+
+    IF NOT ( x IN int_tab ).
+    ENDIF.
+
+    IF NOT ( obj IS INITIAL ).
+    ELSEIF NOT ( obj IS BOUND ).
+    ENDIF.
+
+    IF NOT ( x <= getbool( ) ).
+    ENDIF.
+
+    IF NOT ( x NE xsdbool( 1 = xsdbool( 1 = 2 ) ) ).
+    ENDIF.
+
+    IF NOT ( x LT 1 OR x GE getbool( xsdbool( 1 = 2 ) ) ).
+    ENDIF.
+
+    IF NOT ( x LE 1 AND NOT x EQ 2 ).
+    ENDIF.
+
+    ASSERT NOT ( 1 <> 2 ).
+
+    IF NOT ( ( 1 + 2 ) = 3 ).
+    ENDIF.
+
+    IF NOT ( ( 1 + 2 ) + 3 = 3 ).
+    ENDIF.
+
+    IF NOT ( ( 1 + 2 ) + ( 3 + 3 ) = 3 ).
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD with_pseudo_comments.
+
+    ASSERT NOT getint( ) = getbool( ).               "#EC PREFER_IS_NOT
+
+    IF NOT x = 1.                                    "#EC PREFER_IS_NOT
+    ENDIF.
+
+    IF NOT x <> getint( ).                           "#EC PREFER_IS_NOT
+    ELSEIF NOT x < getint( zahl1 = 2 zahl2 = 3 ).    "#EC PREFER_IS_NOT
+    ENDIF.
+
+    IF NOT x IN int_tab.                             "#EC PREFER_IS_NOT
+    ENDIF.
+
+    IF NOT obj IS INITIAL.                           "#EC PREFER_IS_NOT
+    ELSEIF NOT obj IS BOUND.                         "#EC PREFER_IS_NOT
+    ENDIF.
+
+    IF NOT ( x <= getbool( ) ).                      "#EC PREFER_IS_NOT
+    ENDIF.
+
+    IF NOT ( x NE xsdbool( 1 = xsdbool( 1 = 2 ) ) ). "#EC PREFER_IS_NOT
+    ENDIF.
+
+    IF NOT ( x LT 1 OR x GE getbool( xsdbool( 1 = 2 ) ) ).
+    ENDIF.
+
+    IF NOT ( x LE 1 AND NOT x EQ 2 ).                "#EC PREFER_IS_NOT
+    ENDIF.
+
+    ASSERT NOT ( 1 <> 2 ).                           "#EC PREFER_IS_NOT
+
+  ENDMETHOD.
+  METHOD itabs.
+    DATA itab TYPE STANDARD TABLE OF /cc4a/testflight WITH EMPTY KEY.
+
+    IF NOT itab[ seatsmax = 15 ]-seatsocc = 3.
+    ENDIF.
+
+    IF NOT line_exists( itab[ seatsmax = 5 ] ).
+    ENDIF.
+
+    IF NOT itab[ 5 ]-seatsocc IS NOT INITIAL.
+    ENDIF.
+  ENDMETHOD.
+  METHOD several_nots.
+    DATA itab TYPE STANDARD TABLE OF string.
+    DATA a TYPE string.
+    IF NOT itab IS NOT INITIAL.
+    ENDIF.
+
+    IF NOT itab IS NOT INITIAL OR a IS NOT INITIAL.
+    ENDIF.
+
+    IF NOT 1 IN int_tab.
+    ENDIF.
+
+    IF NOT 1 NOT IN int_tab.
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD comparators.
+    DATA hex1 TYPE xstring.
+    DATA hex2 TYPE xstring.
+
+    IF NOT hex1 Z hex2.
+    ENDIF.
+  ENDMETHOD.
 ENDCLASS.

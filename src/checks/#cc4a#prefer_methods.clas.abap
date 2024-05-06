@@ -45,7 +45,7 @@ class /cc4a/prefer_methods implementation.
       case <statement>-keyword.
         when `FUNCTION`.
           data(finding_code) = finding_codes-prefer_methods.
-          data(function_module) = xco_cp_abap=>function_module( iv_name = |{ <statement>-tokens[ 2 ]-lexeme }| ).
+          data(function_module) = xco_abap=>function_module( iv_name = |{ <statement>-tokens[ 2 ]-lexeme }| ).
           if function_is_rfc_enabled( function_module = function_module ).
             continue.
           endif.

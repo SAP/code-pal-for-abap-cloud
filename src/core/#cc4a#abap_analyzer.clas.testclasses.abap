@@ -1,396 +1,396 @@
-class key_words definition final for testing
-  duration short
-  risk level harmless.
+CLASS key_words DEFINITION FINAL FOR TESTING
+  DURATION SHORT
+  RISK LEVEL HARMLESS.
 
-  private section.
-    methods statement_is_all_keywords for testing raising cx_static_check.
-    methods identifiers_like_keywords for testing raising cx_static_check.
-    methods test_find_clause_index for testing.
-endclass.
+  PRIVATE SECTION.
+    METHODS statement_is_all_keywords FOR TESTING RAISING cx_static_check.
+    METHODS identifiers_like_keywords FOR TESTING RAISING cx_static_check.
+    METHODS test_find_clause_index FOR TESTING.
+ENDCLASS.
 
-class key_words implementation.
-  method statement_is_all_keywords.
-    data(test_statement) = value if_ci_atc_source_code_provider=>ty_statement(
-      tokens = value #( for i = 1 then i + 1 until i >= 10 ( lexeme = |{ i }| ) ) ).
-    data(analyzer) = /cc4a/abap_analyzer=>create( ).
+CLASS key_words IMPLEMENTATION.
+  METHOD statement_is_all_keywords.
+    DATA(test_statement) = VALUE if_ci_atc_source_code_provider=>ty_statement(
+      tokens = VALUE #( FOR i = 1 THEN i + 1 UNTIL i >= 10 ( lexeme = |{ i }| ) ) ).
+    DATA(analyzer) = /cc4a/abap_analyzer=>create( ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = analyzer->find_key_words( key_words = value #( ( `3` ) ) statement = test_statement )
+      act = analyzer->find_key_words( key_words = VALUE #( ( `3` ) ) statement = test_statement )
       exp = 3 ).
     cl_abap_unit_assert=>assert_equals(
-      act = analyzer->find_key_words( key_words = value #( ( `3` ) ( `4` ) ( `5` ) ) statement = test_statement )
+      act = analyzer->find_key_words( key_words = VALUE #( ( `3` ) ( `4` ) ( `5` ) ) statement = test_statement )
       exp = 3 ).
     cl_abap_unit_assert=>assert_equals(
-      act = analyzer->find_key_words( key_words = value #( ( `1` ) ( `5` ) ) statement = test_statement )
+      act = analyzer->find_key_words( key_words = VALUE #( ( `1` ) ( `5` ) ) statement = test_statement )
       exp = -1 ).
     cl_abap_unit_assert=>assert_equals(
-      act = analyzer->find_key_words( key_words = value #( ( `8` ) ( `9` ) ) statement = test_statement )
+      act = analyzer->find_key_words( key_words = VALUE #( ( `8` ) ( `9` ) ) statement = test_statement )
       exp = 8 ).
     cl_abap_unit_assert=>assert_equals(
-      act = analyzer->find_key_words( key_words = value #( ( `6` ) ( `8` ) ( `9` ) ) statement = test_statement )
+      act = analyzer->find_key_words( key_words = VALUE #( ( `6` ) ( `8` ) ( `9` ) ) statement = test_statement )
       exp = -1 ).
     cl_abap_unit_assert=>assert_equals(
-      act = analyzer->find_key_words( key_words = value #( ( `5` ) ( `3` ) ( `4` ) ) statement = test_statement )
+      act = analyzer->find_key_words( key_words = VALUE #( ( `5` ) ( `3` ) ( `4` ) ) statement = test_statement )
       exp = -1 ).
     cl_abap_unit_assert=>assert_equals(
       act = analyzer->find_key_words(
-          key_words = value #( ( `1` ) ( `2` ) ( `3` ) ( `4` ) )
+          key_words = VALUE #( ( `1` ) ( `2` ) ( `3` ) ( `4` ) )
           statement = test_statement )
       exp = 1 ).
-  endmethod.
+  ENDMETHOD.
 
-  method identifiers_like_keywords.
-    data(test_statement) = value if_ci_atc_source_code_provider=>ty_statement(
-      tokens = value #(
+  METHOD identifiers_like_keywords.
+    DATA(test_statement) = VALUE if_ci_atc_source_code_provider=>ty_statement(
+      tokens = VALUE #(
         ( lexeme = `1` )
         ( lexeme = `2` )
-        ( lexeme = `3` references = value #( ( full_name = `FOO` ) ) )
+        ( lexeme = `3` references = VALUE #( ( full_name = `FOO` ) ) )
         ( lexeme = `4` ) ) ).
-    data(analyzer) = /cc4a/abap_analyzer=>create( ).
+    DATA(analyzer) = /cc4a/abap_analyzer=>create( ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = analyzer->find_key_words( key_words = value #( ( `2` ) ) statement = test_statement )
+      act = analyzer->find_key_words( key_words = VALUE #( ( `2` ) ) statement = test_statement )
       exp = 2 ).
     cl_abap_unit_assert=>assert_equals(
-      act = analyzer->find_key_words( key_words = value #( ( `3` ) ) statement = test_statement )
+      act = analyzer->find_key_words( key_words = VALUE #( ( `3` ) ) statement = test_statement )
       exp = -1 ).
     cl_abap_unit_assert=>assert_equals(
-      act = analyzer->find_key_words( key_words = value #( ( `2` ) ( `3` ) ) statement = test_statement )
+      act = analyzer->find_key_words( key_words = VALUE #( ( `2` ) ( `3` ) ) statement = test_statement )
       exp = -1 ).
     cl_abap_unit_assert=>assert_equals(
-      act = analyzer->find_key_words( key_words = value #( ( `2` ) ( `3` ) ( `4` ) ) statement = test_statement )
+      act = analyzer->find_key_words( key_words = VALUE #( ( `2` ) ( `3` ) ( `4` ) ) statement = test_statement )
       exp = -1 ).
     cl_abap_unit_assert=>assert_equals(
-      act = analyzer->find_key_words( key_words = value #( ( `1` ) ( `2` ) ) statement = test_statement )
+      act = analyzer->find_key_words( key_words = VALUE #( ( `1` ) ( `2` ) ) statement = test_statement )
       exp = 1 ).
-  endmethod.
+  ENDMETHOD.
 
-  method test_find_clause_index.
-    data(test_tokens) = value if_ci_atc_source_code_provider=>ty_tokens(
+  METHOD test_find_clause_index.
+    DATA(test_tokens) = VALUE if_ci_atc_source_code_provider=>ty_tokens(
       ( lexeme = '1' ) ( lexeme = '2' ) ( lexeme = '3' )
       ( lexeme = '4' ) ( lexeme = '5' ) ( lexeme = '6' )
       ( lexeme = '7' ) ( lexeme = '8' ) ( lexeme = '9' ) ( lexeme = '10' ) ).
-    data(test_clause) = `5 6 7`.
-    data(index) = /cc4a/abap_analyzer=>create( )->find_clause_index( tokens = test_tokens clause = test_clause ).
+    DATA(test_clause) = `5 6 7`.
+    DATA(index) = /cc4a/abap_analyzer=>create( )->find_clause_index( tokens = test_tokens clause = test_clause ).
     cl_abap_unit_assert=>assert_equals( act = index exp = 5 ).
 
-    test_tokens = value #( ( lexeme = 'A' ) ( lexeme = 'B' ) ( lexeme = '3' )
+    test_tokens = VALUE #( ( lexeme = 'A' ) ( lexeme = 'B' ) ( lexeme = '3' )
                            ( lexeme = 'A' ) ( lexeme = 'B' ) ( lexeme = 'C' )
                            ( lexeme = 'A' ) ( lexeme = 'B' ) ( lexeme = 'C' ) ( lexeme = 'D' ) ).
     index = /cc4a/abap_analyzer=>create( )->find_clause_index( tokens = test_tokens clause = `A B C D` ).
     cl_abap_unit_assert=>assert_equals( act = index exp = 7 ).
-    try.
+    TRY.
         index = /cc4a/abap_analyzer=>create( )->find_clause_index( tokens = test_tokens clause = `   ` ).
         cl_abap_unit_assert=>fail( ).
-      catch /cc4a/cx_clause_is_initial.
-    endtry.
-  endmethod.
-endclass.
+      CATCH /cc4a/cx_clause_is_initial.
+    ENDTRY.
+  ENDMETHOD.
+ENDCLASS.
 
-class lcl_atc_check_db_stmt definition final.
+CLASS lcl_atc_check_db_stmt DEFINITION FINAL.
 
-  public section.
-    interfaces if_ci_atc_check.
+  PUBLIC SECTION.
+    INTERFACES if_ci_atc_check.
 
-  private section.
-    data code_provider     type ref to if_ci_atc_source_code_provider.
-    data assistant_factory type ref to cl_ci_atc_assistant_factory ##needed.
+  PRIVATE SECTION.
+    DATA code_provider     TYPE REF TO if_ci_atc_source_code_provider.
+    DATA assistant_factory TYPE REF TO cl_ci_atc_assistant_factory ##needed.
 
-    methods analyze_procedure
-      importing !procedure      type if_ci_atc_source_code_provider=>ty_procedure
-      returning value(findings) type if_ci_atc_check=>ty_findings.
-endclass.
+    METHODS analyze_procedure
+      IMPORTING !procedure      TYPE if_ci_atc_source_code_provider=>ty_procedure
+      RETURNING VALUE(findings) TYPE if_ci_atc_check=>ty_findings.
+ENDCLASS.
 
-class lcl_atc_check_db_stmt implementation.
-  method if_ci_atc_check~get_meta_data.
+CLASS lcl_atc_check_db_stmt IMPLEMENTATION.
+  METHOD if_ci_atc_check~get_meta_data.
     meta_data = /cc4a/check_meta_data=>create(
-       value #( checked_types = /cc4a/check_meta_data=>checked_types-abap_programs
+       VALUE #( checked_types = /cc4a/check_meta_data=>checked_types-abap_programs
                 remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
-                finding_codes = value #( ( code = 'SELECT' ) ( code = 'WITH' ) ( code = 'INSERT' )
+                finding_codes = VALUE #( ( code = 'SELECT' ) ( code = 'WITH' ) ( code = 'INSERT' )
               ( code = 'DELETE' ) ( code = 'UPDATE' ) ( code = 'MODIFY' ) ( code = 'OPEN' ) (  code = 'EXEC' )
               ( code = 'LOOP' ) ( code = 'READ' ) ( code = 'IMPORT' ) ( code = 'EXPORT' ) ) ) ).
-  endmethod.
+  ENDMETHOD.
 
-  method if_ci_atc_check~run.
+  METHOD if_ci_atc_check~run.
     code_provider = data_provider->get_code_provider( ).
-    data(procedures) = code_provider->get_procedures( code_provider->object_to_comp_unit( object ) ).
-    loop at procedures->* assigning field-symbol(<procedure>).
-      insert lines of analyze_procedure( <procedure> ) into table findings.
-    endloop.
-  endmethod.
+    DATA(procedures) = code_provider->get_procedures( code_provider->object_to_comp_unit( object ) ).
+    LOOP AT procedures->* ASSIGNING FIELD-SYMBOL(<procedure>).
+      INSERT LINES OF analyze_procedure( <procedure> ) INTO TABLE findings.
+    ENDLOOP.
+  ENDMETHOD.
 
-  method if_ci_atc_check~set_assistant_factory.
+  METHOD if_ci_atc_check~set_assistant_factory.
     assistant_factory = factory.
-  endmethod.
+  ENDMETHOD.
 
-  method if_ci_atc_check~verify_prerequisites ##needed.
-  endmethod.
+  METHOD if_ci_atc_check~verify_prerequisites ##needed.
+  ENDMETHOD.
 
-  method analyze_procedure.
-    data(analyzer) = /cc4a/abap_analyzer=>create( ).
-    loop at procedure-statements assigning field-symbol(<statement>).
-      data(result) = analyzer->is_db_statement( <statement> ).
-      if result-is_db = abap_true.
-        insert value #(
+  METHOD analyze_procedure.
+    DATA(analyzer) = /cc4a/abap_analyzer=>create( ).
+    LOOP AT procedure-statements ASSIGNING FIELD-SYMBOL(<statement>).
+      DATA(result) = analyzer->is_db_statement( <statement> ).
+      IF result-is_db = abap_true.
+        INSERT VALUE #(
           code = <statement>-keyword
-          parameters = value #( param_1 = result-dbtab param_2 = result-dbtab_subquery )
-          location = value #( object = code_provider->get_statement_location( <statement> )-object
+          parameters = VALUE #( param_1 = result-dbtab param_2 = result-dbtab_subquery )
+          location = VALUE #( object = code_provider->get_statement_location( <statement> )-object
                               position = code_provider->get_statement_location( <statement> )-position )
-          checksum = code_provider->get_statement_checksum( <statement> ) ) into table findings.
-      endif.
-    endloop.
-  endmethod.
-endclass.
+          checksum = code_provider->get_statement_checksum( <statement> ) ) INTO TABLE findings.
+      ENDIF.
+    ENDLOOP.
+  ENDMETHOD.
+ENDCLASS.
 
-class db_stmt definition final for testing
-  duration short
-  risk level harmless.
+CLASS db_stmt DEFINITION FINAL FOR TESTING
+  DURATION SHORT
+  RISK LEVEL HARMLESS.
 
-  private section.
-    constants test_class type c length 30 value '/CC4A/TEST_FOR_DB_STATEMENTS'.
+  PRIVATE SECTION.
+    CONSTANTS test_class TYPE c LENGTH 30 VALUE '/CC4A/TEST_FOR_DB_STATEMENTS'.
 
-    methods execute_test_class for testing raising cx_static_check.
-endclass.
+    METHODS execute_test_class FOR TESTING RAISING cx_static_check.
+ENDCLASS.
 
-class db_stmt implementation.
-  method execute_test_class.
-    data(dyn) = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = 'DYN' ) ).
-    data(mixed) = cl_ci_atc_unit_driver=>get_method_object( value #( class = test_class method = 'MIXED' ) ).
+CLASS db_stmt IMPLEMENTATION.
+  METHOD execute_test_class.
+    DATA(dyn) = cl_ci_atc_unit_driver=>get_method_object( VALUE #( class = test_class method = 'DYN' ) ).
+    DATA(mixed) = cl_ci_atc_unit_driver=>get_method_object( VALUE #( class = test_class method = 'MIXED' ) ).
     cl_ci_atc_unit_driver=>create_asserter( )->check_and_assert(
-      check             = new lcl_atc_check_db_stmt( )
-      object            = value #( type = 'CLAS' name = test_class )
-      expected_findings = value #(
-       ( code = 'DELETE' location = value #( object = dyn position = value #( line = 6 column = 4 ) ) )
-       ( code = 'SELECT' location = value #( object = dyn position = value #( line = 9 column = 6 ) ) )
-       ( code = 'SELECT' location = value #( object = dyn position = value #( line = 12 column = 6 ) ) )
-       ( code = 'SELECT' location = value #( object = dyn position = value #( line = 14 column = 4 ) ) )
-       ( code = 'SELECT' location = value #( object = dyn position = value #( line = 15 column = 4 ) ) )
-       ( code = 'SELECT' location = value #( object = dyn position = value #( line = 17 column = 4 ) ) )
-       ( code = 'INSERT' location = value #( object = dyn position = value #( line = 18 column = 4 ) ) )
-       ( code = 'INSERT' location = value #( object = dyn position = value #( line = 19 column = 4 ) ) )
-       ( code = 'UPDATE' location = value #( object = dyn position = value #( line = 20 column = 4 ) ) )
-       ( code = 'UPDATE' location = value #( object = dyn position = value #( line = 21 column = 4 ) ) )
-       ( code = 'MODIFY' location = value #( object = dyn position = value #( line = 22 column = 4 ) ) )
-       ( code = 'DELETE' location = value #( object = dyn position = value #( line = 23 column = 4 ) ) )
-       ( code = 'DELETE' location = value #( object = dyn position = value #( line = 24 column = 4 ) ) )
-       ( code = 'DELETE' location = value #( object = dyn position = value #( line = 26 column = 4 ) ) )
-       ( code = 'SELECT' parameters = value #( param_1 = '/CC4A/DB_TEST1' )
-         location = value #( object = mixed position = value #( line = 8 column = 4 ) ) )
-       ( code = 'SELECT' parameters = value #( param_1 = '/CC4A/DB_TEST1' )
-         location = value #( object = mixed position = value #( line = 9 column = 4 ) ) )
-       ( code = 'DELETE' parameters = value #( param_1 = '/CC4A/DB_TEST1' )
-         location = value #( object = mixed position = value #( line = 13 column = 4 ) ) )
-       ( code = 'DELETE' parameters = value #( param_1 = '/CC4A/DB_TEST2' param_2 = '/CC4A/DB_TEST1' )
-         location = value #( object = mixed position = value #( line = 14 column = 4 ) ) )
-       ( code = 'DELETE' parameters = value #( param_1 = '/CC4A/DB_TEST1' )
-         location = value #( object = mixed position = value #( line = 15 column = 4 ) ) )
-       ( code = 'DELETE' parameters = value #( param_1 = '/CC4A/DB_TEST1' )
-         location = value #( object = mixed position = value #( line = 17 column = 4 ) ) )
-       ( code = 'DELETE' parameters = value #( param_1 = '/CC4A/DB_TEST1' )
-         location = value #( object = mixed position = value #( line = 18 column = 4 ) ) )
-       ( code = 'INSERT' parameters = value #( param_1 = '/CC4A/DB_TEST2' param_2 = '/CC4A/DB_TEST1' )
-         location = value #( object = mixed position = value #( line = 23 column = 4 ) ) )
-       ( code = 'UPDATE' parameters = value #( param_1 = '/CC4A/DB_TEST2' param_2 = '/CC4A/DB_TEST1' )
-         location = value #( object = mixed position = value #( line = 29 column = 4 ) ) )
-       ( code = 'UPDATE' parameters = value #( param_1 = '/CC4A/DB_TEST1' )
-         location = value #( object = mixed position = value #( line = 30 column = 4 ) ) )
-       ( code = 'UPDATE' parameters = value #( param_1 = '/CC4A/DB_TEST1' )
-         location = value #( object = mixed position = value #( line = 31 column = 4 ) ) )
-       ( code = 'MODIFY' parameters = value #( param_1 = '/CC4A/DB_TEST1' )
-         location = value #( object = mixed position = value #( line = 33 column = 4 ) ) )
-       ( code = 'WITH' parameters = value #( param_1 = 'SCI_TEST_SFLIGHT' )
-         location = value #( object = mixed position = value #( line = 46 column = 4 ) ) ) )
-      asserter_config   = value #(
+      check             = NEW lcl_atc_check_db_stmt( )
+      object            = VALUE #( type = 'CLAS' name = test_class )
+      expected_findings = VALUE #(
+       ( code = 'DELETE' location = VALUE #( object = dyn position = VALUE #( line = 6 column = 4 ) ) )
+       ( code = 'SELECT' location = VALUE #( object = dyn position = VALUE #( line = 9 column = 6 ) ) )
+       ( code = 'SELECT' location = VALUE #( object = dyn position = VALUE #( line = 12 column = 6 ) ) )
+       ( code = 'SELECT' location = VALUE #( object = dyn position = VALUE #( line = 14 column = 4 ) ) )
+       ( code = 'SELECT' location = VALUE #( object = dyn position = VALUE #( line = 15 column = 4 ) ) )
+       ( code = 'SELECT' location = VALUE #( object = dyn position = VALUE #( line = 17 column = 4 ) ) )
+       ( code = 'INSERT' location = VALUE #( object = dyn position = VALUE #( line = 18 column = 4 ) ) )
+       ( code = 'INSERT' location = VALUE #( object = dyn position = VALUE #( line = 19 column = 4 ) ) )
+       ( code = 'UPDATE' location = VALUE #( object = dyn position = VALUE #( line = 20 column = 4 ) ) )
+       ( code = 'UPDATE' location = VALUE #( object = dyn position = VALUE #( line = 21 column = 4 ) ) )
+       ( code = 'MODIFY' location = VALUE #( object = dyn position = VALUE #( line = 22 column = 4 ) ) )
+       ( code = 'DELETE' location = VALUE #( object = dyn position = VALUE #( line = 23 column = 4 ) ) )
+       ( code = 'DELETE' location = VALUE #( object = dyn position = VALUE #( line = 24 column = 4 ) ) )
+       ( code = 'DELETE' location = VALUE #( object = dyn position = VALUE #( line = 26 column = 4 ) ) )
+       ( code = 'SELECT' parameters = VALUE #( param_1 = '/CC4A/DB_TEST1' )
+         location = VALUE #( object = mixed position = VALUE #( line = 8 column = 4 ) ) )
+       ( code = 'SELECT' parameters = VALUE #( param_1 = '/CC4A/DB_TEST1' )
+         location = VALUE #( object = mixed position = VALUE #( line = 9 column = 4 ) ) )
+       ( code = 'DELETE' parameters = VALUE #( param_1 = '/CC4A/DB_TEST1' )
+         location = VALUE #( object = mixed position = VALUE #( line = 13 column = 4 ) ) )
+       ( code = 'DELETE' parameters = VALUE #( param_1 = '/CC4A/DB_TEST2' param_2 = '/CC4A/DB_TEST1' )
+         location = VALUE #( object = mixed position = VALUE #( line = 14 column = 4 ) ) )
+       ( code = 'DELETE' parameters = VALUE #( param_1 = '/CC4A/DB_TEST1' )
+         location = VALUE #( object = mixed position = VALUE #( line = 15 column = 4 ) ) )
+       ( code = 'DELETE' parameters = VALUE #( param_1 = '/CC4A/DB_TEST1' )
+         location = VALUE #( object = mixed position = VALUE #( line = 17 column = 4 ) ) )
+       ( code = 'DELETE' parameters = VALUE #( param_1 = '/CC4A/DB_TEST1' )
+         location = VALUE #( object = mixed position = VALUE #( line = 18 column = 4 ) ) )
+       ( code = 'INSERT' parameters = VALUE #( param_1 = '/CC4A/DB_TEST2' param_2 = '/CC4A/DB_TEST1' )
+         location = VALUE #( object = mixed position = VALUE #( line = 23 column = 4 ) ) )
+       ( code = 'UPDATE' parameters = VALUE #( param_1 = '/CC4A/DB_TEST2' param_2 = '/CC4A/DB_TEST1' )
+         location = VALUE #( object = mixed position = VALUE #( line = 29 column = 4 ) ) )
+       ( code = 'UPDATE' parameters = VALUE #( param_1 = '/CC4A/DB_TEST1' )
+         location = VALUE #( object = mixed position = VALUE #( line = 30 column = 4 ) ) )
+       ( code = 'UPDATE' parameters = VALUE #( param_1 = '/CC4A/DB_TEST1' )
+         location = VALUE #( object = mixed position = VALUE #( line = 31 column = 4 ) ) )
+       ( code = 'MODIFY' parameters = VALUE #( param_1 = '/CC4A/DB_TEST1' )
+         location = VALUE #( object = mixed position = VALUE #( line = 33 column = 4 ) ) )
+       ( code = 'WITH' parameters = VALUE #( param_1 = 'SCI_TEST_SFLIGHT' )
+         location = VALUE #( object = mixed position = VALUE #( line = 46 column = 4 ) ) ) )
+      asserter_config   = VALUE #(
         quickfixes = abap_false ) ).
-  endmethod.
-endclass.
+  ENDMETHOD.
+ENDCLASS.
 
-class shared definition final abstract.
-  public section.
-    class-methods tokenize
-      importing !code            type string
-      returning value(statement) type if_ci_atc_source_code_provider=>ty_statement.
-endclass.
+CLASS shared DEFINITION FINAL ABSTRACT.
+  PUBLIC SECTION.
+    CLASS-METHODS tokenize
+      IMPORTING !code            TYPE string
+      RETURNING VALUE(statement) TYPE if_ci_atc_source_code_provider=>ty_statement.
+ENDCLASS.
 
-class shared implementation.
-  method tokenize.
-    split code at space into table data(tokens).
-    delete tokens where table_line = '.'.
-    statement = value #( tokens = value #( for <tok> in tokens ( lexeme = to_upper( <tok> ) ) ) ).
+CLASS shared IMPLEMENTATION.
+  METHOD tokenize.
+    SPLIT code AT space INTO TABLE DATA(tokens).
+    DELETE tokens WHERE table_line = '.'.
+    statement = VALUE #( tokens = VALUE #( FOR <tok> IN tokens ( lexeme = to_upper( <tok> ) ) ) ).
     statement-keyword = statement-tokens[ 1 ]-lexeme.
-  endmethod.
-endclass.
+  ENDMETHOD.
+ENDCLASS.
 
-class bracket_matching definition final for testing
-  duration short
-  risk level harmless.
+CLASS bracket_matching DEFINITION FINAL FOR TESTING
+  DURATION SHORT
+  RISK LEVEL HARMLESS.
 
-  private section.
-    methods bracket_ends for testing raising cx_static_check.
-endclass.
+  PRIVATE SECTION.
+    METHODS bracket_ends FOR TESTING RAISING cx_static_check.
+ENDCLASS.
 
-class bracket_matching implementation.
-  method bracket_ends.
-    data(analyzer) = /cc4a/abap_analyzer=>create( ).
+CLASS bracket_matching IMPLEMENTATION.
+  METHOD bracket_ends.
+    DATA(analyzer) = /cc4a/abap_analyzer=>create( ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = analyzer->calculate_bracket_end(
+      act = analyzer->get_closing_bracket_position(
         statement = shared=>tokenize( `call( )` )
-        bracket_position = 1 )
+        opening_position = 1 )
       exp = 2 ).
     cl_abap_unit_assert=>assert_equals(
-      act = analyzer->calculate_bracket_end(
+      act = analyzer->get_closing_bracket_position(
         statement = shared=>tokenize( `if ( a = b ) and ( c = d )` )
-        bracket_position = 2 )
+        opening_position = 2 )
       exp = 6 ).
     cl_abap_unit_assert=>assert_equals(
-      act = analyzer->calculate_bracket_end(
+      act = analyzer->get_closing_bracket_position(
         statement = shared=>tokenize( `if ( a = b ) and ( c = d )` )
-        bracket_position = 8 )
+        opening_position = 8 )
       exp = 12 ).
     cl_abap_unit_assert=>assert_equals(
-      act = analyzer->calculate_bracket_end(
+      act = analyzer->get_closing_bracket_position(
         statement = shared=>tokenize( `if ( a = b and ( c = d ) )` )
-        bracket_position = 2 )
+        opening_position = 2 )
       exp = 12 ).
     cl_abap_unit_assert=>assert_equals(
-      act = analyzer->calculate_bracket_end(
+      act = analyzer->get_closing_bracket_position(
         statement = shared=>tokenize( `if ( a = b and ( c = d ) )` )
-        bracket_position = 7 )
+        opening_position = 7 )
       exp = 11 ).
     cl_abap_unit_assert=>assert_equals(
-      act = analyzer->calculate_bracket_end(
+      act = analyzer->get_closing_bracket_position(
         statement = shared=>tokenize( `obj->call( )` )
-        bracket_position = 1 )
+        opening_position = 1 )
       exp = 2 ).
     cl_abap_unit_assert=>assert_equals(
-      act = analyzer->calculate_bracket_end(
+      act = analyzer->get_closing_bracket_position(
         statement = shared=>tokenize( `obj->call( )->second_call( )` )
-        bracket_position = 1 )
+        opening_position = 1 )
       exp = 2 ).
-  endmethod.
-endclass.
+  ENDMETHOD.
+ENDCLASS.
 
-class method_definitions definition final for testing
-  duration short
-  risk level harmless.
+CLASS method_definitions DEFINITION FINAL FOR TESTING
+  DURATION SHORT
+  RISK LEVEL HARMLESS.
 
-  private section.
-    methods method_definitions for testing raising cx_static_check.
-endclass.
+  PRIVATE SECTION.
+    METHODS method_definitions FOR TESTING RAISING cx_static_check.
+ENDCLASS.
 
-class method_definitions implementation.
-  method method_definitions.
-    data(analyzer) = /cc4a/abap_analyzer=>create( ).
+CLASS method_definitions IMPLEMENTATION.
+  METHOD method_definitions.
+    DATA(analyzer) = /cc4a/abap_analyzer=>create( ).
 
     cl_abap_unit_assert=>assert_equals(
       act = analyzer->parse_method_definition(
         shared=>tokenize( `methods meth redefinition .` ) )
-      exp = value /cc4a/if_abap_analyzer=>ty_method_definition(
+      exp = VALUE /cc4a/if_abap_analyzer=>ty_method_definition(
         name = `METH`
         is_redefinition = abap_true ) ).
     cl_abap_unit_assert=>assert_equals(
       act = analyzer->parse_method_definition(
         shared=>tokenize( `methods meth .` ) )
-      exp = value /cc4a/if_abap_analyzer=>ty_method_definition(
+      exp = VALUE /cc4a/if_abap_analyzer=>ty_method_definition(
         name = `METH` ) ).
     cl_abap_unit_assert=>assert_equals(
       act = analyzer->parse_method_definition(
         shared=>tokenize( `methods meth importing par type i .` ) )
-      exp = value /cc4a/if_abap_analyzer=>ty_method_definition(
+      exp = VALUE /cc4a/if_abap_analyzer=>ty_method_definition(
         name = `METH`
-        parameters = value #( ( name = `PAR` kind = /cc4a/if_abap_analyzer=>parameter_kind-importing ) ) ) ).
+        parameters = VALUE #( ( name = `PAR` kind = /cc4a/if_abap_analyzer=>parameter_kind-importing ) ) ) ).
     cl_abap_unit_assert=>assert_equals(
       act = analyzer->parse_method_definition(
         shared=>tokenize( `methods meth importing reference(par) type i .` ) )
-      exp = value /cc4a/if_abap_analyzer=>ty_method_definition(
+      exp = VALUE /cc4a/if_abap_analyzer=>ty_method_definition(
         name = `METH`
-        parameters = value #( ( name = `PAR` kind = /cc4a/if_abap_analyzer=>parameter_kind-importing ) ) ) ).
+        parameters = VALUE #( ( name = `PAR` kind = /cc4a/if_abap_analyzer=>parameter_kind-importing ) ) ) ).
     cl_abap_unit_assert=>assert_equals(
       act = analyzer->parse_method_definition(
         shared=>tokenize( `methods meth exporting par type i .` ) )
-      exp = value /cc4a/if_abap_analyzer=>ty_method_definition(
+      exp = VALUE /cc4a/if_abap_analyzer=>ty_method_definition(
         name = `METH`
-        parameters = value #( ( name = `PAR` kind = /cc4a/if_abap_analyzer=>parameter_kind-exporting ) ) ) ).
+        parameters = VALUE #( ( name = `PAR` kind = /cc4a/if_abap_analyzer=>parameter_kind-exporting ) ) ) ).
     cl_abap_unit_assert=>assert_equals(
       act = analyzer->parse_method_definition(
         shared=>tokenize( `methods meth changing par type i .` ) )
-      exp = value /cc4a/if_abap_analyzer=>ty_method_definition(
+      exp = VALUE /cc4a/if_abap_analyzer=>ty_method_definition(
         name = `METH`
-        parameters = value #( ( name = `PAR` kind = /cc4a/if_abap_analyzer=>parameter_kind-changing ) ) ) ).
+        parameters = VALUE #( ( name = `PAR` kind = /cc4a/if_abap_analyzer=>parameter_kind-changing ) ) ) ).
     cl_abap_unit_assert=>assert_equals(
       act = analyzer->parse_method_definition(
         shared=>tokenize( `methods meth changing par type i .` ) )
-      exp = value /cc4a/if_abap_analyzer=>ty_method_definition(
+      exp = VALUE /cc4a/if_abap_analyzer=>ty_method_definition(
         name = `METH`
-        parameters = value #( ( name = `PAR` kind = /cc4a/if_abap_analyzer=>parameter_kind-changing ) ) ) ).
+        parameters = VALUE #( ( name = `PAR` kind = /cc4a/if_abap_analyzer=>parameter_kind-changing ) ) ) ).
     cl_abap_unit_assert=>assert_equals(
       act = analyzer->parse_method_definition(
         shared=>tokenize(
           `methods meth importing imp type i exporting reference(exp) type i changing ch type i returning value(ret) type i.` ) )
-      exp = value /cc4a/if_abap_analyzer=>ty_method_definition(
+      exp = VALUE /cc4a/if_abap_analyzer=>ty_method_definition(
         name = `METH`
-        parameters = value #(
+        parameters = VALUE #(
           ( name = `IMP` kind = /cc4a/if_abap_analyzer=>parameter_kind-importing )
           ( name = `EXP` kind = /cc4a/if_abap_analyzer=>parameter_kind-exporting )
           ( name = `CH` kind = /cc4a/if_abap_analyzer=>parameter_kind-changing )
           ( name = `RET` kind = /cc4a/if_abap_analyzer=>parameter_kind-returning ) ) ) ).
-  endmethod.
-endclass.
+  ENDMETHOD.
+ENDCLASS.
 
-class flatten_tokens definition final for testing
-  duration short
-  risk level harmless.
+CLASS flatten_tokens DEFINITION FINAL FOR TESTING
+  DURATION SHORT
+  RISK LEVEL HARMLESS.
 
-  private section.
-    methods simple_statement for testing raising cx_static_check.
-    methods string_template for testing raising cx_static_check.
-    methods nested_string_template for testing raising cx_static_check.
-    methods test1 for testing raising cx_static_check.
-    methods test_line_break for testing raising cx_static_check.
-endclass.
+  PRIVATE SECTION.
+    METHODS simple_statement FOR TESTING RAISING cx_static_check.
+    METHODS string_template FOR TESTING RAISING cx_static_check.
+    METHODS nested_string_template FOR TESTING RAISING cx_static_check.
+    METHODS test1 FOR TESTING RAISING cx_static_check.
+    METHODS test_line_break FOR TESTING RAISING cx_static_check.
+ENDCLASS.
 
-class /cc4a/abap_analyzer definition local friends flatten_tokens.
+CLASS /cc4a/abap_analyzer DEFINITION LOCAL FRIENDS flatten_tokens.
 
-class flatten_tokens implementation.
-  method test1.
-    data(analyzer) = /cc4a/abap_analyzer=>create( ).
-    data(flat) = analyzer->flatten_tokens( tokens = value #(
+CLASS flatten_tokens IMPLEMENTATION.
+  METHOD test1.
+    DATA(analyzer) = /cc4a/abap_analyzer=>create( ).
+    DATA(flat) = analyzer->flatten_tokens( tokens = VALUE #(
            ( lexeme = `DATA(text)` ) ( lexeme = `=` )  ( lexeme = `method(` )
            ( lexeme = `|` ) ( lexeme = '`whatsoever`' ) ( lexeme = `|` ) ( lexeme = `)` ) ) ).
     cl_abap_unit_assert=>assert_equals(
       act = flat
       exp = `DATA(text) = method( |whatsoever| )` ).
 *            123456789012345678901234567890123456
-    data(lines) = new /cc4a/abap_analyzer( )->_break_into_lines( code = flat break_at = 20 ).
-    data(exp_lines) = value string_table( ( `DATA(text) = method(` ) ( `|whatsoever| )` ) ).
+    DATA(lines) = /cc4a/abap_analyzer=>_break_into_lines( code = flat break_at = 20 ).
+    DATA(exp_lines) = VALUE string_table( ( `DATA(text) = method(` ) ( `|whatsoever| )` ) ).
     cl_abap_unit_assert=>assert_equals( act = lines exp = exp_lines ).
-  endmethod.
-  method test_line_break.
-    data lines type string_table.
-    try.
-        lines = new /cc4a/abap_analyzer( )->_break_into_lines( code = `12345678901` break_at = 10 ).
+  ENDMETHOD.
+  METHOD test_line_break.
+    DATA lines TYPE string_table.
+    TRY.
+        lines = /cc4a/abap_analyzer=>_break_into_lines( code = `12345678901` break_at = 10 ).
         cl_abap_unit_assert=>fail( `Exception expected` ).
-      catch /cc4a/cx_line_break_impossible.
+      CATCH /cc4a/cx_line_break_impossible.
 *     expected
-    endtry.
-    try.
-        lines = new /cc4a/abap_analyzer( )->_break_into_lines( code = `1234567890 123467890123` break_at = 10 ).
+    ENDTRY.
+    TRY.
+        lines = /cc4a/abap_analyzer=>_break_into_lines( code = `1234567890 123467890123` break_at = 10 ).
         cl_abap_unit_assert=>fail( `Exception expected` ).
-      catch /cc4a/cx_line_break_impossible.
+      CATCH /cc4a/cx_line_break_impossible.
 *     expected
-    endtry.
+    ENDTRY.
 
-    try.
-        lines = new /cc4a/abap_analyzer( )->_break_into_lines( code = `|23456789| blabla` break_at = 10 ).
-        data(exp_lines) = value string_table( ( `|23456789|` ) ( `blabla` ) ).
+    TRY.
+        lines = /cc4a/abap_analyzer=>_break_into_lines( code = `|23456789| blabla` break_at = 10 ).
+        DATA(exp_lines) = VALUE string_table( ( `|23456789|` ) ( `blabla` ) ).
         cl_abap_unit_assert=>assert_equals( act = lines exp = exp_lines ).
-      catch /cc4a/cx_line_break_impossible.
+      CATCH /cc4a/cx_line_break_impossible.
         cl_abap_unit_assert=>fail( `No Exception expected` ).
-    endtry.
-  endmethod.
-  method simple_statement.
-    data(analyzer) = /cc4a/abap_analyzer=>create( ).
+    ENDTRY.
+  ENDMETHOD.
+  METHOD simple_statement.
+    DATA(analyzer) = /cc4a/abap_analyzer=>create( ).
     cl_abap_unit_assert=>assert_equals(
       act = analyzer->flatten_tokens(
         shared=>tokenize( `data my_int type i.` )-tokens )
@@ -399,12 +399,12 @@ class flatten_tokens implementation.
       act = analyzer->flatten_tokens(
         shared=>tokenize( `obj->meth( par = val ).` )-tokens )
       exp = `OBJ->METH( PAR = VAL ).` ).
-  endmethod.
+  ENDMETHOD.
 
-  method string_template.
-    data(analyzer) = /cc4a/abap_analyzer=>create( ).
+  METHOD string_template.
+    DATA(analyzer) = /cc4a/abap_analyzer=>create( ).
     cl_abap_unit_assert=>assert_equals(
-      act = condense( analyzer->flatten_tokens( value #(
+      act = condense( analyzer->flatten_tokens( VALUE #(
         ( lexeme = `STR` )
         ( lexeme = `=` )
         ( lexeme = `|` )
@@ -415,12 +415,12 @@ class flatten_tokens implementation.
         ( lexeme = '`!`' )
         ( lexeme = `|` ) ) ) )
       exp = 'STR = |hello, { WORLD }!|' ).
-  endmethod.
+  ENDMETHOD.
 
-  method nested_string_template.
-    data(analyzer) = /cc4a/abap_analyzer=>create( ).
+  METHOD nested_string_template.
+    DATA(analyzer) = /cc4a/abap_analyzer=>create( ).
     cl_abap_unit_assert=>assert_equals(
-      act = condense( analyzer->flatten_tokens( value #(
+      act = condense( analyzer->flatten_tokens( VALUE #(
         ( lexeme = `STR` )
         ( lexeme = `=` )
         ( lexeme = `|` )
@@ -439,5 +439,21 @@ class flatten_tokens implementation.
         ( lexeme = `|` ) ) ) )
       exp = 'STR = |hello, { func( |inner { TEMPLATE }| ) }!|' ).
 
+  ENDMETHOD.
+ENDCLASS.
+
+CLASS negation DEFINITION FINAL FOR TESTING
+  DURATION SHORT
+  RISK LEVEL HARMLESS.
+
+  PRIVATE SECTION.
+    METHODS test1 FOR TESTING.
+ENDCLASS.
+
+class negation implementation.
+
+  method test1.
+
   endmethod.
+
 endclass.

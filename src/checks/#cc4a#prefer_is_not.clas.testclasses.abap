@@ -10,6 +10,8 @@ class tests definition final for testing
         without_brackets     type c length 30 value 'WITHOUT_BRACKETS',
         with_brackets        type c length 30 value 'WITH_BRACKETS',
         with_pseudo_comments type c length 30 value 'WITH_PSEUDO_COMMENTS',
+        itabs                type c length 30 value 'ITABS',
+        several_nots         type c length 30 value 'SEVERAL_NOTS',
       end of test_class_methods.
 
     methods main_test for testing raising cx_static_check.
@@ -179,6 +181,30 @@ class tests implementation.
         object   = cl_ci_atc_unit_driver=>get_method_object(
           value #( class = test_class method = test_class_methods-with_pseudo_comments ) )
         position = value #( line = 31 column = 5 ) ).
+    data(itabs1) = value if_ci_atc_check=>ty_location(
+        object   = cl_ci_atc_unit_driver=>get_method_object(
+          value #( class = test_class method = test_class_methods-itabs ) )
+        position = value #( line = 4 column = 8 ) ).
+    data(itabs2) = value if_ci_atc_check=>ty_location(
+        object   = cl_ci_atc_unit_driver=>get_method_object(
+          value #( class = test_class method = test_class_methods-itabs ) )
+        position = value #( line = 10 column = 6 ) ).
+    data(several1) = value if_ci_atc_check=>ty_location(
+        object   = cl_ci_atc_unit_driver=>get_method_object(
+          value #( class = test_class method = test_class_methods-several_nots ) )
+        position = value #( line = 4 column = 4 ) ).
+    data(several2) = value if_ci_atc_check=>ty_location(
+        object   = cl_ci_atc_unit_driver=>get_method_object(
+          value #( class = test_class method = test_class_methods-several_nots ) )
+        position = value #( line = 7 column = 4 ) ).
+    data(several3) = value if_ci_atc_check=>ty_location(
+        object   = cl_ci_atc_unit_driver=>get_method_object(
+          value #( class = test_class method = test_class_methods-several_nots ) )
+        position = value #( line = 10 column = 4 ) ).
+    data(several4) = value if_ci_atc_check=>ty_location(
+        object   = cl_ci_atc_unit_driver=>get_method_object(
+          value #( class = test_class method = test_class_methods-several_nots ) )
+        position = value #( line = 13 column = 5 ) ).
 
     cl_ci_atc_unit_driver=>create_asserter( )->check_and_assert(
       check             = new /cc4a/prefer_is_not( )
@@ -416,8 +442,44 @@ class tests implementation.
                                        quickfix_code = /cc4a/prefer_is_not=>quickfix_code
                                        location = with_pseudo_commets_11
                                        code = value #(
-                                       ( `ASSERT ( 1 = 2 ) .` ) ) ) ) ) )
-      asserter_config   = value #( quickfixes = abap_false ) ).
+                                       ( `ASSERT ( 1 = 2 ) .` ) ) ) ) )
+                                   ( location = itabs1
+                                     quickfixes = value #( (
+                                       quickfix_code = /cc4a/prefer_is_not=>quickfix_code
+                                       location = itabs1
+                                       code = value #(
+                                       ( `IF ITAB[ SEATSMAX = 15 ]-SEATSOCC <> 3.` ) ) ) ) )
+                                   ( location = itabs2
+                                     quickfixes = value #( (
+                                       quickfix_code = /cc4a/prefer_is_not=>quickfix_code
+                                       location = itabs2
+                                       code = value #(
+                                       ( `IF itab[ 5 ]-seatsocc IS INITIAL.` ) ) ) ) )
+                                  ( location = several1
+                                     quickfixes = value #( (
+                                       quickfix_code = /cc4a/prefer_is_not=>quickfix_code
+                                       location = several1
+                                       code = value #(
+                                       ( `IF itab IS INITIAL.` ) ) ) ) )
+                                  ( location = several2
+                                     quickfixes = value #( (
+                                       quickfix_code = /cc4a/prefer_is_not=>quickfix_code
+                                       location = several2
+                                       code = value #(
+                                       ( `IF itab IS INITIAL OR a IS NOT INITIAL.` ) ) ) ) )
+                                  ( location = several3
+                                     quickfixes = value #( (
+                                       quickfix_code = /cc4a/prefer_is_not=>quickfix_code
+                                       location = several3
+                                       code = value #(
+                                       ( `IF 1 NOT IN int_tab.` ) ) ) ) )
+                                  ( location = several4
+                                     quickfixes = value #( (
+                                       quickfix_code = /cc4a/prefer_is_not=>quickfix_code
+                                       location = several4
+                                       code = value #(
+                                       ( `IF 1 IN int_tab.` ) ) ) ) )
+   )   asserter_config   = value #( quickfixes = abap_false ) ).
 
   endmethod.
 

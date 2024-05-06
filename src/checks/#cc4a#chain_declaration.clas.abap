@@ -1,69 +1,69 @@
-class /cc4a/chain_declaration definition
-  public
-  final
-  create public .
+CLASS /cc4a/chain_declaration DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
 
-  public section.
-    interfaces if_ci_atc_check.
+  PUBLIC SECTION.
+    INTERFACES if_ci_atc_check.
 
-    constants:
-      begin of finding_codes,
-        chain_declaration type if_ci_atc_check=>ty_finding_code value 'CHAINDECL',
-      end of finding_codes.
-    constants:
-      begin of quickfix_codes,
-        resolve_chain type cl_ci_atc_quickfixes=>ty_quickfix_code value 'PREFINLDCL',
-      end of quickfix_codes.
-    methods constructor.
-  protected section.
-  private section.
-    constants pseudo_comment type string value 'CHAIN_DECL_USAG'.
+    CONSTANTS:
+      BEGIN OF finding_codes,
+        chain_declaration TYPE if_ci_atc_check=>ty_finding_code VALUE 'CHAINDECL',
+      END OF finding_codes.
+    CONSTANTS:
+      BEGIN OF quickfix_codes,
+        resolve_chain TYPE cl_ci_atc_quickfixes=>ty_quickfix_code VALUE 'PREFINLDCL',
+      END OF quickfix_codes.
+    METHODS constructor.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+    CONSTANTS pseudo_comment TYPE string VALUE 'CHAIN_DECL_USAG'.
 
-    types: begin of ty_relevant_stmt_information,
-             chained_stmts_for_quickfix type if_ci_atc_source_code_provider=>ty_statements,
-             next_relevant_stmt_position type i,
-           end of ty_relevant_stmt_information.
+    TYPES: BEGIN OF ty_relevant_stmt_information,
+             chained_stmts_for_quickfix  TYPE if_ci_atc_source_code_provider=>ty_statements,
+             next_relevant_stmt_position TYPE i,
+           END OF ty_relevant_stmt_information.
 
-    data code_provider     type ref to if_ci_atc_source_code_provider.
-    data assistant_factory type ref to cl_ci_atc_assistant_factory.
-    data meta_data type ref to /cc4a/if_check_meta_data.
+    DATA code_provider     TYPE REF TO if_ci_atc_source_code_provider.
+    DATA assistant_factory TYPE REF TO cl_ci_atc_assistant_factory.
+    DATA meta_data TYPE REF TO /cc4a/if_check_meta_data.
 
-    methods analyze_procedure
-      importing procedure       type if_ci_atc_source_code_provider=>ty_procedure
-      returning value(findings) type if_ci_atc_check=>ty_findings.
+    METHODS analyze_procedure
+      IMPORTING procedure       TYPE if_ci_atc_source_code_provider=>ty_procedure
+      RETURNING VALUE(findings) TYPE if_ci_atc_check=>ty_findings.
 
-    methods get_relevant_stmt_information
-      importing procedure                        type if_ci_atc_source_code_provider=>ty_procedure
-                declaration_position             type if_ci_atc_source_code_provider=>ty_source_position
-                keyword                          type if_ci_atc_source_code_provider=>ty_keyword
-                start_position                   type i
-      returning value(relevant_stmt_information) type ty_relevant_stmt_information.
+    METHODS get_relevant_stmt_information
+      IMPORTING procedure                        TYPE if_ci_atc_source_code_provider=>ty_procedure
+                declaration_position             TYPE if_ci_atc_source_code_provider=>ty_source_position
+                keyword                          TYPE if_ci_atc_source_code_provider=>ty_keyword
+                start_position                   TYPE i
+      RETURNING VALUE(relevant_stmt_information) TYPE ty_relevant_stmt_information.
 
-    methods create_quickfix_code
-      importing statement                 type if_ci_atc_source_code_provider=>ty_statement
-      returning value(modified_statement) type if_ci_atc_quickfix=>ty_code.
+    METHODS create_quickfix_code
+      IMPORTING statement                 TYPE if_ci_atc_source_code_provider=>ty_statement
+      RETURNING VALUE(modified_statement) TYPE if_ci_atc_quickfix=>ty_code.
 
-    methods find_position_end_of_statement
-      importing procedure                        type if_ci_atc_source_code_provider=>ty_procedure
-                start_position                   type i
-      returning value(position_end_of_statement) type i.
+    METHODS find_position_end_of_statement
+      IMPORTING procedure                        TYPE if_ci_atc_source_code_provider=>ty_procedure
+                start_position                   TYPE i
+      RETURNING VALUE(position_end_of_statement) TYPE i.
 
-    methods check_stmt_is_begin_of
-      importing statement          type if_ci_atc_source_code_provider=>ty_statement
-      returning value(is_begin_of) type abap_bool.
+    METHODS check_stmt_is_begin_of
+      IMPORTING statement          TYPE if_ci_atc_source_code_provider=>ty_statement
+      RETURNING VALUE(is_begin_of) TYPE abap_bool.
 
-    methods create_begin_of_quickfix_code
-      importing statements                 type if_ci_atc_source_code_provider=>ty_statements
-      returning value(modified_statements) type if_ci_atc_quickfix=>ty_code.
+    METHODS create_begin_of_quickfix_code
+      IMPORTING statements                 TYPE if_ci_atc_source_code_provider=>ty_statements
+      RETURNING VALUE(modified_statements) TYPE if_ci_atc_quickfix=>ty_code.
 
 ENDCLASS.
 
 
 
-CLASS /CC4A/CHAIN_DECLARATION IMPLEMENTATION.
+CLASS /cc4a/chain_declaration IMPLEMENTATION.
 
 
-  method analyze_procedure.
+  method ANALYZE_PROCEDURE.
     data nxt_relevant_stmnt_position type i.
 
     loop at procedure-statements assigning field-symbol(<statement>)
@@ -109,10 +109,11 @@ CLASS /CC4A/CHAIN_DECLARATION IMPLEMENTATION.
               quick_fix_stmt_index = position_end_of_statement + 1.
             else.
               quick_fix->replace(
-                context = assistant_factory->create_quickfix_context( value #(
+                context = assistant_factory->create_quickfix_context( VALUE #(
                   procedure_id = procedure-id
-                  statements = value #( from = quick_fix_stmt_index to = quick_fix_stmt_index ) ) )
-                code = create_quickfix_code( statement = <quickfix_stmt> ) ).
+                  statements = VALUE #( from = quick_fix_stmt_index to = quick_fix_stmt_index )
+                  tokens = VALUE #( from = 1 to = 1 ) ) )
+                code = VALUE #( ( <statement>-tokens[ 1 ]-lexeme ) ) ).
               quick_fix_stmt_index = quick_fix_stmt_index + 1.
             endif.
           endloop.
@@ -129,142 +130,141 @@ CLASS /CC4A/CHAIN_DECLARATION IMPLEMENTATION.
     endloop.
   endmethod.
 
-
-  method check_stmt_is_begin_of.
+  METHOD check_stmt_is_begin_of.
     is_begin_of = abap_false.
-    loop at statement-tokens transporting no fields where lexeme eq 'BEGIN'.
-      data(next_token) = value #( statement-tokens[ sy-tabix + 1 ] optional ).
-      if next_token is not initial and statement-tokens[ sy-tabix + 1 ]-lexeme eq 'OF'.
+    LOOP AT statement-tokens TRANSPORTING NO FIELDS WHERE lexeme EQ 'BEGIN'.
+      DATA(next_token) = VALUE #( statement-tokens[ sy-tabix + 1 ] OPTIONAL ).
+      IF next_token IS NOT INITIAL AND statement-tokens[ sy-tabix + 1 ]-lexeme EQ 'OF'.
         is_begin_of = abap_true.
-      endif.
-    endloop.
-  endmethod.
+      ENDIF.
+    ENDLOOP.
+  ENDMETHOD.
 
 
-  method create_begin_of_quickfix_code.
-    loop at statements assigning field-symbol(<statement>).
-      data(new_statement) = <statement>.
-      case sy-tabix.
-        when 1.
+  METHOD create_begin_of_quickfix_code.
+    LOOP AT statements ASSIGNING FIELD-SYMBOL(<statement>).
+      DATA(new_statement) = <statement>.
+      CASE sy-tabix.
+        WHEN 1.
           new_statement-tokens[ 1 ]-lexeme = <statement>-tokens[ 1 ]-lexeme && `:`.
-          data(flat_new_statement) = /cc4a/abap_analyzer=>create( )->flatten_tokens( new_statement-tokens ) && `,`.
+          DATA(flat_new_statement) = /cc4a/abap_analyzer=>create( )->flatten_tokens( new_statement-tokens ) && `,`.
 
-        when lines( statements ).
-          delete new_statement-tokens index 1.
+        WHEN lines( statements ).
+          DELETE new_statement-tokens INDEX 1.
           flat_new_statement = /cc4a/abap_analyzer=>create( )->flatten_tokens( new_statement-tokens ) && `.`.
 
-        when others.
-          delete new_statement-tokens index 1.
+        WHEN OTHERS.
+          DELETE new_statement-tokens INDEX 1.
           flat_new_statement = /cc4a/abap_analyzer=>create( )->flatten_tokens( new_statement-tokens ) && `,`.
-      endcase.
-      insert flat_new_statement into table modified_statements.
-    endloop.
-  endmethod.
+      ENDCASE.
+      INSERT flat_new_statement INTO TABLE modified_statements.
+    ENDLOOP.
+  ENDMETHOD.
 
 
-  method create_quickfix_code.
-    data(new_statement) = statement.
-    data(flat_new_statement) = /cc4a/abap_analyzer=>create( )->flatten_tokens( new_statement-tokens ) && `.`.
+  METHOD create_quickfix_code.
+    DATA(new_statement) = statement.
+    DATA(flat_new_statement) = /cc4a/abap_analyzer=>create( )->flatten_tokens( new_statement-tokens ) && `.`.
     modified_statement = /cc4a/abap_analyzer=>create( )->break_into_lines( flat_new_statement ).
-  endmethod.
+  ENDMETHOD.
 
 
-  method find_position_end_of_statement.
+  METHOD find_position_end_of_statement.
     position_end_of_statement = start_position.
-    data(end_of_found) = abap_false.
-    data(begin_of_counter) = 1.
-    loop at procedure-statements assigning field-symbol(<statement>) from start_position + 1.
-      loop at <statement>-tokens assigning field-symbol(<token>) where lexeme eq 'BEGIN' or lexeme eq 'END'.
-        data(next_token) = value #( <statement>-tokens[ sy-tabix + 1 ] optional ).
-        if next_token is not initial and next_token-lexeme eq 'OF'.
-          if <token>-lexeme eq 'BEGIN'.
+    DATA(end_of_found) = abap_false.
+    DATA(begin_of_counter) = 1.
+    LOOP AT procedure-statements ASSIGNING FIELD-SYMBOL(<statement>) FROM start_position + 1.
+      LOOP AT <statement>-tokens ASSIGNING FIELD-SYMBOL(<token>) WHERE lexeme EQ 'BEGIN' OR lexeme EQ 'END'.
+        DATA(next_token) = VALUE #( <statement>-tokens[ sy-tabix + 1 ] OPTIONAL ).
+        IF next_token IS NOT INITIAL AND next_token-lexeme EQ 'OF'.
+          IF <token>-lexeme EQ 'BEGIN'.
             begin_of_counter = begin_of_counter + 1.
-          else.
-            if begin_of_counter eq 1.
+          ELSE.
+            IF begin_of_counter EQ 1.
               end_of_found = abap_true.
-              exit.
-            endif.
+              EXIT.
+            ENDIF.
             begin_of_counter = begin_of_counter - 1.
-          endif.
-        endif.
-      endloop.
+          ENDIF.
+        ENDIF.
+      ENDLOOP.
       position_end_of_statement = position_end_of_statement + 1.
-      if end_of_found = abap_true.
-        exit.
-      endif.
-    endloop.
-  endmethod.
+      IF end_of_found = abap_true.
+        EXIT.
+      ENDIF.
+    ENDLOOP.
+  ENDMETHOD.
 
 
-  method get_relevant_stmt_information.
-    data chaining_statements type if_ci_atc_source_code_provider=>ty_statements.
-    data chained_statement_counter type i.
-    data(statement_counter) = start_position.
+  METHOD get_relevant_stmt_information.
+    DATA chaining_statements TYPE if_ci_atc_source_code_provider=>ty_statements.
+    DATA chained_statement_counter TYPE i.
+    DATA(statement_counter) = start_position.
 
-    data(next_statement) = value #( procedure-statements[ statement_counter ] optional ).
-    while next_statement is not initial
-        and next_statement-keyword eq keyword
-        and next_statement-tokens[ 1 ]-position eq declaration_position.
-      loop at next_statement-tokens transporting no fields where lexeme eq 'BEGIN'.
-        data(next_token) = value #( next_statement-tokens[ sy-tabix + 1 ] optional ).
-        if next_token is not initial and next_statement-tokens[ sy-tabix + 1 ]-lexeme eq 'OF'.
-          data(position_end_of_statement) =
+    DATA(next_statement) = VALUE #( procedure-statements[ statement_counter ] OPTIONAL ).
+    WHILE next_statement IS NOT INITIAL
+        AND next_statement-keyword EQ keyword
+        AND next_statement-tokens[ 1 ]-position EQ declaration_position.
+      LOOP AT next_statement-tokens TRANSPORTING NO FIELDS WHERE lexeme EQ 'BEGIN'.
+        DATA(next_token) = VALUE #( next_statement-tokens[ sy-tabix + 1 ] OPTIONAL ).
+        IF next_token IS NOT INITIAL AND next_statement-tokens[ sy-tabix + 1 ]-lexeme EQ 'OF'.
+          DATA(position_end_of_statement) =
             find_position_end_of_statement( procedure = procedure start_position = statement_counter ).
-        endif.
-      endloop.
-      if position_end_of_statement is not initial.
+        ENDIF.
+      ENDLOOP.
+      IF position_end_of_statement IS NOT INITIAL.
         statement_counter = position_end_of_statement + 1.
-      else.
+      ELSE.
         statement_counter = statement_counter + 1.
-      endif.
+      ENDIF.
       chained_statement_counter = chained_statement_counter + 1.
-      insert next_statement into table chaining_statements.
-      next_statement = value #( procedure-statements[ statement_counter ] optional ).
-      clear position_end_of_statement.
-    endwhile.
+      INSERT next_statement INTO TABLE chaining_statements.
+      next_statement = VALUE #( procedure-statements[ statement_counter ] OPTIONAL ).
+      CLEAR position_end_of_statement.
+    ENDWHILE.
 
-    if chained_statement_counter > 1.
+    IF chained_statement_counter > 1.
       relevant_stmt_information-chained_stmts_for_quickfix = chaining_statements.
-    endif.
+    ENDIF.
 
     relevant_stmt_information-next_relevant_stmt_position = statement_counter.
-  endmethod.
+  ENDMETHOD.
 
 
-  method if_ci_atc_check~get_meta_data.
+  METHOD if_ci_atc_check~get_meta_data.
     meta_data = me->meta_data.
-  endmethod.
+  ENDMETHOD.
 
 
-  method constructor.
+  METHOD constructor.
     meta_data = /cc4a/check_meta_data=>create(
-      value #( checked_types = /cc4a/check_meta_data=>checked_types-abap_programs
+      VALUE #( checked_types = /cc4a/check_meta_data=>checked_types-abap_programs
         description = 'Avoid Chain Declaration'(des)
         remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
-        finding_codes = value #(
+        finding_codes = VALUE #(
           ( code = finding_codes-chain_declaration
             pseudo_comment = pseudo_comment
             text = 'Usage of Chain Declaration'(ucd) ) )
-        quickfix_codes = value #(
-          ( code = quickfix_codes-resolve_chain 
+        quickfix_codes = VALUE #(
+          ( code = quickfix_codes-resolve_chain
             short_text = 'Replace Chain Declaration with Single Declaration'(qsd) ) ) ) ).
-  endmethod.
+  ENDMETHOD.
 
-  method if_ci_atc_check~run.
+  METHOD if_ci_atc_check~run.
     code_provider = data_provider->get_code_provider( ).
-    data(procedures) = code_provider->get_procedures( code_provider->object_to_comp_unit( object ) ).
-    loop at procedures->* assigning field-symbol(<procedure>).
-      insert lines of analyze_procedure( <procedure> ) into table findings.
-    endloop.
-  endmethod.
+    DATA(procedures) = code_provider->get_procedures( code_provider->object_to_comp_unit( object ) ).
+    LOOP AT procedures->* ASSIGNING FIELD-SYMBOL(<procedure>).
+      INSERT LINES OF analyze_procedure( <procedure> ) INTO TABLE findings.
+    ENDLOOP.
+  ENDMETHOD.
 
 
-  method if_ci_atc_check~set_assistant_factory.
+  METHOD if_ci_atc_check~set_assistant_factory.
     assistant_factory = factory.
-  endmethod.
+  ENDMETHOD.
 
 
-  method if_ci_atc_check~verify_prerequisites.
+  METHOD if_ci_atc_check~verify_prerequisites.
 
-  endmethod.
+  ENDMETHOD.
 ENDCLASS.

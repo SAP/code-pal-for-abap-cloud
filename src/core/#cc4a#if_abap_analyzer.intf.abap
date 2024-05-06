@@ -6,6 +6,18 @@ interface /cc4a/if_abap_analyzer
   public .
   constants max_line_length type i value 255.
   types:
+     begin of enum ty_change_kind structure change_kind,
+       replace,
+       insert_before,
+       insert_after,
+     end of enum ty_change_kind structure change_kind.
+  types: begin of ty_change_for_quickfix,
+           kind type ty_change_kind,
+           tokens type cl_ci_atc_quickfix_context=>ty_interval,
+           value type string,
+         end of ty_change_for_quickfix.
+  types: ty_statement_changes type sorted table of ty_change_for_quickfix with unique key tokens-from.
+  types:
     begin of enum ty_bracket_type structure bracket_type,
       no_bracket,
       opening,
@@ -57,17 +69,17 @@ interface /cc4a/if_abap_analyzer
       tokens                type if_ci_atc_source_code_provider=>ty_tokens
     returning
       value(flat_statement) type string .
-  methods is_bracket
+  methods is_opening_bracket
     importing
       token               type if_ci_atc_source_code_provider=>ty_token
     returning
-      value(bracket_type) type ty_bracket_type .
-  methods calculate_bracket_end
+      value(bracket) type char1.
+  methods get_closing_bracket_position
     importing
       statement             type if_ci_atc_source_code_provider=>ty_statement
-      bracket_position      type i
+      opening_position      type i
     returning
-      value(end_of_bracket) type i
+      value(closing_position) type i
     raising
       /cc4a/cx_token_is_no_bracket .
   "! The method analyze the given token whether this is an comparison operator or not.
@@ -84,7 +96,16 @@ interface /cc4a/if_abap_analyzer
     returning
       value(negated_comparison_operator) type string
     raising
-      /cc4a/cx_token_is_no_operator .
+      /cc4a/cx_token_is_no_operator
+      /cc4a/cx_negation_not_possible.
+  methods reverse_comparison_operator
+    importing
+      comparison_operator                type string
+    returning
+      value(reversed_comparison_operator) type string
+    raising
+      /cc4a/cx_token_is_no_operator
+      /cc4a/cx_reversion_impossible.
   methods is_db_statement
     importing
       statement          type if_ci_atc_source_code_provider=>ty_statement
@@ -117,4 +138,5 @@ interface /cc4a/if_abap_analyzer
   methods parse_method_definition
     importing statement                type if_ci_atc_source_code_provider=>ty_statement
     returning value(method_definition) type ty_method_definition.
+
 endinterface.

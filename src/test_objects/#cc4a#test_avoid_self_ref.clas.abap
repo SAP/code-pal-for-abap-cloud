@@ -1,82 +1,87 @@
-class /cc4a/test_avoid_self_ref definition
-  public
-  final
-  create public .
+CLASS /cc4a/test_avoid_self_ref DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
 
-  public section.
-  protected section.
-  private section.
-    class-data string1 type string.
-    class-data string2 type string.
-    data number1 type i.
-    data number2 type i.
+  PUBLIC SECTION.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+    CLASS-DATA string1 TYPE string.
+    CLASS-DATA string2 TYPE string.
+    DATA number1 TYPE i.
+    DATA number2 TYPE i.
+    data not type i.
+    DATA test_data TYPE STANDARD TABLE OF /cc4a/testflight WITH DEFAULT KEY.
+    DATA old_data TYPE STANDARD TABLE OF /cc4a/testflight WITH DEFAULT KEY.
 
-    types:
-      begin of ty_struct,
-        comp type i,
-      end of ty_struct.
+    TYPES:
+      BEGIN OF ty_struct,
+        comp TYPE i,
+      END OF ty_struct.
 
-    data struct type ty_struct.
+    DATA struct TYPE ty_struct.
 
-    constants number3 type i value 0.
-    constants string3 type string value 'abc'.
+    CONSTANTS number3 TYPE i VALUE 0.
+    CONSTANTS string3 TYPE string VALUE 'abc'.
 
-    methods without_pseudo_comments
-      importing number type i
-                string type string.
+    METHODS without_pseudo_comments
+      IMPORTING number TYPE i
+                string TYPE string.
 
-    methods with_pseudo_comments
-      importing number type i
-                string type string.
+    METHODS with_pseudo_comments
+      IMPORTING number TYPE i
+                string TYPE string.
 
-    methods importing_parameter
-      importing number4        type i
-                number5        type i
-                string4        type string
-      returning value(string5) type string.
+    METHODS importing_parameter
+      IMPORTING number4        TYPE i
+                number5        TYPE i
+                string4        TYPE string
+      RETURNING VALUE(string5) TYPE string.
 
-    methods exporting_parameter
-      exporting number4        type i
-                string4        type string
-      returning value(string5) type string.
+    METHODS exporting_parameter
+      EXPORTING number4        TYPE i
+                string4        TYPE string
+      RETURNING VALUE(string5) TYPE string.
+
+    METHODS special_cases.
 ENDCLASS.
 
 
 
-CLASS /CC4A/TEST_AVOID_SELF_REF IMPLEMENTATION.
+CLASS /cc4a/test_avoid_self_ref IMPLEMENTATION.
 
 
-  method exporting_parameter.
-    data(string) = me->string1.
-    final(second_string) = me->string2.
-    final(string3) = me->string3.
-    data(number1) = me->number1.
-    data(struct) = me->struct-comp.
+  METHOD exporting_parameter.
+    DATA(string) = me->string1.
+    FINAL(second_string) = me->string2.
+    FINAL(string3) = me->string3.
+    DATA(number1) = me->number1.
+    DATA(struct) = me->struct-comp.
     struct = me->struct-comp.
-  endmethod.
+  ENDMETHOD.
 
 
-  method importing_parameter.
-    data(string1) = me->string1.
-    final(string) = me->string2.
-    final(string3) = me->string3.
-    data(number) = me->number1.
-    data(structure) = me->struct-comp.
+  METHOD importing_parameter.
+    DATA(string1) = me->string1.
+    FINAL(string) = me->string2.
+    FINAL(string3) = me->string3.
+    DATA(number) = me->number1.
+    DATA(structure) = me->struct-comp.
     structure = me->struct-comp.
     structure = struct-comp.
-    assign me->(string4) to field-symbol(<test>).
-    assign me->(string5) to field-symbol(<test2>).
-  endmethod.
+    ASSIGN me->(string4) TO FIELD-SYMBOL(<test>).
+    ASSIGN me->(string5) TO FIELD-SYMBOL(<test2>).
+  ENDMETHOD.
 
 
-  method without_pseudo_comments.
-    data number1 type i.
-    data number4 type i.
-    data number5 type i.
+  METHOD without_pseudo_comments.
+    DATA number1 TYPE i.
+    DATA number4 TYPE i.
+    DATA number5 TYPE i.
 
-    data string1 type string.
-    data string4 type string.
-    data string5 type string.
+    DATA string1 TYPE string.
+    DATA string4 TYPE string.
+    DATA string5 TYPE string.
 
     number1 = me->number1 + me->number1.
     number1 = me->number1 + me->number2.
@@ -92,17 +97,17 @@ CLASS /CC4A/TEST_AVOID_SELF_REF IMPLEMENTATION.
     me->with_pseudo_comments( number = me->number1 string = me->string3 ).
     me->with_pseudo_comments( number = number4 string = string4 ).
     me->with_pseudo_comments( number = number2 string = string5 ).
-  endmethod.
+  ENDMETHOD.
 
 
-  method with_pseudo_comments.
-    data number1 type i.
-    data number4 type i.
-    data number5 type i.
+  METHOD with_pseudo_comments.
+    DATA number1 TYPE i.
+    DATA number4 TYPE i.
+    DATA number5 TYPE i.
 
-    data string1 type string.
-    data string4 type string.
-    data string5 type string.
+    DATA string1 TYPE string.
+    DATA string4 TYPE string.
+    DATA string5 TYPE string.
 
     number1 = me->number1 + me->number1.
     number1 = me->number1 + me->number2.                  "#EC SELF_REF
@@ -119,5 +124,19 @@ CLASS /CC4A/TEST_AVOID_SELF_REF IMPLEMENTATION.
     me->with_pseudo_comments( number = number4 string = string4 ). "#EC SELF_REF
     me->with_pseudo_comments( number = number2 string = string5 ). "#EC SELF_REF
 
-  endmethod.
+  ENDMETHOD.
+  METHOD special_cases.
+    DATA no1 TYPE i.
+    DATA no2 TYPE i.
+    SELECT SINGLE seatsmax seatsocc FROM /cc4a/testflight INTO (me->number1 , me->number2).
+    SELECT SINGLE seatsmax seatsocc FROM /cc4a/testflight INTO (me->number1 , no2).
+    SELECT SINGLE seatsmax seatsocc FROM /cc4a/testflight INTO (no1 , me->number2).
+    me->not = 15.
+
+    SELECT * FROM /cc4a/testflight
+      INTO TABLE me->test_data
+      FOR ALL ENTRIES IN me->old_data
+      WHERE seatsmax = me->old_data-seatsmax.
+  ENDMETHOD.
+
 ENDCLASS.

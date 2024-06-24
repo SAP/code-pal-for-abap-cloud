@@ -482,12 +482,23 @@ class /cc4a/abap_analyzer implementation.
         else.
           insert value #( lexeme = 'NOT' ) into new_tokens index tokens_end.
         endif.
-      elseif is_token_keyword( token = new_tokens[ 2 ] keyword = 'IN' ).
-        insert value #( lexeme = 'NOT' ) into new_tokens index 2.
-      elseif is_token_keyword( token = new_tokens[ 2 ] keyword = 'NOT' ).
-        delete new_tokens index 2.
-      elseif /cc4a/if_abap_analyzer~token_is_comparison_operator( token = new_tokens[ 2 ] ).
-        new_tokens[ 2 ]-lexeme = /cc4a/if_abap_analyzer~negate_comparison_operator( new_tokens[ 2 ]-lexeme ).
+      elseif is_token_keyword( token = new_tokens[ tokens_end - 1 ] keyword = 'IN' ).
+        if new_tokens[ tokens_end - 2 ]-lexeme = 'NOT'.
+          delete new_tokens index tokens_end - 2.
+        else.
+          insert value #( lexeme = 'NOT' ) into new_tokens index tokens_end - 1.
+        endif.
+      elseif is_token_keyword( token = new_tokens[ tokens_end - 1 ] keyword = 'NOT' ).
+        delete new_tokens index tokens_end - 1.
+      elseif /cc4a/if_abap_analyzer~token_is_comparison_operator( token = new_tokens[ tokens_end - 1 ] ).
+        if new_tokens[ tokens_end ]-lexeme = 'ABAP_TRUE' or new_tokens[ tokens_end ]-lexeme = 'ABAP_FALSE'.
+          new_tokens[ tokens_end ]-lexeme = cond #(
+            when new_tokens[ tokens_end ]-lexeme = 'ABAP_TRUE'
+              then 'ABAP_FALSE'
+              else 'ABAP_TRUE' ).
+        else.
+          new_tokens[ tokens_end - 1 ]-lexeme = /cc4a/if_abap_analyzer~negate_comparison_operator( new_tokens[ tokens_end - 1 ]-lexeme ).
+        endif.
       else.
         insert value #( lexeme = 'NOT (' ) into new_tokens index 1.
         insert value #( lexeme = ')' ) into table new_tokens.

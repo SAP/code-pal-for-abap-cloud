@@ -78,7 +78,7 @@ class test implementation.
            quickfix_code = /cc4a/proper_bool_expression=>quickfix_codes-if_else
            location = if_then_else( value #( line = 48 column = 4 ) )
            code = value #(
-             ( `B = xsdbool( 1 <> 2 OR 'test' EQ SUBSTRING( LEN = TEST_METHOD( IPARAMETER = 3 ) VAL = STRING ) OR 5 LE 2 ).` )
+             ( `B = xsdbool( NOT ( 1 = 2 AND 'test' NE SUBSTRING( LEN = TEST_METHOD( IPARAMETER = 3 ) VAL = STRING ) AND 5 GT 2 ) ).` )
              ( ` ` ) ( ` ` ) ( ` ` ) ( ` ` ) ) ) ) )
       ( location = if_then_else( value #( line = 54 column = 4 ) )
            quickfixes = value #( (
@@ -97,7 +97,7 @@ class test implementation.
           quickfix_code = /cc4a/proper_bool_expression=>quickfix_codes-if_else
           location = if_then_else( value #( line = 66 column = 4 ) )
           code = value #(
-              ( `B = xsdbool( TABLE2[ 4 ]-TABLE[ 1 ]-BOOLEAN IS NOT INITIAL  ).` ) ( ` ` ) ( ` ` ) ( ` ` ) ( ` ` ) ) ) ) )
+              ( `B = xsdbool( TABLE2[ 4 ]-TABLE[ 1 ]-BOOLEAN = ABAP_TRUE ).` ) ( ` ` ) ( ` ` ) ( ` ` ) ( ` ` ) ) ) ) )
         ( location = if_then_else( value #( line = 72 column = 4 ) )
             quickfixes = value #( (
             quickfix_code = /cc4a/proper_bool_expression=>quickfix_codes-if_else

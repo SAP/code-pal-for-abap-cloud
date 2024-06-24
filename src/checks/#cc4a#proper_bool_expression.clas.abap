@@ -63,6 +63,12 @@ class /cc4a/proper_bool_expression definition
         true_then_false,
         false_then_true,
       end of enum ty_inverse_booleans structure inverse_booleans.
+    types:
+      begin of enum ty_initial_comparison structure initial_comparison,
+        none,
+        is_initial,
+        is_not_initial,
+      end of enum ty_initial_comparison structure initial_comparison.
     types ty_full_names type sorted table of if_ci_atc_source_code_provider=>ty_full_name with unique key table_line.
 
     data code_provider     type ref to if_ci_atc_source_code_provider.
@@ -104,6 +110,11 @@ class /cc4a/proper_bool_expression definition
     methods is_boolean_typed
       importing token type if_ci_atc_source_code_provider=>ty_token
       returning value(is_boolean_typed) type abap_bool.
+    methods is_initial_comparison
+      importing
+        tokens type if_ci_atc_source_code_provider=>ty_tokens
+        initial_idx type i
+      returning value(is_initial_comparison) type ty_initial_comparison.
     methods synthesize_bool_comp_decl
       importing declaration type ty_declaration
       returning value(bool_declarations) type ty_declarations.
@@ -220,9 +231,10 @@ class /cc4a/proper_bool_expression implementation.
         if sy-subrc = 0 and <endif>-keyword = 'ENDIF' and procedure-statements[ statement_idx + 2 ]-keyword = 'ELSE'.
           insert lines of
             analyze_pot_xsd_transform( procedure = procedure statement_idx = statement_idx ) into table findings.
+        else.
+          insert lines of
+            analyze_initial_bool_condition( procedure = procedure statement_idx = statement_idx ) into table findings.
         endif.
-        insert lines of
-          analyze_initial_bool_condition( procedure = procedure statement_idx = statement_idx ) into table findings.
       endif.
       if <statement>-keyword = 'COMPUTE'.
         if <statement>-tokens[ lines( <statement>-tokens ) - 1 ]-lexeme = '='.
@@ -478,10 +490,26 @@ class /cc4a/proper_bool_expression implementation.
     fixes = assistant_factory->create_quickfixes( ).
     data(if_statement) = procedure-statements[ statement_idx ].
     delete if_statement-tokens index 1.
+    data(no_of_tokens) = lines( if_statement-tokens ).
+    if analyzer->is_token_keyword( token = if_statement-tokens[ no_of_tokens ] keyword = 'INITIAL' ).
+      data(is_initial_comparison) = is_initial_comparison(
+        tokens = if_statement-tokens
+        initial_idx = lines( if_statement-tokens ) ).
+      if is_initial_comparison <> initial_comparison-none.
+        if_statement-tokens[ no_of_tokens ]-lexeme = cond #(
+          when is_initial_comparison = initial_comparison-is_initial
+            then 'ABAP_FALSE'
+            else 'ABAP_TRUE' ).
+        if_statement-tokens[ no_of_tokens - 1 ]-lexeme = '='.
+        if is_initial_comparison = initial_comparison-is_not_initial.
+          delete if_statement-tokens index no_of_tokens - 2.
+        endif.
+      endif.
+    endif.
     data(condition) = cond #(
       when bool_sequence = inverse_booleans-true_then_false
         then analyzer->flatten_tokens( if_statement-tokens )
-        else analyzer->negate_logical_expression( tokens = if_statement-tokens ) ).
+        else analyzer->negate_logical_expression( if_statement-tokens ) ).
     data(xsd_statement) = |{ target } = xsdbool( { condition } ).|.
     fixes->create_quickfix( quickfix_codes-if_else )->replace(
       context = assistant_factory->create_quickfix_context( value #(
@@ -495,22 +523,54 @@ class /cc4a/proper_bool_expression implementation.
     loop at <statement>-tokens assigning field-symbol(<token>).
       data(token_idx) = sy-tabix.
       if analyzer->is_token_keyword( token = <token> keyword = 'INITIAL' ).
-        assign <statement>-tokens[ token_idx - 1 ] to field-symbol(<previous_token>).
-        if   ( analyzer->is_token_keyword( token = <previous_token> keyword = 'IS' )
-              and is_boolean_typed( <statement>-tokens[ token_idx - 2 ] ) )
-            or ( analyzer->is_token_keyword( token = <previous_token> keyword = 'NOT' )
-              and analyzer->is_token_keyword( token = <statement>-tokens[ token_idx - 2 ] keyword = 'IS' )
-              and is_boolean_typed( <statement>-tokens[ token_idx - 3 ] ) ).
+        data(is_initial_comparison) = is_initial_comparison(
+          tokens = <statement>-tokens
+          initial_idx = token_idx ).
+        if is_initial_comparison <> initial_comparison-none.
+          data(fixes) = assistant_factory->create_quickfixes( ).
+          fixes->create_quickfix( quickfix_codes-initial_boolean )->replace(
+            context = assistant_factory->create_quickfix_context( value #(
+              procedure_id = procedure-id
+              statements = value #( from = statement_idx to = statement_idx )
+              tokens = value #(
+                from = cond #(
+                  when is_initial_comparison = initial_comparison-is_initial
+                    then token_idx - 1
+                    else token_idx - 2 )
+                to = token_idx ) ) )
+            code = cond #(
+              when is_initial_comparison = initial_comparison-is_initial
+                then value #( ( `= ABAP_FALSE` ) )
+                else value #( ( `= ABAP_TRUE` ) ) ) ).
           insert value #(
             code = finding_codes-initial
             location = code_provider->get_statement_location( <statement> )
             checksum = code_provider->get_statement_checksum( <statement> )
             has_pseudo_comment = meta_data->has_valid_pseudo_comment(
               statement = <statement>
-              finding_code = finding_codes-initial ) ) into table findings.
+              finding_code = finding_codes-initial )
+            details = assistant_factory->create_finding_details( )->attach_quickfixes( fixes ) ) into table findings.
         endif.
       endif.
     endloop.
+  endmethod.
+
+  method is_initial_comparison.
+    assign tokens[ initial_idx - 1 ] to field-symbol(<previous_token>).
+    data(is_is_initial) = xsdbool(
+        ( analyzer->is_token_keyword( token = <previous_token> keyword = 'IS' )
+      and is_boolean_typed( tokens[ initial_idx - 2 ] ) ) ).
+    data(is_is_not_initial) = xsdbool( (
+        analyzer->is_token_keyword( token = <previous_token> keyword = 'NOT' )
+      and analyzer->is_token_keyword( token = tokens[ initial_idx - 2 ] keyword = 'IS' )
+      and is_boolean_typed( tokens[ initial_idx - 3 ] ) ) ).
+    return cond #(
+      when is_is_initial = abap_true
+        then initial_comparison-is_initial
+        else cond #(
+          when is_is_not_initial = abap_true
+            then initial_comparison-is_not_initial
+            else initial_comparison-none ) ).
   endmethod.
 
 endclass.

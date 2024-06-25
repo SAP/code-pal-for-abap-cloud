@@ -15,33 +15,45 @@
    <TPOOL>
     <item>
      <ID>I</ID>
+     <KEY>BOL</KEY>
+     <ENTRY>&apos;X&apos;, &apos; &apos;, or SPACE can be replaced by ABAP_TRUE or ABAP_FALSE</ENTRY>
+     <LENGTH>122</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
      <KEY>DES</KEY>
-     <ENTRY>Usage of inappropriate boolean</ENTRY>
+     <ENTRY>Standard boolean expressions</ENTRY>
      <LENGTH>88</LENGTH>
     </item>
     <item>
      <ID>I</ID>
+     <KEY>INI</KEY>
+     <ENTRY>IS (NOT) INITIAL can be replaced by comparison with ABAP_BOOL</ENTRY>
+     <LENGTH>122</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
      <KEY>QCE</KEY>
-     <ENTRY>Replace with correct boolean-term</ENTRY>
+     <ENTRY>Replace literal with ABAP_TRUE or ABAP_FALSE</ENTRY>
      <LENGTH>66</LENGTH>
     </item>
     <item>
      <ID>I</ID>
      <KEY>QIB</KEY>
-     <ENTRY>Replace with correct comparison</ENTRY>
+     <ENTRY>Replace with comparison to ABAP_TRUE or ABAP_FALSE</ENTRY>
      <LENGTH>62</LENGTH>
     </item>
     <item>
      <ID>I</ID>
      <KEY>QIE</KEY>
-     <ENTRY>Replace with xsdbool</ENTRY>
+     <ENTRY>Replace with call to XSDBOOL</ENTRY>
      <LENGTH>40</LENGTH>
     </item>
     <item>
      <ID>I</ID>
-     <KEY>UIB</KEY>
-     <ENTRY>Usage of inappropriate boolean</ENTRY>
-     <LENGTH>88</LENGTH>
+     <KEY>XSD</KEY>
+     <ENTRY>IF...ENDIF block can be replaced by inline XSDBOOL( )</ENTRY>
+     <LENGTH>106</LENGTH>
     </item>
    </TPOOL>
   </asx:values>

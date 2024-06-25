@@ -163,11 +163,11 @@ class /cc4a/proper_bool_expression implementation.
   method constructor.
     meta_data = /cc4a/check_meta_data=>create(
       value #( checked_types = /cc4a/check_meta_data=>checked_types-abap_programs
-          description = 'Usage of inappropriate boolean'(des)
+          description = 'Standard boolean expressions'(des)
           remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
           finding_codes = value #(
             ( code = finding_codes-boolean_value
-              text = '''X'', '' '', or SPACE used as boolean value'(bol)
+              text = '''X'', '' '', or SPACE can be replaced by ABAP_TRUE or ABAP_FALSE'(bol)
               pseudo_comment = 'BOOL_VAL' )
             ( code = finding_codes-transform_to_xsd
               text = 'IF...ENDIF block can be replaced by inline XSDBOOL( )'(xsd)
@@ -176,9 +176,9 @@ class /cc4a/proper_bool_expression implementation.
               text = 'IS (NOT) INITIAL can be replaced by comparison with ABAP_BOOL'(ini)
               pseudo_comment = 'BOOL_VAL' ) )
             quickfix_codes = value #(
-            ( code = quickfix_codes-if_else short_text = 'Replace with xsdbool'(qie) )
-            ( code = quickfix_codes-character_equivalence short_text = 'Replace with correct boolean-term'(qce) )
-            ( code = quickfix_codes-initial_boolean short_text = 'Replace with correct comparison'(qib) ) ) ) ).
+            ( code = quickfix_codes-if_else short_text = 'Replace with call to XSDBOOL'(qie) )
+            ( code = quickfix_codes-character_equivalence short_text = 'Replace literal with ABAP_TRUE or ABAP_FALSE'(qce) )
+            ( code = quickfix_codes-initial_boolean short_text = 'Replace with comparison to ABAP_TRUE or ABAP_FALSE'(qib) ) ) ) ).
     analyzer = /cc4a/abap_analyzer=>create( ).
   endmethod.
 

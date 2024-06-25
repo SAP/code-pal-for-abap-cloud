@@ -1,0 +1,10 @@
+{
+  "formatVersion": "1",
+  "header": {
+    "description": "Scope of Variable",
+    "originalLanguage": "en"
+  },
+  "category": "/CC4A/CODE_PAL",
+  "implementingClass": "/CC4A/SCOPE_OF_VARIABLE",
+  "checkType": "remoteEnabled"
+}

@@ -1,161 +1,170 @@
-CLASS /cc4a/test_proper_bool_expr DEFINITION
-  PUBLIC
-  FINAL
-  CREATE PUBLIC .
+class /cc4a/test_proper_bool_expr definition
+  public
+  final
+  create public .
 
-  PUBLIC SECTION.
-    CONSTANTS: bool TYPE abap_bool VALUE 'X'.
-    DATA a TYPE abap_bool.
+  public section.
+    constants: bool type abap_bool value 'X'.
+    data a type abap_bool.
 
-    TYPES: BEGIN OF number_and_bool,
-             number  TYPE i,
-             boolean TYPE abap_bool,
-           END OF number_and_bool.
+    types: begin of number_and_bool,
+             number  type i,
+             boolean type abap_bool,
+           end of number_and_bool.
 
-    TYPES: BEGIN OF struc_of_nab,
-             nab TYPE number_and_bool,
-           END OF struc_of_nab.
+    types: begin of struc_of_nab,
+             nab type number_and_bool,
+           end of struc_of_nab.
 
-    TYPES tabletype TYPE TABLE OF number_and_bool WITH EMPTY KEY.
+    types tabletype type table of number_and_bool with empty key.
 
-    TYPES: BEGIN OF struc_of_table,
-             table TYPE tabletype,
-           END OF struc_of_table.
+    types: begin of struc_of_table,
+             table type tabletype,
+           end of struc_of_table.
 
-    DATA table2 TYPE TABLE OF struc_of_table.
-    TYPES j TYPE TABLE OF struc_of_nab.
+    data table2 type table of struc_of_table.
+    types j type table of struc_of_nab.
 
-    DATA table TYPE tabletype.
-    DATA structure_of_table TYPE struc_of_table.
-    DATA abapboolean TYPE abap_boolean.
+    data table type tabletype.
+    data structure_of_table type struc_of_table.
+    data abapboolean type abap_boolean.
 
-    DATA number_bool_table TYPE TABLE OF number_and_bool.
-    DATA number_bool_structure TYPE number_and_bool.
-    DATA strc_nab_table TYPE TABLE OF struc_of_nab.
-    DATA test_struc_nab TYPE struc_of_nab.
-    METHODS test_method
-      IMPORTING iparameter        TYPE i OPTIONAL
-      RETURNING VALUE(rparameter) TYPE i.
+    data number_bool_table type table of number_and_bool.
+    data number_bool_structure type number_and_bool.
+    data strc_nab_table type table of struc_of_nab.
+    data test_struc_nab type struc_of_nab.
+    methods test_method
+      importing iparameter        type i optional
+      returning value(rparameter) type i.
 
-  PROTECTED SECTION.
-    CONSTANTS: not_a_bool TYPE string VALUE ' '.
-  PRIVATE SECTION.
-    METHODS test_if_then_else.
-    METHODS test_correct_bool_usage.
-    METHODS test_bool_initial.
-    DATA int_tab TYPE RANGE OF i.
-    DATA x TYPE i.
-ENDCLASS.
+    types:
+      begin of enum ty_my_bool structure my_bool base type abap_bool,
+        false value is initial,
+        true value 'X',
+      end of enum ty_my_bool structure my_bool.
+
+  protected section.
+    constants: not_a_bool type string value ' '.
+  private section.
+    methods test_if_then_else.
+    methods test_correct_bool_usage.
+    methods test_bool_initial.
+    data int_tab type range of i.
+    data x type i.
+    data implicit.
+endclass.
 
 
 
-CLASS /cc4a/test_proper_bool_expr IMPLEMENTATION.
+class /cc4a/test_proper_bool_expr implementation.
 
-  METHOD test_if_then_else.
-    DATA(test) = 'test'.
-    DATA(test_number) = 5.
-    DATA(b) = abap_true.
-    IF test IS INITIAL. "finding1 erwartet
+  method test_if_then_else.
+    data(test) = 'test'.
+    data(test_number) = 5.
+    data(b) = abap_true.
+    if test is initial.
       b = abap_true.
-    ELSE.
-      b = ABAP_false.
-    ENDIF.
-
-    IF test IS INITIAL. "finding erwartet
+    else.
       b = abap_false.
-    ELSE.
-      b = abap_true.
-    ENDIF.
+    endif.
 
-    IF test IS NOT INITIAL. "finding erwartet
+    if test is initial.
       b = abap_false.
-    ELSE.
+    else.
       b = abap_true.
-    ENDIF.
+    endif.
 
-    IF x IN int_tab. "finding erwartet
+    if test is not initial.
       b = abap_false.
-    ELSE.
+    else.
       b = abap_true.
-    ENDIF.
+    endif.
 
-    IF x NOT IN int_tab. "finding erwartet
+    if x in int_tab.
       b = abap_false.
-    ELSE.
+    else.
       b = abap_true.
-    ENDIF.
+    endif.
 
-    IF test_number LT 38. "finding erwartet
+    if x not in int_tab.
       b = abap_false.
-    ELSE.
+    else.
       b = abap_true.
-    ENDIF.
+    endif.
 
-    IF test_number <> 4 OR test IS NOT INITIAL. "finding erwartet
+    if test_number lt 38.
       b = abap_false.
-    ELSE.
+    else.
       b = abap_true.
-    ENDIF.
+    endif.
 
-    DATA(string) = 'teststring'.
-    IF 1 = 2 AND 'test' NE substring( len = test_method( iparameter = 3 ) val = string ) AND 5 GT 2. "finding erwartet
-      b = ' '. "kein finding erwartet, da es ein XSDBOOL werden soll
-    ELSE.
-      b = 'X'. "kein finding erwartet, da es ein XSDBOOL werden soll
-    ENDIF.
+    if test_number <> 4 or test is not initial.
+      b = abap_false.
+    else.
+      b = abap_true.
+    endif.
 
-    IF a IS NOT INITIAL. "finding erwartet
+    data(string) = 'teststring'.
+    if 1 = 2 and 'test' ne substring( len = test_method( iparameter = 3 ) val = string ) and 5 gt 2.
+      b = ' '.
+    else.
+      b = 'X'.
+    endif.
+
+    if a is not initial.
       number_bool_structure-boolean = abap_false.
-    ELSE.
+    else.
       number_bool_structure-boolean = abap_true.
-    ENDIF.
+    endif.
 
-    IF a IS INITIAL. "finding1 erwartet
+    if a is initial.
       b = abap_true.
-    ELSE.
-      b = ABAP_false.
-    ENDIF.
+    else.
+      b = abap_false.
+    endif.
 
-    IF table2[ 4 ]-table[ 1 ]-boolean IS INITIAL. "finding1 erwartet
-      b = ABAP_false.
-    ELSE.
-      b = ABAP_true.
-    ENDIF.
+    if table2[ 4 ]-table[ 1 ]-boolean is initial.
+      b = abap_false.
+    else.
+      b = abap_true.
+    endif.
 
-    IF table2[ 4 ]-table[ 1 ]-boolean IS INITIAL. "finding1 erwartet
+    if table2[ 4 ]-table[ 1 ]-boolean is initial.
       data(c) = abap_true.
-    ELSE.
-      c = ABAP_false.
-    ENDIF.
+    else.
+      c = abap_false.
+    endif.
+
+    if test_method( 22 ) is initial.
+      data(d) = abap_true.
+    endif.
+
+  endmethod.
 
 
-
-  ENDMETHOD.
-
-
-  METHOD test_correct_bool_usage.
-    DATA t TYPE abap_bool.
-    t = 'X'.  "finding erwartet
-    number_bool_structure-boolean = ' '. "finding erwartet
-    a = space.  "finding erwartet
+  method test_correct_bool_usage.
+    data t type abap_bool.
+    t = 'X'.
+    number_bool_structure-boolean = ' '.
+    a = space.
     test_struc_nab-nab-boolean = 'X'.
 
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD test_bool_initial.
-    IF a IS  INITIAL. "finding erwartet
-    ENDIF.
-    IF table2[ 4 ]-table[ 1 ]-boolean IS INITIAL.  "finding erwartet
-    ENDIF.
-    IF test_struc_nab-nab-boolean IS INITIAL.
-    ENDIF.
-  ENDMETHOD.
+  method test_bool_initial.
+    if a is  initial.
+    endif.
+    if table2[ 4 ]-table[ 1 ]-boolean is initial.
+    endif.
+    if test_struc_nab-nab-boolean is initial.
+    endif.
+  endmethod.
 
 
-  METHOD test_method.
+  method test_method.
 
-  ENDMETHOD.
+  endmethod.
 
-ENDCLASS.
+endclass.
 

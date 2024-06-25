@@ -28,6 +28,7 @@ class /cc4a/proper_bool_expression definition
         classic,
         inline,
         types,
+        types_enum,
       end of enum ty_declaration_kind structure declaration_kind.
     types:
       begin of enum ty_boolean structure boolean_value,
@@ -266,7 +267,12 @@ class /cc4a/proper_bool_expression implementation.
       when statement-keyword = 'DATA' or statement-keyword = 'FINAL' or statement-keyword = 'CONSTANTS'
         then declaration_kind-classic
       when statement-keyword = 'TYPES'
-        then declaration_kind-types
+        then cond #(
+          when lines( statement-tokens ) = 2 or
+               analyzer->is_token_keyword( token = statement-tokens[ 4 ] keyword = 'ENUM' ) or
+               analyzer->is_token_keyword( token = statement-tokens[ 3 ] keyword = 'VALUE' )
+            then declaration_kind-types_enum
+            else declaration_kind-types )
       when statement-tokens[ 1 ]-lexeme cp 'DATA(*)' or statement-tokens[ 1 ]-lexeme cp 'FINAL(*)'
         then declaration_kind-inline
         else declaration_kind-none ).
@@ -308,6 +314,10 @@ class /cc4a/proper_bool_expression implementation.
   endmethod.
 
   method determine_declaration_type.
+    " This happens for 'DATA var.' with implicit type 'TYPE c LENGTH 1'
+    if lines( statement-tokens ) = 2.
+      return value #( kind = type_kind-indeterminate ).
+    endif.
     assign statement-tokens[ 4 ] to field-symbol(<fourth_token>).
     if <fourth_token>-references is not initial.
       return value #(
@@ -391,6 +401,9 @@ class /cc4a/proper_bool_expression implementation.
   endmethod.
 
   method is_boolean_typed.
+    if lines( token-references ) = 0.
+      return abap_false.
+    endif.
     assign token-references[ lines( token-references ) ]-full_name to field-symbol(<accessed_component>).
     assign declarations[ declared_identifier = <accessed_component> ]
       to field-symbol(<declaration>).

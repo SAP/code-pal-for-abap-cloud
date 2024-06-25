@@ -150,6 +150,12 @@ class /cc4a/proper_bool_expression definition
         target          type string
         bool_sequence   type ty_inverse_booleans
       returning value(fixes) type ref to cl_ci_atc_quickfixes.
+    methods process_declaration
+      importing
+        procedure type if_ci_atc_source_code_provider=>ty_procedure
+        statement_idx type i
+        declaration type /cc4a/proper_bool_expression=>ty_declaration
+      returning value(findings) type if_ci_atc_check=>ty_findings.
 endclass.
 
 class /cc4a/proper_bool_expression implementation.
@@ -200,7 +206,48 @@ class /cc4a/proper_bool_expression implementation.
   method analyze_procedure.
     loop at procedure-statements assigning field-symbol(<statement>).
       data(statement_idx) = sy-tabix.
-      data(declaration) = analyze_declaration( <statement> ).
+      insert lines of process_declaration(
+        procedure = procedure
+        statement_idx = statement_idx
+        declaration = analyze_declaration( <statement> ) ) into table findings.
+
+      case <statement>-keyword.
+        when 'IF'.
+          assign procedure-statements[ statement_idx + 4 ] to field-symbol(<endif>).
+          if sy-subrc = 0 and <endif>-keyword = 'ENDIF' and procedure-statements[ statement_idx + 2 ]-keyword = 'ELSE'.
+            insert lines of
+              analyze_pot_xsd_transform( procedure = procedure statement_idx = statement_idx ) into table findings.
+          else.
+            insert lines of
+              analyze_initial_bool_condition( procedure = procedure statement_idx = statement_idx ) into table findings.
+          endif.
+
+        when 'COMPUTE'.
+          if <statement>-tokens[ lines( <statement>-tokens ) - 1 ]-lexeme = '='.
+            data(boolean) = to_boolean( <statement>-tokens[ lines( <statement>-tokens ) ] ).
+            if ( boolean = boolean_value-true or boolean = boolean_value-false )
+                and is_boolean_typed( <statement>-tokens[ lines( <statement>-tokens ) - 2 ] ).
+              insert value #(
+                code = finding_codes-boolean_value
+                location = code_provider->get_statement_location( <statement> )
+                checksum = code_provider->get_statement_checksum( <statement> )
+                has_pseudo_comment = meta_data->has_valid_pseudo_comment(
+                  statement = <statement>
+                  finding_code = finding_codes-boolean_value )
+                details = assistant_factory->create_finding_details( )->attach_quickfixes(
+                  fix_boolean_compute(
+                    procedure = procedure
+                    statement_idx = statement_idx
+                    value = boolean ) )
+              ) into table findings.
+            endif.
+          endif.
+      endcase.
+
+    endloop.
+  endmethod.
+
+  method process_declaration.
       case declaration-kind.
         when declaration_kind-classic or declaration_kind-inline.
           insert declaration into table declarations.
@@ -208,10 +255,10 @@ class /cc4a/proper_bool_expression implementation.
             if declaration-value = boolean_value-true or declaration-value = boolean_value-false.
               insert value #(
                 code = finding_codes-boolean_value
-                location = code_provider->get_statement_location( <statement> )
-                checksum = code_provider->get_statement_checksum( <statement> )
+                location = code_provider->get_statement_location( procedure-statements[ statement_idx ] )
+                checksum = code_provider->get_statement_checksum( procedure-statements[ statement_idx ] )
                 has_pseudo_comment = meta_data->has_valid_pseudo_comment(
-                  statement = <statement>
+                  statement = procedure-statements[ statement_idx ]
                   finding_code = finding_codes-boolean_value )
                 details = assistant_factory->create_finding_details( )->attach_quickfixes(
                   fix_boolean_declaration(
@@ -227,39 +274,6 @@ class /cc4a/proper_bool_expression implementation.
           insert lines of
             synthesize_bool_comp_decl( declaration ) into table declarations.
       endcase.
-      if <statement>-keyword = 'IF'.
-        assign procedure-statements[ statement_idx + 4 ] to field-symbol(<endif>).
-        if sy-subrc = 0 and <endif>-keyword = 'ENDIF' and procedure-statements[ statement_idx + 2 ]-keyword = 'ELSE'.
-          insert lines of
-            analyze_pot_xsd_transform( procedure = procedure statement_idx = statement_idx ) into table findings.
-        else.
-          insert lines of
-            analyze_initial_bool_condition( procedure = procedure statement_idx = statement_idx ) into table findings.
-        endif.
-      endif.
-      if <statement>-keyword = 'COMPUTE'.
-        if <statement>-tokens[ lines( <statement>-tokens ) - 1 ]-lexeme = '='.
-          data(boolean) = to_boolean( <statement>-tokens[ lines( <statement>-tokens ) ] ).
-          if ( boolean = boolean_value-true or boolean = boolean_value-false )
-              and is_boolean_typed( <statement>-tokens[ lines( <statement>-tokens ) - 2 ] ).
-            insert value #(
-              code = finding_codes-boolean_value
-              location = code_provider->get_statement_location( <statement> )
-              checksum = code_provider->get_statement_checksum( <statement> )
-              has_pseudo_comment = meta_data->has_valid_pseudo_comment(
-                statement = <statement>
-                finding_code = finding_codes-boolean_value )
-              details = assistant_factory->create_finding_details( )->attach_quickfixes(
-                fix_boolean_compute(
-                  procedure = procedure
-                  statement_idx = statement_idx
-                  value = boolean ) )
-            ) into table findings.
-          endif.
-        endif.
-      endif.
-
-    endloop.
   endmethod.
 
   METHOD analyze_declaration.

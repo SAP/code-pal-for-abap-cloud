@@ -1,223 +1,224 @@
-CLASS /cc4a/test_scope_of_variable DEFINITION
-  PUBLIC
-  FINAL
-  CREATE PUBLIC .
+class /cc4a/test_scope_of_variable definition
+  public
+  final
+  create public .
 
-  PUBLIC SECTION.
-    METHODS test1.
-    METHODS test2.
-    METHODS test3.
-    METHODS test4.
-    METHODS test5.
-    METHODS test6.
-    METHODS test7.
-    METHODS test8.
-    METHODS test9.
-    METHODS test10.
-    METHODS test11.
-  PROTECTED SECTION.
-  PRIVATE SECTION.
-    METHODS my_method1
-      IMPORTING val    TYPE char2
-                num    TYPE i
-                lexeme TYPE string.
-    METHODS my_method2
-      IMPORTING par_1 TYPE i
-      EXPORTING par_2 TYPE i.
-ENDCLASS.
+  public section.
+    methods test1.
+    methods test2.
+    methods test3.
+    methods test4.
+    methods test5.
+    methods test6.
+    methods test7.
+    methods test8.
+    methods test9.
+    methods test10.
+    methods test11.
+  protected section.
+  private section.
+    types ty_char2 type c length 2.
+    methods my_method1
+      importing val    type ty_char2
+                num    type i
+                lexeme type string.
+    methods my_method2
+      importing par_1 type i
+      exporting par_2 type i.
+endclass.
 
 
 
-CLASS /cc4a/test_scope_of_variable IMPLEMENTATION.
-  METHOD test1.
-    DATA(a) = 14.
-    IF 1 = 2.
-      DATA(var1) = 5.
-    ELSE.
+class /cc4a/test_scope_of_variable implementation.
+  method test1.
+    data(a) = 14.
+    if 1 = 2.
+      data(var1) = 5.
+    else.
       var1 = 6.
-    ENDIF.
-  ENDMETHOD.
-  METHOD test2.
-    DO.
-      CASE sy-subrc.
-        WHEN 0.
-          DATA(var2) = 'blabla'.
-        WHEN 1.
+    endif.
+  endmethod.
+  method test2.
+    do.
+      case sy-subrc.
+        when 0.
+          data(var2) = 'blabla'.
+        when 1.
           var2 = 'x'.
-          DATA(varx) = 15.
-        WHEN 15.
+          data(varx) = 15.
+        when 15.
           varx += 1.
-      ENDCASE.
-      IF 1 = 2.
+      endcase.
+      if 1 = 2.
         var2 += 1.
-      ENDIF.
-    ENDDO.
+      endif.
+    enddo.
     varx += 1.
-  ENDMETHOD.
-  METHOD test3.
-    IF 1 = 2.
-      DATA(new) = 'hallo'.
-    ELSE.
-      DATA(var) = 15.
-      IF sy-subrc  = 0.
+  endmethod.
+  method test3.
+    if 1 = 2.
+      data(new) = 'hallo'.
+    else.
+      data(var) = 15.
+      if sy-subrc  = 0.
         var += 1.
-      ELSE.
-        DATA(bla) =  var + 1.
-      ENDIF.
-    ENDIF.
-  ENDMETHOD.
-  METHOD test4.
-    TYPES: ty_range TYPE RANGE OF i.
-    DATA itab TYPE TABLE OF string.
-    DATA itab1 TYPE TABLE OF string.
-    IF sy-subrc = 0.
-      DATA(var) = VALUE ty_range( FOR <line> IN itab ( low = <line> sign = 'I' option = 'EQ' )  ).
-    ELSE.
-      var = VALUE ty_range( FOR <line> IN itab1 ( low = <line> sign = 'I' option = 'EQ' )  ).
-    ENDIF.
-    IF sy-subrc = 0.
-      FIELD-SYMBOLS <var> TYPE string.
-      ASSIGN `blabla` TO <var>.
-    ELSE.
-      ASSIGN `blub` TO <var>.
-    ENDIF.
-    IF 1 = 2.
-      DATA(test) = VALUE #( itab1[ 1 ] ).
-    ELSE.
+      else.
+        data(bla) =  var + 1.
+      endif.
+    endif.
+  endmethod.
+  method test4.
+    types: ty_range type range of i.
+    data itab type table of string.
+    data itab1 type table of string.
+    if sy-subrc = 0.
+      data(var) = value ty_range( for <line> in itab ( low = <line> sign = 'I' option = 'EQ' )  ).
+    else.
+      var = value ty_range( for <line> in itab1 ( low = <line> sign = 'I' option = 'EQ' )  ).
+    endif.
+    if sy-subrc = 0.
+      field-symbols <var> type string.
+      assign `blabla` to <var>.
+    else.
+      assign `blub` to <var>.
+    endif.
+    if 1 = 2.
+      data(test) = value #( itab1[ 1 ] ).
+    else.
       test = `blabla`.
-    ENDIF.
-  ENDMETHOD.
-  METHOD test5.
-    DATA number TYPE i.
-    CASE number.
-      WHEN 1.
-        IF sy-subrc = 0.
-          DATA(condition) = ` AND `.
-        ELSE.
+    endif.
+  endmethod.
+  method test5.
+    data number type i.
+    case number.
+      when 1.
+        if sy-subrc = 0.
+          data(condition) = ` AND `.
+        else.
           condition = ` OR `.
-        ENDIF.
-        DATA(new) = condition.
-      WHEN 2.
-        DATA(result) = 0.
-    ENDCASE.
-  ENDMETHOD.
-  METHOD test6.
-    CASE sy-subrc.
-      WHEN 1.
-        IF sy-subrc = 0.
-          TYPES t_itab TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
-          DATA itab TYPE t_itab.
-          DATA condition TYPE REF TO t_itab.
-          DATA condition1 LIKE REF TO itab.
-          DATA flag.
-        ELSE.
-          LOOP AT condition->* ASSIGNING FIELD-SYMBOL(<cond>).
-          ENDLOOP.
-          IF <cond> IS INITIAL OR condition1 IS INITIAL.
-          ENDIF.
-        ENDIF.
-      WHEN 2.
-        TYPES: BEGIN OF t_test,
-                 a TYPE i,
-                 b TYPE i,
-               END OF t_test.
-        FIELD-SYMBOLS <test> TYPE t_test.
+        endif.
+        data(new) = condition.
+      when 2.
+        data(result) = 0.
+    endcase.
+  endmethod.
+  method test6.
+    case sy-subrc.
+      when 1.
+        if sy-subrc = 0.
+          types t_itab type standard table of string with default key.
+          data itab type t_itab.
+          data condition type ref to t_itab.
+          data condition1 like ref to itab.
+          data flag.
+        else.
+          loop at condition->* assigning field-symbol(<cond>).
+          endloop.
+          if <cond> is initial or condition1 is initial.
+          endif.
+        endif.
+      when 2.
+        types: begin of t_test,
+                 a type i,
+                 b type i,
+               end of t_test.
+        field-symbols <test> type t_test.
         flag = 'a'.
-    ENDCASE.
-    DATA test TYPE t_test.
-    ASSIGN test TO <test>.
-  ENDMETHOD.
-  METHOD test7.
-    IF sy-subrc = 0.
-      DATA: BEGIN OF line,
-              format TYPE i,
-              text   TYPE string,
-            END OF line.
-      CLEAR line.
-    ELSE.
-      DATA(new) = line.
+    endcase.
+    data test type t_test.
+    assign test to <test>.
+  endmethod.
+  method test7.
+    if sy-subrc = 0.
+      data: begin of line,
+              format type i,
+              text   type string,
+            end of line.
+      clear line.
+    else.
+      data(new) = line.
       line-format = 15.
       line-text = 'blabla'.
-    ENDIF.
-  ENDMETHOD.
-  METHOD test8.
-    TYPES: BEGIN OF t_line,
-             val(2) TYPE c,
-             num    TYPE i,
-           END OF t_line.
-    DATA itab TYPE STANDARD TABLE OF t_line.
-    DATA num TYPE i.
-    IF sy-subrc = 0.
-      DATA(entry) = itab[ val = `a` && `b`  ].
-      DATA(idx) = line_index( itab[ val = `a` && `b`  ] ).
-      DATA(test) = 'ab'.
-      DATA(test_string) = | blabla { test }|.
-    ELSE.
-      DATA(new) = entry.
+    endif.
+  endmethod.
+  method test8.
+    types: begin of t_line,
+             val(2) type c,
+             num    type i,
+           end of t_line.
+    data itab type standard table of t_line.
+    data num type i.
+    if sy-subrc = 0.
+      data(entry) = itab[ val = `a` && `b`  ].
+      data(idx) = line_index( itab[ val = `a` && `b`  ] ).
+      data(test) = 'ab'.
+      data(test_string) = | blabla { test }|.
+    else.
+      data(new) = entry.
       my_method1( val = test num = idx lexeme = test_string ).
-    ENDIF.
-  ENDMETHOD.
+    endif.
+  endmethod.
 
-  METHOD test9.
-    DATA itab TYPE STANDARD TABLE OF i.
-    DATA number TYPE i.
-    DATA data(30) TYPE c.
-    IF sy-subrc = 0.
-      DATA a(1) VALUE 'F'.
-      DATA b TYPE string VALUE `blabla`.
-      DATA c VALUE 0 LIKE sy-tabix.
-      DATA(2) = 'AB'.
-      DATA: BEGIN OF d,
-              one TYPE string,
-              two TYPE string,
-            END OF d.
-      DATA: BEGIN OF d_1,
-              a TYPE i,
-              BEGIN OF d_2,
-                x TYPE i,
-                y TYPE i,
-              END OF d_2,
-            END OF d_1.
-    ELSE.
+  method test9.
+    data itab type standard table of i.
+    data number type i.
+    data data(30) type c.
+    if sy-subrc = 0.
+      data a(1) value 'F'.
+      data b type string value `blabla`.
+      data c value 0 like sy-tabix.
+      data(2) = 'AB'.
+      data: begin of d,
+              one type string,
+              two type string,
+            end of d.
+      data: begin of d_1,
+              a type i,
+              begin of d_2,
+                x type i,
+                y type i,
+              end of d_2,
+            end of d_1.
+    else.
       a = 'B'.
-      DATA(new) = |{ b }1|.
+      data(new) = |{ b }1|.
       c += 1.
-      DATA(3) = 'ABC'.
-      DATA(new1) = d_1.
+      data(3) = 'ABC'.
+      data(new1) = d_1.
       d-one = `blabla`.
-    ENDIF.
-    IF number > 1.
+    endif.
+    if number > 1.
       number = lines( itab ).  "COMPUTE number = lines(  itab ).
-    ELSE.
+    else.
       number = 5.
-    ENDIF.
+    endif.
 
-  ENDMETHOD.
-  METHOD test10.
-    DATA var_1 TYPE i.
-    DATA itab TYPE TABLE OF i.
-    IF var_1 = 2.
-      DATA(var_2) = var_1.
-      my_method2( EXPORTING par_1 = var_2 IMPORTING par_2 = DATA(var_3) ).
-      SELECT FROM tadir FIELDS * INTO TABLE @DATA(var_4).
-      READ TABLE itab INDEX 5 ASSIGNING FIELD-SYMBOL(<var_5>).
-    ELSE.
+  endmethod.
+  method test10.
+    data var_1 type i.
+    data itab type table of i.
+    if var_1 = 2.
+      data(var_2) = var_1.
+      my_method2( exporting par_1 = var_2 importing par_2 = data(var_3) ).
+      select from i_custabapobjdirectoryentry fields * into table @data(var_4).
+      read table itab index 5 assigning field-symbol(<var_5>).
+    else.
       var_2 = 3.
       var_3 = 3.
-      SELECT FROM tadir FIELDS * INTO TABLE @var_4.
+      select from i_custabapobjdirectoryentry fields * into table @var_4.
       <var_5> = 13.
-    ENDIF.
-  ENDMETHOD.
-  METHOD test11.
-    SELECT * FROM tadir INTO @DATA(stuff).
-      DATA(var_1) = stuff-author.
-    ENDSELECT.
-    DATA(var_2) = stuff-author.
+    endif.
+  endmethod.
+  method test11.
+    select * from i_custabapobjdirectoryentry into @data(stuff).
+      data(var_1) = stuff-abapobjectresponsibleuser.
+    endselect.
+    data(var_2) = stuff-abapobjectresponsibleuser.
     var_2 = var_1.
-  ENDMETHOD.
-  METHOD my_method1.
+  endmethod.
+  method my_method1.
 
-  ENDMETHOD.
-  METHOD my_method2.
-  ENDMETHOD.
-ENDCLASS.
+  endmethod.
+  method my_method2.
+  endmethod.
+endclass.

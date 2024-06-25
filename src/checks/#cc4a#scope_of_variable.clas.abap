@@ -1,606 +1,604 @@
-CLASS /cc4a/scope_of_variable DEFINITION
-  PUBLIC
-  FINAL
-  CREATE PUBLIC .
+class /cc4a/scope_of_variable definition
+  public final
+  create public.
 
-  PUBLIC SECTION.
-    INTERFACES if_ci_atc_check .
-    CONSTANTS:
-      BEGIN OF message_codes,
-        scope TYPE if_ci_atc_check=>ty_finding_code VALUE 'SCOPE',
-      END OF message_codes.
-    CONSTANTS:
-      BEGIN OF pseudo_comments,
-        scope TYPE string VALUE 'SCOPE_OF_VAR',
-      END OF pseudo_comments.
-    CONSTANTS:
-      BEGIN OF quickfix_codes,
-        change_scope TYPE cl_ci_atc_quickfixes=>ty_quickfix_code VALUE 'CHG_SCOPE',
-      END OF quickfix_codes.
-  PROTECTED SECTION.
-  PRIVATE SECTION.
-    TYPES t_block_list TYPE SORTED TABLE OF i WITH UNIQUE KEY table_line.
-    TYPES: BEGIN OF t_replace_token,
-             token_idx TYPE i,
-             value     TYPE string,
-           END OF t_replace_token.
-    TYPES: t_replace_tokens TYPE SORTED TABLE OF t_replace_token WITH UNIQUE KEY token_idx.
-    TYPES: BEGIN OF t_finding_infos,
-             def_line       TYPE string,
-             variable       TYPE string,
-             full_name      TYPE string,
-             type_full_name TYPE string,
-             replace_tokens TYPE t_replace_tokens,
-           END OF t_finding_infos.
-    TYPES: t_finding_infos_list TYPE STANDARD TABLE OF t_finding_infos WITH DEFAULT KEY.
-    TYPES: BEGIN OF t_block_info,
-             block            TYPE i,
-             inside_injection TYPE abap_bool,
-           END OF t_block_info.
-    TYPES: BEGIN OF t_usage_infos,
-             used_blocks     TYPE t_block_list,
-             first_statement TYPE if_ci_atc_source_code_provider=>ty_statement,
-           END OF t_usage_infos.
-    DATA code_provider     TYPE REF TO if_ci_atc_source_code_provider.
-    DATA analyzer TYPE REF TO /cc4a/if_abap_analyzer.
-    DATA assistant_factory TYPE REF TO cl_ci_atc_assistant_factory.
-    DATA first_block TYPE i.
-    METHODS analyze_procedure
-      IMPORTING procedure       TYPE if_ci_atc_source_code_provider=>ty_procedure
-      RETURNING VALUE(findings) TYPE if_ci_atc_check=>ty_findings.
-    METHODS check_block
-      IMPORTING
-        procedure     TYPE if_ci_atc_source_code_provider=>ty_procedure
-        block_no      TYPE i
-      RETURNING
-        VALUE(result) TYPE t_block_info.
-    METHODS get_usages_outside_block
-      IMPORTING
-                procedure       TYPE if_ci_atc_source_code_provider=>ty_procedure
-                start_statement TYPE i
-                variable        TYPE string
-                full_name       TYPE string
-                check_block     TYPE i
-      RETURNING VALUE(result)   TYPE t_usage_infos.
-    METHODS find_outer_block
-      IMPORTING
-        procedure     TYPE if_ci_atc_source_code_provider=>ty_procedure
-        blocks        TYPE t_block_list
-      RETURNING
-        VALUE(result) TYPE i.
-    METHODS is_parent
-      IMPORTING
-        procedure     TYPE if_ci_atc_source_code_provider=>ty_procedure
-        parent        TYPE i
-        child         TYPE i
-      RETURNING
-        VALUE(result) TYPE abap_bool.
+  public section.
+    interfaces if_ci_atc_check.
 
-    METHODS get_def_line_initial
-      IMPORTING
-        statement      TYPE if_ci_atc_source_code_provider=>ty_statement
-      EXPORTING
-        def_line       TYPE string
-        type_full_name TYPE string.
+    constants:
+      begin of message_codes,
+        scope type if_ci_atc_check=>ty_finding_code value 'SCOPE',
+      end of message_codes.
+    constants:
+      begin of pseudo_comments,
+        scope type string value 'SCOPE_OF_VAR',
+      end of pseudo_comments.
+    constants:
+      begin of quickfix_codes,
+        change_scope type cl_ci_atc_quickfixes=>ty_quickfix_code value 'CHG_SCOPE',
+      end of quickfix_codes.
 
-    METHODS get_first_block
-      IMPORTING
-        procedure     TYPE if_ci_atc_source_code_provider=>ty_procedure
-      RETURNING
-        VALUE(result) TYPE i.
+  private section.
+    types ty_block_list type sorted table of i with unique key table_line.
+    types:
+      begin of ty_replace_token,
+        token_idx type i,
+        value type string,
+      end of ty_replace_token.
+    types ty_replace_tokens type sorted table of ty_replace_token with unique key token_idx.
+    types:
+      begin of ty_finding_infos,
+        def_line type string,
+        variable type string,
+        full_name type string,
+        type_full_name type string,
+        replace_tokens type ty_replace_tokens,
+      end of ty_finding_infos.
+    types ty_finding_infos_list type standard table of ty_finding_infos with default key.
+    types:
+      begin of ty_block_info,
+        block type i,
+        inside_injection type abap_bool,
+      end of ty_block_info.
+    types:
+      begin of ty_usage_infos,
+        used_blocks type ty_block_list,
+        first_statement type if_ci_atc_source_code_provider=>ty_statement,
+      end of ty_usage_infos.
 
-    METHODS least_common_parent
-      IMPORTING
-        procedure     TYPE if_ci_atc_source_code_provider=>ty_procedure
-        block1        TYPE i
-        block2        TYPE i
-      RETURNING
-        VALUE(result) TYPE i.
-    METHODS get_type_full_name
-      IMPORTING
-        statement     TYPE if_ci_atc_source_code_provider=>ty_statement
-        type_idx      TYPE i
-      RETURNING
-        VALUE(result) TYPE string.
-    METHODS check_for_definition
-      IMPORTING
-        statement     TYPE if_ci_atc_source_code_provider=>ty_statement
-        full_name     TYPE string
-      RETURNING
-        VALUE(result) TYPE abap_bool.
-    METHODS analyze_statement
-      IMPORTING
-        statement     TYPE if_ci_atc_source_code_provider=>ty_statement
-        data_begin_of TYPE abap_bool DEFAULT abap_false
-      RETURNING
-        VALUE(result) TYPE t_finding_infos_list.
+    data code_provider type ref to if_ci_atc_source_code_provider.
+    data analyzer type ref to /cc4a/if_abap_analyzer.
+    data assistant_factory type ref to cl_ci_atc_assistant_factory.
+    data first_block type i.
 
-    METHODS get_type_token_idx
-      IMPORTING
-        statement     TYPE if_ci_atc_source_code_provider=>ty_statement
-      RETURNING
-        VALUE(result) TYPE i.
-    METHODS get_tokens
-      IMPORTING
-        tokens        TYPE if_ci_atc_source_code_provider=>ty_tokens
-        from_idx      TYPE i DEFAULT 1
-        VALUE(to_idx) TYPE i OPTIONAL
-      RETURNING
-        VALUE(result) TYPE if_ci_atc_source_code_provider=>ty_tokens.
-ENDCLASS.
+    methods analyze_procedure
+      importing procedure type if_ci_atc_source_code_provider=>ty_procedure
+      returning value(findings) type if_ci_atc_check=>ty_findings.
+    methods check_block
+      importing
+        procedure type if_ci_atc_source_code_provider=>ty_procedure
+        block_no type i
+      returning
+        value(result) type ty_block_info.
+    methods get_usages_outside_block
+      importing
+        procedure type if_ci_atc_source_code_provider=>ty_procedure
+        start_statement type i
+        variable type string
+        full_name type string
+        check_block type i
+      returning value(result)   type ty_usage_infos.
+    methods find_outer_block
+      importing
+        procedure type if_ci_atc_source_code_provider=>ty_procedure
+        blocks type ty_block_list
+      returning
+        value(result) type i.
+    methods is_parent
+      importing
+        procedure type if_ci_atc_source_code_provider=>ty_procedure
+        parent type i
+        child type i
+      returning
+        value(result) type abap_bool.
 
+    methods get_def_line_initial
+      importing
+        statement type if_ci_atc_source_code_provider=>ty_statement
+      exporting
+        def_line type string
+        type_full_name type string.
 
+    methods get_first_block
+      importing
+        procedure type if_ci_atc_source_code_provider=>ty_procedure
+      returning
+        value(result) type i.
 
-CLASS /cc4a/scope_of_variable IMPLEMENTATION.
+    methods least_common_parent
+      importing
+        procedure type if_ci_atc_source_code_provider=>ty_procedure
+        block1 type i
+        block2 type i
+      returning
+        value(result) type i.
+    methods get_type_full_name
+      importing
+        statement type if_ci_atc_source_code_provider=>ty_statement
+        type_idx type i
+      returning
+        value(result) type string.
+    methods check_for_definition
+      importing
+        statement type if_ci_atc_source_code_provider=>ty_statement
+        full_name type string
+      returning
+        value(result) type abap_bool.
+    methods analyze_statement
+      importing
+        statement type if_ci_atc_source_code_provider=>ty_statement
+        data_begin_of type abap_bool default abap_false
+      returning
+        value(result) type ty_finding_infos_list.
 
+    methods get_type_token_idx
+      importing statement type if_ci_atc_source_code_provider=>ty_statement
+      returning
+        value(result) type i.
+    methods get_tokens
+      importing
+        tokens type if_ci_atc_source_code_provider=>ty_tokens
+        from_idx type i default 1
+        value(to_idx) type i optional
+      returning
+        value(result) type if_ci_atc_source_code_provider=>ty_tokens.
+endclass.
 
-  METHOD if_ci_atc_check~get_meta_data.
+class /cc4a/scope_of_variable implementation.
+  method if_ci_atc_check~get_meta_data.
     meta_data = /cc4a/check_meta_data=>create(
-        VALUE #( checked_types = /cc4a/check_meta_data=>checked_types-abap_programs
+        value #( checked_types = /cc4a/check_meta_data=>checked_types-abap_programs
         description = 'Scope of Variable'(des)
         remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
-        finding_codes = VALUE #( ( code = message_codes-scope  text = 'Variable &1 declared inside block and used outside'(001)
-                                   pseudo_comment = pseudo_comments-scope ) )
-        quickfix_codes = VALUE #( ( code = quickfix_codes-change_scope short_text = 'Change scope of variable'(qf1) ) )
-                                   ) ) .
-  ENDMETHOD.
+        finding_codes = value #( (
+          code = message_codes-scope
+          text = 'Variable &1 declared inside block and used outside'(001)
+          pseudo_comment = pseudo_comments-scope ) )
+        quickfix_codes = value #(
+          ( code = quickfix_codes-change_scope short_text = 'Change scope of variable'(qf1) ) ) ) ).
+  endmethod.
 
-
-  METHOD if_ci_atc_check~run.
+  method if_ci_atc_check~run.
     code_provider = data_provider->get_code_provider( ).
     analyzer = /cc4a/abap_analyzer=>create( ).
-    DATA(procedures) = code_provider->get_procedures( code_provider->object_to_comp_unit( object ) ).
-    LOOP AT procedures->* ASSIGNING FIELD-SYMBOL(<procedure>).
-      INSERT LINES OF analyze_procedure( <procedure> ) INTO TABLE findings.
-    ENDLOOP.
-  ENDMETHOD.
+    data(procedures) = code_provider->get_procedures( code_provider->object_to_comp_unit( object ) ).
+    loop at procedures->* assigning field-symbol(<procedure>).
+      insert lines of analyze_procedure( <procedure> ) into table findings.
+    endloop.
+  endmethod.
 
-
-  METHOD if_ci_atc_check~set_assistant_factory.
+  method if_ci_atc_check~set_assistant_factory.
     assistant_factory = factory.
-  ENDMETHOD.
+  endmethod.
 
+  method if_ci_atc_check~set_attributes ##needed.
+  endmethod.
 
-  METHOD if_ci_atc_check~set_attributes ##NEEDED.
-  ENDMETHOD.
+  method if_ci_atc_check~verify_prerequisites ##needed.
+  endmethod.
 
-
-  METHOD if_ci_atc_check~verify_prerequisites ##NEEDED.
-  ENDMETHOD.
-
-
-  METHOD analyze_procedure.
-    DATA data_begin_of_counter TYPE i.
-    DATA analyze_data_begin_of TYPE abap_bool.
-    DATA finding_infos_list TYPE t_finding_infos_list.
+  method analyze_procedure.
+    data data_begin_of_counter type i.
+    data analyze_data_begin_of type abap_bool.
+    data finding_infos_list type ty_finding_infos_list.
 
     first_block = get_first_block( procedure ).
-    LOOP AT procedure-statements ASSIGNING FIELD-SYMBOL(<statement>)
-    WHERE block > 1.
-      DATA(statement_idx) = sy-tabix.
+    loop at procedure-statements assigning field-symbol(<statement>)
+    where block > 1.
+      data(statement_idx) = sy-tabix.
 
-      IF analyzer->find_clause_index( tokens = <statement>-tokens clause = 'DATA BEGIN OF' ) <> 0.
+      if analyzer->find_clause_index( tokens = <statement>-tokens clause = 'DATA BEGIN OF' ) <> 0.
         data_begin_of_counter += 1.
-        IF data_begin_of_counter = 1.
+        if data_begin_of_counter = 1.
           analyze_data_begin_of = abap_true.
-        ENDIF.
-      ENDIF.
-      IF analyzer->find_clause_index( tokens = <statement>-tokens clause = 'DATA END OF' ) <> 0.
+        endif.
+      endif.
+      if analyzer->find_clause_index( tokens = <statement>-tokens clause = 'DATA END OF' ) <> 0.
         data_begin_of_counter -= 1.
-        CONTINUE.
-      ENDIF.
-      IF analyze_data_begin_of = abap_false AND data_begin_of_counter <> 0.
-        CONTINUE.
-      ENDIF.
+        continue.
+      endif.
+      if analyze_data_begin_of = abap_false and data_begin_of_counter <> 0.
+        continue.
+      endif.
 
       finding_infos_list = analyze_statement( statement = <statement> data_begin_of = analyze_data_begin_of ).
       analyze_data_begin_of = abap_false.
-      IF finding_infos_list IS INITIAL.
-        CONTINUE.
-      ENDIF.
-      DATA(block_info) = check_block( procedure = procedure block_no = <statement>-block ).
-      IF block_info-block = first_block.
-        CONTINUE.
-      ENDIF.
-      LOOP AT finding_infos_list ASSIGNING FIELD-SYMBOL(<info>).
-*     check where the variable is used
-        DATA(usage_infos) = get_usages_outside_block(
-          EXPORTING
+      if finding_infos_list is initial.
+        continue.
+      endif.
+      data(block_info) = check_block( procedure = procedure block_no = <statement>-block ).
+      if block_info-block = first_block.
+        continue.
+      endif.
+      loop at finding_infos_list assigning field-symbol(<info>).
+        " check where the variable is used
+        data(usage_infos) = get_usages_outside_block(
              check_block = block_info-block
              procedure = procedure
              start_statement = procedure-blocks[ block_info-block ]-statements-to + 1
              variable = <info>-variable
              full_name =  <info>-full_name ).
-        IF usage_infos IS INITIAL.
-          CONTINUE.
-        ENDIF.
-        DATA(stack) = assistant_factory->create_call_stack(  ).
-        stack->push_statement( VALUE #( text = |Usage of variable { <info>-variable }| statement = usage_infos-first_statement ) ).
-        DATA(details) = assistant_factory->create_finding_details( )->attach_stack( name = `` stack = stack ).
-        IF <info>-def_line IS INITIAL OR block_info-inside_injection = abap_true.
-          INSERT VALUE #( code = message_codes-scope
-                    location = code_provider->get_statement_location( <statement> )
-                    checksum = code_provider->get_statement_checksum( <statement> )
-                    has_pseudo_comment = xsdbool( line_exists( <statement>-pseudo_comments[ table_line = pseudo_comments-scope ] ) )
-                    parameters = VALUE #( param_1 = <info>-variable )
-                    details = details )
-                    INTO TABLE findings.
-        ELSE.
-          INSERT block_info-block INTO TABLE usage_infos-used_blocks.
-          DATA(outer_block) = find_outer_block( procedure = procedure blocks = usage_infos-used_blocks ).
-*           no def_line if statement in test-injections and outer_block outside of this test-injection.
-          DATA(block) = block_info-block.
-          WHILE block <> outer_block.
-            ASSIGN procedure-blocks[ block ] TO FIELD-SYMBOL(<block>).
-            IF <block>-statement_type = if_ci_atc_source_code_provider=>statement_type-inject.
-              CLEAR <info>-def_line.
-              EXIT.
-            ENDIF.
+        if usage_infos is initial.
+          continue.
+        endif.
+        data(stack) = assistant_factory->create_call_stack( ).
+        stack->push_statement(
+          value #( text = |Usage of variable { <info>-variable }| statement = usage_infos-first_statement ) ).
+        data(details) = assistant_factory->create_finding_details( )->attach_stack( name = `` stack = stack ).
+        if <info>-def_line is initial or block_info-inside_injection = abap_true.
+          insert value #(
+            code = message_codes-scope
+            location = code_provider->get_statement_location( <statement> )
+            checksum = code_provider->get_statement_checksum( <statement> )
+            has_pseudo_comment =
+              xsdbool( line_exists( <statement>-pseudo_comments[ table_line = pseudo_comments-scope ] ) )
+            parameters = value #( param_1 = <info>-variable )
+            details = details ) into table findings.
+        else.
+          insert block_info-block into table usage_infos-used_blocks.
+          data(outer_block) = find_outer_block( procedure = procedure blocks = usage_infos-used_blocks ).
+          " no def_line if statement in test-injections and outer_block outside of this test-injection.
+          data(block) = block_info-block.
+          while block <> outer_block.
+            assign procedure-blocks[ block ] to field-symbol(<block>).
+            if <block>-statement_type = if_ci_atc_source_code_provider=>statement_type-inject.
+              clear <info>-def_line.
+              exit.
+            endif.
             block = <block>-parent.
-          ENDWHILE.
-          IF <info>-def_line IS NOT INITIAL.
-            DATA(idx) = statement_idx - 1.
-            WHILE idx > procedure-blocks[ outer_block ]-statements-from
-            AND procedure-statements[ idx ]-block  <> outer_block.
-              IF <info>-type_full_name IS NOT INITIAL
-              AND check_for_definition( statement = procedure-statements[ idx ] full_name = <info>-type_full_name ) = abap_true.
-                CLEAR <info>-def_line.
-                EXIT.
-              ENDIF.
+          endwhile.
+          if <info>-def_line is not initial.
+            data(idx) = statement_idx - 1.
+            while idx > procedure-blocks[ outer_block ]-statements-from
+            and procedure-statements[ idx ]-block  <> outer_block.
+              if <info>-type_full_name is not initial and
+                  check_for_definition( statement = procedure-statements[ idx ] full_name = <info>-type_full_name ).
+                clear <info>-def_line.
+                exit.
+              endif.
               idx -= 1.
-            ENDWHILE.
-            IF <info>-type_full_name IS NOT INITIAL AND <info>-def_line IS NOT INITIAL
-            AND check_for_definition( statement = procedure-statements[ idx ] full_name = <info>-type_full_name ) = abap_true.
-              CLEAR <info>-def_line.
-            ENDIF.
-          ENDIF.
+            endwhile.
+            if <info>-type_full_name is not initial and
+                <info>-def_line is not initial and
+                check_for_definition( statement = procedure-statements[ idx ] full_name = <info>-type_full_name ).
+              clear <info>-def_line.
+            endif.
+          endif.
 
-
-          IF <info>-def_line IS INITIAL.
-            INSERT VALUE #( code = message_codes-scope
-                       location = code_provider->get_statement_location( <statement> )
-                       checksum = code_provider->get_statement_checksum( <statement> )
-                       has_pseudo_comment = xsdbool( line_exists( <statement>-pseudo_comments[ table_line = pseudo_comments-scope ] ) )
-                       parameters = VALUE #( param_1 = <info>-variable )
-                       details = details )
-                       INTO TABLE findings.
-          ELSE.
-            DATA(quickfixes) = assistant_factory->create_quickfixes( ).
-            DATA(quickfix) = quickfixes->create_quickfix( quickfix_codes-change_scope ).
-            IF idx = 1.
+          if <info>-def_line is initial.
+            insert value #(
+              code = message_codes-scope
+              location = code_provider->get_statement_location( <statement> )
+              checksum = code_provider->get_statement_checksum( <statement> )
+              has_pseudo_comment =
+                xsdbool( line_exists( <statement>-pseudo_comments[ table_line = pseudo_comments-scope ] ) )
+              parameters = value #( param_1 = <info>-variable )
+              details = details ) into table findings.
+          else.
+            data(quickfixes) = assistant_factory->create_quickfixes( ).
+            data(quickfix) = quickfixes->create_quickfix( quickfix_codes-change_scope ).
+            if idx = 1.
               quickfix->insert_before(
-                context = assistant_factory->create_quickfix_context(
-                   VALUE #( procedure_id = procedure-id
-                            statements = VALUE #( from = idx + 1 to = idx + 1 ) ) )
-                code = VALUE #( ( <info>-def_line ) ( `` ) ) ).
-            ELSE.
-              CASE procedure-blocks[ procedure-statements[ idx ]-block ]-statement_type.
-                WHEN if_ci_atc_source_code_provider=>statement_type-when
-                OR if_ci_atc_source_code_provider=>statement_type-inject.
+                context = assistant_factory->create_quickfix_context( value #(
+                  procedure_id = procedure-id
+                  statements = value #( from = idx + 1 to = idx + 1 ) ) )
+                code = value #( ( <info>-def_line ) ( `` ) ) ).
+            else.
+              case procedure-blocks[ procedure-statements[ idx ]-block ]-statement_type.
+                when if_ci_atc_source_code_provider=>statement_type-when
+                or if_ci_atc_source_code_provider=>statement_type-inject.
                   quickfix->insert_after(
                     context = assistant_factory->create_quickfix_context(
-                       VALUE #( procedure_id = procedure-id
-                                statements = VALUE #( from = idx to = idx ) ) )
-                    code = VALUE #( ( <info>-def_line ) ( `` ) ) ).
-                WHEN OTHERS.
+                       value #( procedure_id = procedure-id
+                                statements = value #( from = idx to = idx ) ) )
+                    code = value #( ( <info>-def_line ) ( `` ) ) ).
+                when others.
                   quickfix->insert_before(
-                    context = assistant_factory->create_quickfix_context(
-                       VALUE #( procedure_id = procedure-id
-                                statements = VALUE #( from = idx to = idx ) ) )
-                    code = VALUE #( ( <info>-def_line ) ( `` ) ) ).
-              ENDCASE.
-            ENDIF.
+                    context = assistant_factory->create_quickfix_context( value #(
+                      procedure_id = procedure-id
+                      statements = value #( from = idx to = idx ) ) )
+                    code = value #( ( <info>-def_line ) ( `` ) ) ).
+              endcase.
+            endif.
 
-            IF <info>-replace_tokens IS INITIAL.
+            if <info>-replace_tokens is initial.
               quickfix->replace(
-                  context = assistant_factory->create_quickfix_context(
-                     VALUE #( procedure_id = procedure-id statements = VALUE #( from = statement_idx to = statement_idx ) ) )
-                              code = VALUE #(  ) ).
-            ELSE.
-              LOOP AT <info>-replace_tokens ASSIGNING FIELD-SYMBOL(<replace_token>).
+                  context = assistant_factory->create_quickfix_context( value #(
+                    procedure_id = procedure-id
+                    statements = value #( from = statement_idx to = statement_idx ) ) )
+                  code = value #( ) ).
+            else.
+              loop at <info>-replace_tokens assigning field-symbol(<replace_token>).
                 quickfix->replace(
-                    context = assistant_factory->create_quickfix_context(
-                       VALUE #( procedure_id = procedure-id
-                                statements = VALUE #( from = statement_idx to = statement_idx )
-                                tokens = VALUE #( from = <replace_token>-token_idx to = <replace_token>-token_idx ) ) )
-                                code = VALUE #( ( <replace_token>-value ) ) ).
-              ENDLOOP.
-            ENDIF.
-            INSERT VALUE #( code = message_codes-scope
-                    location = code_provider->get_statement_location( <statement> )
-                    checksum = code_provider->get_statement_checksum( <statement> )
-                    has_pseudo_comment = xsdbool( line_exists( <statement>-pseudo_comments[ table_line = pseudo_comments-scope ] ) )
-                    parameters = VALUE #( param_1 = <info>-variable )
-                    details = details->attach_quickfixes( quickfixes ) )
-                    INTO TABLE findings.
-          ENDIF.
+                    context = assistant_factory->create_quickfix_context( value #(
+                      procedure_id = procedure-id
+                      statements = value #( from = statement_idx to = statement_idx )
+                      tokens = value #( from = <replace_token>-token_idx to = <replace_token>-token_idx ) ) )
+                    code = value #( ( <replace_token>-value ) ) ).
+              endloop.
+            endif.
+            insert value #(
+              code = message_codes-scope
+              location = code_provider->get_statement_location( <statement> )
+              checksum = code_provider->get_statement_checksum( <statement> )
+              has_pseudo_comment = xsdbool( line_exists( <statement>-pseudo_comments[ table_line = pseudo_comments-scope ] ) )
+              parameters = value #( param_1 = <info>-variable )
+              details = details->attach_quickfixes( quickfixes ) ) into table findings.
+          endif.
 
-        ENDIF.
-      ENDLOOP.
-    ENDLOOP.
-  ENDMETHOD.
+        endif.
+      endloop.
+    endloop.
+  endmethod.
 
-  METHOD check_block.
+  method check_block.
     result-block = block_no.
-    WHILE result-block <> first_block.
-      DATA(block) = procedure-blocks[ result-block ].
-      CASE block-type.
-        WHEN if_ci_atc_source_code_provider=>block_type-alternation
-        OR if_ci_atc_source_code_provider=>block_type-iteration
-        OR if_ci_atc_source_code_provider=>block_type-condition.
-          RETURN.
-        WHEN OTHERS.
-          IF block-statement_type = if_ci_atc_source_code_provider=>statement_type-inject.
+    while result-block <> first_block.
+      data(block) = procedure-blocks[ result-block ].
+      case block-type.
+        when if_ci_atc_source_code_provider=>block_type-alternation
+        or if_ci_atc_source_code_provider=>block_type-iteration
+        or if_ci_atc_source_code_provider=>block_type-condition.
+          return.
+        when others.
+          if block-statement_type = if_ci_atc_source_code_provider=>statement_type-inject.
             result-inside_injection = abap_true.
-          ENDIF.
+          endif.
           result-block = block-parent.
-      ENDCASE.
-    ENDWHILE.
-  ENDMETHOD.
+      endcase.
+    endwhile.
+  endmethod.
 
-
-  METHOD get_usages_outside_block.
-    CLEAR result.
-    LOOP AT procedure-statements FROM start_statement ASSIGNING FIELD-SYMBOL(<statement>).
-      LOOP AT <statement>-tokens ASSIGNING FIELD-SYMBOL(<token>)
-      WHERE references IS NOT INITIAL.
-        IF <token>-lexeme = variable OR <token>-lexeme = |({ variable })|
-        OR <token>-lexeme CP |{ variable }-*|
-        OR <token>-lexeme CP |({ variable }-*)|
-        OR <token>-lexeme = |@{ variable }|
-        AND full_name = <token>-references[ lines( <token>-references ) ]-full_name.
-*         check if block is inside blocks[ block_no ].
-          DATA(block_no) = <statement>-block.
-          WHILE block_no <> check_block AND block_no <> 0 AND block_no <> 1.
+  method get_usages_outside_block.
+    clear result.
+    loop at procedure-statements from start_statement assigning field-symbol(<statement>).
+      loop at <statement>-tokens assigning field-symbol(<token>)
+      where references is not initial.
+        if <token>-lexeme = variable or <token>-lexeme = |({ variable })|
+        or <token>-lexeme cp |{ variable }-*|
+        or <token>-lexeme cp |({ variable }-*)|
+        or <token>-lexeme = |@{ variable }|
+        and full_name = <token>-references[ lines( <token>-references ) ]-full_name.
+          " check if block is inside blocks[ block_no ].
+          data(block_no) = <statement>-block.
+          while block_no <> check_block and block_no <> 0 and block_no <> 1.
             block_no = procedure-blocks[ block_no ]-parent.
-          ENDWHILE.
-          IF block_no <> check_block.
-            IF result IS INITIAL.
+          endwhile.
+          if block_no <> check_block.
+            if result is initial.
               result-first_statement = <statement>.
-            ENDIF.
-            INSERT <statement>-block INTO TABLE result-used_blocks.
-          ENDIF.
-        ENDIF.
-      ENDLOOP.
-    ENDLOOP.
-  ENDMETHOD.
+            endif.
+            insert <statement>-block into table result-used_blocks.
+          endif.
+        endif.
+      endloop.
+    endloop.
+  endmethod.
 
-
-  METHOD find_outer_block.
-    IF line_exists( blocks[ table_line = first_block ] ).
+  method find_outer_block.
+    if line_exists( blocks[ table_line = first_block ] ).
       result = first_block.
-      RETURN.
-    ENDIF.
+      return.
+    endif.
     result = blocks[ 1 ].
-    LOOP AT blocks FROM 2 INTO DATA(block_no).
+    loop at blocks from 2 into data(block_no).
       result = least_common_parent( procedure = procedure block1 = result block2 = block_no ).
-      IF result = first_block.
-        RETURN.
-      ENDIF.
-    ENDLOOP.
-    IF procedure-blocks[ result ]-type = if_ci_atc_source_code_provider=>block_type-sequence.
+      if result = first_block.
+        return.
+      endif.
+    endloop.
+    if procedure-blocks[ result ]-type = if_ci_atc_source_code_provider=>block_type-sequence.
       result = procedure-blocks[ result ]-parent.
-    ENDIF.
-  ENDMETHOD.
+    endif.
+  endmethod.
 
-
-  METHOD get_def_line_initial.
-    CLEAR def_line.
-    CLEAR type_full_name.
-    IF statement-tokens[ 2 ]-lexeme = '='.
-      ASSIGN statement-tokens[ 3 ] TO FIELD-SYMBOL(<token>).
-      IF <token>-references IS INITIAL.
-        IF ( lines( statement-tokens ) = 3 AND <token>-lexeme CO '0123456789' )
-        OR <token>-lexeme = `LINE_INDEX(`.
+  method get_def_line_initial.
+    clear def_line.
+    clear type_full_name.
+    if statement-tokens[ 2 ]-lexeme = '='.
+      assign statement-tokens[ 3 ] to field-symbol(<token>).
+      if <token>-references is initial.
+        if ( lines( statement-tokens ) = 3 and <token>-lexeme co '0123456789' )
+        or <token>-lexeme = `LINE_INDEX(`.
           def_line = |{ statement-tokens[ 1 ]-lexeme } = 0.|.
-        ELSEIF <token>-lexeme CP '`*`' OR <token>-lexeme = '|'.
+        elseif <token>-lexeme cp '`*`' or <token>-lexeme = '|'.
           def_line = |{ statement-tokens[ 1 ]-lexeme } = ``.|.
-        ELSEIF <token>-lexeme = `VALUE`
-        AND statement-tokens[ 4 ]-lexeme NP '##*'
-        AND statement-tokens[ 4 ]-lexeme NP '*->*'
-        AND statement-tokens[ 4 ]-lexeme NP '*=>*'.
+        elseif <token>-lexeme = `VALUE`
+        and statement-tokens[ 4 ]-lexeme np '##*'
+        and statement-tokens[ 4 ]-lexeme np '*->*'
+        and statement-tokens[ 4 ]-lexeme np '*=>*'.
           def_line = |{ statement-tokens[ 1 ]-lexeme } = { <token>-lexeme } { statement-tokens[ 4 ]-lexeme } ).|.
           type_full_name = statement-tokens[ 4 ]-references[ 1 ]-full_name.
-        ENDIF.
-      ENDIF.
-    ENDIF.
-  ENDMETHOD.
+        endif.
+      endif.
+    endif.
+  endmethod.
 
-
-  METHOD get_first_block.
+  method get_first_block.
     result = 1.
-    WHILE result <= lines( procedure-blocks ).
-      CASE procedure-blocks[ result ]-type.
-        WHEN if_ci_atc_source_code_provider=>block_type-invalid.
+    while result <= lines( procedure-blocks ).
+      case procedure-blocks[ result ]-type.
+        when if_ci_atc_source_code_provider=>block_type-invalid.
           result += 1.
-        WHEN OTHERS.
-          RETURN.
-      ENDCASE.
-    ENDWHILE.
-  ENDMETHOD.
+        when others.
+          return.
+      endcase.
+    endwhile.
+  endmethod.
 
-
-  METHOD is_parent.
+  method is_parent.
     result = abap_false.
-    IF parent = first_block.
+    if parent = first_block.
       result = abap_true.
-    ELSE.
-      DATA(p) = procedure-blocks[ child ]-parent.
-      WHILE p <> first_block AND p <> parent.
+    else.
+      data(p) = procedure-blocks[ child ]-parent.
+      while p <> first_block and p <> parent.
         p = procedure-blocks[ p ]-parent.
-      ENDWHILE.
-      IF p = parent.
+      endwhile.
+      if p = parent.
         result = abap_true.
-      ENDIF.
-    ENDIF.
-  ENDMETHOD.
+      endif.
+    endif.
+  endmethod.
 
-
-  METHOD least_common_parent.
-    IF block1 = first_block OR block2 = first_block.
+  method least_common_parent.
+    if block1 = first_block or block2 = first_block.
       result = first_block.
-    ELSEIF block1 = block2.
+    elseif block1 = block2.
       result = block1.
-    ELSEIF procedure-blocks[ block1 ]-parent = procedure-blocks[ block2 ]-parent.
+    elseif procedure-blocks[ block1 ]-parent = procedure-blocks[ block2 ]-parent.
       result = procedure-blocks[ block1 ]-parent.
-    ELSE.
-      IF is_parent( procedure = procedure parent = block1 child = block2 ) = abap_true.
+    else.
+      if is_parent( procedure = procedure parent = block1 child = block2 ) = abap_true.
         result = block1.
-      ELSEIF is_parent( procedure = procedure parent = block2 child = block1 ) = abap_true.
+      elseif is_parent( procedure = procedure parent = block2 child = block1 ) = abap_true.
         result = block2.
-      ELSE.
+      else.
         result = least_common_parent( procedure = procedure
-                                      block1 = VALUE #( procedure-blocks[ block1 ]-parent )
-                                      block2 = VALUE #( procedure-blocks[ block2 ]-parent ) ).
-      ENDIF.
-    ENDIF.
-  ENDMETHOD.
+                                      block1 = value #( procedure-blocks[ block1 ]-parent )
+                                      block2 = value #( procedure-blocks[ block2 ]-parent ) ).
+      endif.
+    endif.
+  endmethod.
 
-  METHOD get_type_token_idx.
-    IF lines( statement-tokens ) = 2.
-      RETURN.
-    ENDIF.
+  method get_type_token_idx.
+    if lines( statement-tokens ) = 2.
+      return.
+    endif.
     result = analyzer->find_clause_index( tokens = statement-tokens clause = 'TYPE' ).
-    IF result = 0.
+    if result = 0.
       result = analyzer->find_clause_index( tokens = statement-tokens clause = 'LIKE' ).
-    ENDIF.
-  ENDMETHOD.
+    endif.
+  endmethod.
 
-
-  METHOD get_type_full_name.
-    IF type_idx = 0.
-      RETURN.
-    ENDIF.
-    DATA(idx) = type_idx.
+  method get_type_full_name.
+    if type_idx = 0.
+      return.
+    endif.
+    data(idx) = type_idx.
     idx += 1.
-    WHILE idx < lines( statement-tokens ) AND statement-tokens[ idx ]-references IS INITIAL.
+    while idx < lines( statement-tokens ) and statement-tokens[ idx ]-references is initial.
       idx += 1.
-    ENDWHILE.
-    ASSIGN statement-tokens[ idx ] TO FIELD-SYMBOL(<token>).
-    IF <token>-references IS NOT INITIAL.
+    endwhile.
+    assign statement-tokens[ idx ] to field-symbol(<token>).
+    if <token>-references is not initial.
       result = <token>-references[ 1 ]-full_name.
-    ENDIF.
-  ENDMETHOD.
+    endif.
+  endmethod.
 
-
-  METHOD check_for_definition.
+  method check_for_definition.
     result = abap_false.
-    LOOP AT statement-tokens ASSIGNING FIELD-SYMBOL(<token>) WHERE references IS NOT INITIAL.
-      IF line_exists( <token>-references[ full_name = full_name usage_grade = if_ci_atc_source_code_provider=>usage_grades-definition  ] ).
+    loop at statement-tokens assigning field-symbol(<token>) where references is not initial.
+      data(is_definition) =
+        xsdbool( line_exists( <token>-references[
+          full_name = full_name
+          usage_grade = if_ci_atc_source_code_provider=>usage_grades-definition ] ) ).
+      if is_definition = abap_true.
         result = abap_true.
-        RETURN.
-      ENDIF.
-    ENDLOOP.
-  ENDMETHOD.
+        return.
+      endif.
+    endloop.
+  endmethod.
 
-  METHOD analyze_statement.
-    FIELD-SYMBOLS <def_token> LIKE LINE OF statement-tokens.
-    FIELD-SYMBOLS <token> LIKE LINE OF statement-tokens.
-    DATA info TYPE t_finding_infos.
+  method analyze_statement.
+    field-symbols <def_token> like line of statement-tokens.
+    field-symbols <token> like line of statement-tokens.
+    data info type ty_finding_infos.
 
-    IF statement-tokens[ 1 ]-lexeme = 'DATA' OR statement-tokens[ 1 ]-lexeme = 'FIELD-SYMBOLS'.
-      IF data_begin_of = abap_true.
-        ASSIGN statement-tokens[ 4 ] TO <def_token>.
-        IF <def_token>-references IS INITIAL.
-          RETURN.
-        ENDIF.
+    if statement-tokens[ 1 ]-lexeme = 'DATA' or statement-tokens[ 1 ]-lexeme = 'FIELD-SYMBOLS'.
+      if data_begin_of = abap_true.
+        assign statement-tokens[ 4 ] to <def_token>.
+        if <def_token>-references is initial.
+          return.
+        endif.
         info-variable = <def_token>-lexeme.
         info-full_name = <def_token>-references[ lines( <def_token>-references ) ]-full_name.
-      ELSEIF statement-tokens[ 2 ]-references IS NOT INITIAL.
-        DATA def_tokens TYPE if_ci_atc_source_code_provider=>ty_tokens.
-        ASSIGN statement-tokens[ 2 ] TO <def_token>.
-        IF <def_token>-lexeme CP '*(*)'.
+      elseif statement-tokens[ 2 ]-references is not initial.
+        data def_tokens type if_ci_atc_source_code_provider=>ty_tokens.
+        assign statement-tokens[ 2 ] to <def_token>.
+        if <def_token>-lexeme cp '*(*)'.
           info-variable = <def_token>-lexeme(sy-fdpos).
-        ELSE.
+        else.
           info-variable = <def_token>-lexeme.
-        ENDIF.
+        endif.
         info-full_name = <def_token>-references[ lines( <def_token>-references ) ]-full_name.
-        IF <def_token>-lexeme CP '*(*)'.
+        if <def_token>-lexeme cp '*(*)'.
           info-variable = <def_token>-lexeme(sy-fdpos).
-        ELSE.
+        else.
           info-variable = <def_token>-lexeme.
-        ENDIF.
-        DATA(type_idx) = get_type_token_idx( statement = statement ).
-        DATA(value_idx) = analyzer->find_clause_index( tokens = statement-tokens clause = 'VALUE' ).
+        endif.
+        data(type_idx) = get_type_token_idx( statement = statement ).
+        data(value_idx) = analyzer->find_clause_index( tokens = statement-tokens clause = 'VALUE' ).
 
-        IF value_idx <> 0 AND analyzer->find_clause_index( tokens = statement-tokens clause = 'VALUE IS INITIAL' start_index = value_idx ) = 0.
+        if value_idx <> 0 and analyzer->find_clause_index(
+            tokens = statement-tokens
+            clause = 'VALUE IS INITIAL'
+            start_index = value_idx ) = 0.
           def_tokens = get_tokens( tokens = statement-tokens from_idx = 1 to_idx = value_idx - 1 ).
-          info-replace_tokens = VALUE #( ( token_idx = 1 value = `` )
+          info-replace_tokens = value #( ( token_idx = 1 value = `` )
                                            ( token_idx = value_idx value = '=' ) ).
-          IF type_idx = 0.
+          if type_idx = 0.
 *           value definition without TYPE OR LIKE
 *           something like data test(5) value 'ABCDE'.
-            info-def_line = |{ analyzer->flatten_tokens( def_tokens ) } TYPE c.| ##NO_TEXT.
-          ELSE.
-            IF type_idx > value_idx.
-              APPEND LINES OF get_tokens( tokens = statement-tokens from_idx = type_idx ) TO def_tokens.
-            ENDIF.
+            info-def_line = |{ analyzer->flatten_tokens( def_tokens ) } TYPE c.| ##no_text.
+          else.
+            if type_idx > value_idx.
+              append lines of get_tokens( tokens = statement-tokens from_idx = type_idx ) to def_tokens.
+            endif.
             info-def_line = |{ analyzer->flatten_tokens( def_tokens ) }.|.
 
-            LOOP AT statement-tokens FROM type_idx ASSIGNING <token>.
-              IF sy-tabix = value_idx.
-                EXIT.
-              ENDIF.
-              INSERT VALUE t_replace_token(  token_idx = sy-tabix value = `` ) INTO TABLE info-replace_tokens.
-            ENDLOOP.
-          ENDIF.
+            loop at statement-tokens from type_idx assigning <token>.
+              if sy-tabix = value_idx.
+                exit.
+              endif.
+              insert value ty_replace_token(  token_idx = sy-tabix value = `` ) into table info-replace_tokens.
+            endloop.
+          endif.
 
-          LOOP AT statement-tokens FROM value_idx + 1 ASSIGNING <token>.
-            IF sy-tabix = type_idx.
-              EXIT.
-            ENDIF.
-            INSERT VALUE t_replace_token(  token_idx = sy-tabix value = <token>-lexeme ) INTO TABLE info-replace_tokens.
-          ENDLOOP.
-          INSERT VALUE t_replace_token(  token_idx = 2 value = info-variable ) INTO TABLE info-replace_tokens.
-        ELSE.
+          loop at statement-tokens from value_idx + 1 assigning <token>.
+            if sy-tabix = type_idx.
+              exit.
+            endif.
+            insert value ty_replace_token(  token_idx = sy-tabix value = <token>-lexeme ) into table info-replace_tokens.
+          endloop.
+          insert value ty_replace_token(  token_idx = 2 value = info-variable ) into table info-replace_tokens.
+        else.
           info-def_line = |{ analyzer->flatten_tokens( statement-tokens ) }.|.
-          CLEAR info-replace_tokens.
-        ENDIF.
+          clear info-replace_tokens.
+        endif.
         info-type_full_name = get_type_full_name( statement = statement type_idx = type_idx ).
-        ASSERT line_exists( <def_token>-references[  usage_grade = if_ci_atc_source_code_provider=>usage_grades-definition ] ).
-      ENDIF.
-      APPEND info TO result.
-    ENDIF.
-    LOOP AT statement-tokens ASSIGNING <def_token>.
-      DATA(token_idx) = sy-tabix.
+        assert line_exists( <def_token>-references[  usage_grade = if_ci_atc_source_code_provider=>usage_grades-definition ] ).
+      endif.
+      append info to result.
+    endif.
+    loop at statement-tokens assigning <def_token>.
+      data(token_idx) = sy-tabix.
 
-      IF <def_token>-lexeme CP 'DATA(*)'.
+      if <def_token>-lexeme cp 'DATA(*)'.
         info-variable = <def_token>-lexeme+5.
-      ELSEIF <def_token>-lexeme CP '@DATA(*)'.
+      elseif <def_token>-lexeme cp '@DATA(*)'.
         info-variable = <def_token>-lexeme+6.
-      ELSEIF <def_token>-lexeme CP 'FIELD-SYMBOL(*)'.
+      elseif <def_token>-lexeme cp 'FIELD-SYMBOL(*)'.
         info-variable = <def_token>-lexeme+13.
-      ELSE.
-        CONTINUE.
-      ENDIF.
-      ASSERT data_begin_of = abap_false.
-      IF NOT line_exists( <def_token>-references[  usage_grade = if_ci_atc_source_code_provider=>usage_grades-definition ] ).
-        CONTINUE.
-      ENDIF.
+      else.
+        continue.
+      endif.
+      assert data_begin_of = abap_false.
+      if not line_exists( <def_token>-references[  usage_grade = if_ci_atc_source_code_provider=>usage_grades-definition ] ).
+        continue.
+      endif.
 
-      DATA(len) = strlen( info-variable ) - 1.
+      data(len) = strlen( info-variable ) - 1.
       info-variable = info-variable(len).
-      IF token_idx = 1.
+      if token_idx = 1.
         get_def_line_initial(
-          EXPORTING statement = statement
-          IMPORTING def_line = info-def_line
+          exporting statement = statement
+          importing def_line = info-def_line
                     type_full_name = info-type_full_name ).
-        info-replace_tokens = VALUE #( ( token_idx = token_idx value = info-variable ) ).
-      ENDIF.
+        info-replace_tokens = value #( ( token_idx = token_idx value = info-variable ) ).
+      endif.
 
       info-full_name = <def_token>-references[ lines( <def_token>-references ) ]-full_name.
-      APPEND info TO result.
-    ENDLOOP.
+      append info to result.
+    endloop.
+  endmethod.
 
-  ENDMETHOD.
-
-  METHOD get_tokens.
-    IF to_idx IS NOT SUPPLIED.
+  method get_tokens.
+    if to_idx is not supplied.
       to_idx = lines( tokens ).
-    ENDIF.
-    LOOP AT tokens FROM from_idx TO to_idx ASSIGNING FIELD-SYMBOL(<token>).
-      APPEND <token> TO result.
-    ENDLOOP.
-  ENDMETHOD.
-
-ENDCLASS.
+    endif.
+    loop at tokens from from_idx to to_idx assigning field-symbol(<token>).
+      append <token> to result.
+    endloop.
+  endmethod.
+endclass.

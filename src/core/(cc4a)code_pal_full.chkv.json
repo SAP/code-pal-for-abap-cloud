@@ -68,6 +68,12 @@
     },
     {
       "checkName": "/CC4A/CHECK_IN_ITERATION"
+    },
+    {
+      "checkName": "/CC4A/PROPER_BOOL_USAGE"
+    },
+    {
+      "checkName": "/CC4A/MODERN"
     }
   ]
 }

@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_CLAS" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <VSEOCLASS>
+    <CLSNAME>/CC4A/PROPER_BOOL_EXPRESSION</CLSNAME>
+    <LANGU>E</LANGU>
+    <DESCRIPT>Use proper boolean expression</DESCRIPT>
+    <STATE>1</STATE>
+    <CLSCCINCL>X</CLSCCINCL>
+    <FIXPT>X</FIXPT>
+    <UNICODE>X</UNICODE>
+    <WITH_UNIT_TESTS>X</WITH_UNIT_TESTS>
+   </VSEOCLASS>
+   <TPOOL>
+    <item>
+     <ID>I</ID>
+     <KEY>BOL</KEY>
+     <ENTRY>&apos;X&apos;, &apos; &apos;, or SPACE can be replaced by ABAP_TRUE or ABAP_FALSE</ENTRY>
+     <LENGTH>122</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>DES</KEY>
+     <ENTRY>Standard boolean expressions</ENTRY>
+     <LENGTH>88</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>INI</KEY>
+     <ENTRY>IS (NOT) INITIAL can be replaced by comparison with ABAP_BOOL</ENTRY>
+     <LENGTH>122</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>QCE</KEY>
+     <ENTRY>Replace literal with ABAP_TRUE or ABAP_FALSE</ENTRY>
+     <LENGTH>66</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>QIB</KEY>
+     <ENTRY>Replace with comparison to ABAP_TRUE or ABAP_FALSE</ENTRY>
+     <LENGTH>62</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>QIE</KEY>
+     <ENTRY>Replace with call to XSDBOOL</ENTRY>
+     <LENGTH>40</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>XSD</KEY>
+     <ENTRY>IF...ENDIF block can be replaced by inline XSDBOOL( )</ENTRY>
+     <LENGTH>106</LENGTH>
+    </item>
+   </TPOOL>
+  </asx:values>
+ </asx:abap>
+</abapGit>

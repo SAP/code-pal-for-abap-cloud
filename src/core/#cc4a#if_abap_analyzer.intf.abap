@@ -40,6 +40,14 @@ interface /cc4a/if_abap_analyzer
       is_redefinition type abap_bool,
       parameters      type ty_method_parameters,
     end of ty_method_definition.
+  types:
+    begin of enum ty_logical_connective structure logical_connective,
+      none,
+      and,
+      or,
+      equiv,
+      not,
+    end of enum ty_logical_connective structure logical_connective.
 
 
   methods find_key_words
@@ -85,6 +93,11 @@ interface /cc4a/if_abap_analyzer
       value(negated_comparison_operator) type string
     raising
       /cc4a/cx_token_is_no_operator .
+  methods negate_logical_expression
+    importing
+      tokens type if_ci_atc_source_code_provider=>ty_tokens
+    returning
+      value(negated_expression) type string.
   methods is_db_statement
     importing
       statement          type if_ci_atc_source_code_provider=>ty_statement
@@ -113,7 +126,7 @@ interface /cc4a/if_abap_analyzer
       value(result) type abap_bool .
   methods is_logical_connective
     importing token                        type if_ci_atc_source_code_provider=>ty_token
-    returning value(is_logical_connective) type abap_bool.
+    returning value(is_logical_connective) type ty_logical_connective.
   methods parse_method_definition
     importing statement                type if_ci_atc_source_code_provider=>ty_statement
     returning value(method_definition) type ty_method_definition.

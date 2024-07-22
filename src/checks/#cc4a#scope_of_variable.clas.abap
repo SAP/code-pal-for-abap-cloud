@@ -19,7 +19,6 @@ class /cc4a/scope_of_variable definition
       end of quickfix_codes.
 
   private section.
-    types ty_block_list type sorted table of i with unique key table_line.
     types:
       begin of ty_replace_token,
         token_idx type i,
@@ -36,11 +35,6 @@ class /cc4a/scope_of_variable definition
       end of ty_finding_infos.
     types ty_finding_infos_list type standard table of ty_finding_infos with default key.
     types:
-      begin of ty_block_info,
-        block type i,
-        inside_injection type abap_bool,
-      end of ty_block_info.
-    types:
       begin of ty_usage_infos,
         used_blocks type ty_block_list,
         first_statement type if_ci_atc_source_code_provider=>ty_statement,
@@ -49,17 +43,10 @@ class /cc4a/scope_of_variable definition
     data code_provider type ref to if_ci_atc_source_code_provider.
     data analyzer type ref to /cc4a/if_abap_analyzer.
     data assistant_factory type ref to cl_ci_atc_assistant_factory.
-    data first_block type i.
 
     methods analyze_procedure
       importing procedure type if_ci_atc_source_code_provider=>ty_procedure
       returning value(findings) type if_ci_atc_check=>ty_findings.
-    methods check_block
-      importing
-        procedure type if_ci_atc_source_code_provider=>ty_procedure
-        block_no type i
-      returning
-        value(result) type ty_block_info.
     methods get_usages_outside_block
       importing
         procedure type if_ci_atc_source_code_provider=>ty_procedure
@@ -68,19 +55,6 @@ class /cc4a/scope_of_variable definition
         full_name type string
         check_block type i
       returning value(result)   type ty_usage_infos.
-    methods find_outer_block
-      importing
-        procedure type if_ci_atc_source_code_provider=>ty_procedure
-        blocks type ty_block_list
-      returning
-        value(result) type i.
-    methods is_parent
-      importing
-        procedure type if_ci_atc_source_code_provider=>ty_procedure
-        parent type i
-        child type i
-      returning
-        value(result) type abap_bool.
 
     methods get_def_line_initial
       importing
@@ -89,19 +63,12 @@ class /cc4a/scope_of_variable definition
         def_line type string
         type_full_name type string.
 
-    methods get_first_block
+    methods get_first_valid_block
       importing
         procedure type if_ci_atc_source_code_provider=>ty_procedure
       returning
         value(result) type i.
 
-    methods least_common_parent
-      importing
-        procedure type if_ci_atc_source_code_provider=>ty_procedure
-        block1 type i
-        block2 type i
-      returning
-        value(result) type i.
     methods get_type_full_name
       importing
         statement type if_ci_atc_source_code_provider=>ty_statement
@@ -168,13 +135,16 @@ class /cc4a/scope_of_variable implementation.
   endmethod.
 
   method analyze_procedure.
-    data data_begin_of_counter type i.
-    data analyze_data_begin_of type abap_bool.
     data finding_infos_list type ty_finding_infos_list.
 
-    first_block = get_first_block( procedure ).
+    data(data_begin_of_counter) = 0.
+    data(analyze_data_begin_of) = abap_false.
+    data(first_valid_block) = get_first_valid_block( procedure ).
+    data(block_finder) = new block_finder(
+      blocks = procedure-blocks
+      first_valid_block = first_valid_block ).
     loop at procedure-statements assigning field-symbol(<statement>)
-    where block > 1.
+        where block > 1.
       data(statement_idx) = sy-tabix.
 
       if analyzer->find_clause_index( tokens = <statement>-tokens clause = 'DATA BEGIN OF' ) <> 0.
@@ -196,16 +166,16 @@ class /cc4a/scope_of_variable implementation.
       if finding_infos_list is initial.
         continue.
       endif.
-      data(block_info) = check_block( procedure = procedure block_no = <statement>-block ).
-      if block_info-block = first_block.
+      data(parent_branch) = block_finder->find_parent_branch( <statement>-block ).
+      if parent_branch-block = first_valid_block.
         continue.
       endif.
       loop at finding_infos_list assigning field-symbol(<info>).
         " check where the variable is used
         data(usage_infos) = get_usages_outside_block(
-             check_block = block_info-block
+             check_block = parent_branch-block
              procedure = procedure
-             start_statement = procedure-blocks[ block_info-block ]-statements-to + 1
+             start_statement = procedure-blocks[ parent_branch-block ]-statements-to + 1
              variable = <info>-variable
              full_name =  <info>-full_name ).
         if usage_infos is initial.
@@ -215,7 +185,7 @@ class /cc4a/scope_of_variable implementation.
         stack->push_statement(
           value #( text = |Usage of variable { <info>-variable }| statement = usage_infos-first_statement ) ).
         data(details) = assistant_factory->create_finding_details( )->attach_stack( name = `` stack = stack ).
-        if <info>-def_line is initial or block_info-inside_injection = abap_true.
+        if <info>-def_line is initial or parent_branch-inside_injection = abap_true.
           insert value #(
             code = message_codes-scope
             location = code_provider->get_statement_location( <statement> )
@@ -225,10 +195,10 @@ class /cc4a/scope_of_variable implementation.
             parameters = value #( param_1 = <info>-variable )
             details = details ) into table findings.
         else.
-          insert block_info-block into table usage_infos-used_blocks.
-          data(outer_block) = find_outer_block( procedure = procedure blocks = usage_infos-used_blocks ).
+          insert parent_branch-block into table usage_infos-used_blocks.
+          data(outer_block) = block_finder->find_outer_block( usage_infos-used_blocks ).
           " no def_line if statement in test-injections and outer_block outside of this test-injection.
-          data(block) = block_info-block.
+          data(block) = parent_branch-block.
           while block <> outer_block.
             assign procedure-blocks[ block ] to field-symbol(<block>).
             if <block>-statement_type = if_ci_atc_source_code_provider=>statement_type-inject.
@@ -321,24 +291,6 @@ class /cc4a/scope_of_variable implementation.
     endloop.
   endmethod.
 
-  method check_block.
-    result-block = block_no.
-    while result-block <> first_block.
-      data(block) = procedure-blocks[ result-block ].
-      case block-type.
-        when if_ci_atc_source_code_provider=>block_type-alternation
-        or if_ci_atc_source_code_provider=>block_type-iteration
-        or if_ci_atc_source_code_provider=>block_type-condition.
-          return.
-        when others.
-          if block-statement_type = if_ci_atc_source_code_provider=>statement_type-inject.
-            result-inside_injection = abap_true.
-          endif.
-          result-block = block-parent.
-      endcase.
-    endwhile.
-  endmethod.
-
   method get_usages_outside_block.
     clear result.
     loop at procedure-statements from start_statement assigning field-symbol(<statement>).
@@ -365,23 +317,6 @@ class /cc4a/scope_of_variable implementation.
     endloop.
   endmethod.
 
-  method find_outer_block.
-    if line_exists( blocks[ table_line = first_block ] ).
-      result = first_block.
-      return.
-    endif.
-    result = blocks[ 1 ].
-    loop at blocks from 2 into data(block_no).
-      result = least_common_parent( procedure = procedure block1 = result block2 = block_no ).
-      if result = first_block.
-        return.
-      endif.
-    endloop.
-    if procedure-blocks[ result ]-type = if_ci_atc_source_code_provider=>block_type-sequence.
-      result = procedure-blocks[ result ]-parent.
-    endif.
-  endmethod.
-
   method get_def_line_initial.
     clear def_line.
     clear type_full_name.
@@ -404,7 +339,7 @@ class /cc4a/scope_of_variable implementation.
     endif.
   endmethod.
 
-  method get_first_block.
+  method get_first_valid_block.
     result = 1.
     while result <= lines( procedure-blocks ).
       case procedure-blocks[ result ]-type.
@@ -416,40 +351,9 @@ class /cc4a/scope_of_variable implementation.
     endwhile.
   endmethod.
 
-  method is_parent.
-    result = abap_false.
-    if parent = first_block.
-      result = abap_true.
-    else.
-      data(p) = procedure-blocks[ child ]-parent.
-      while p <> first_block and p <> parent.
-        p = procedure-blocks[ p ]-parent.
-      endwhile.
-      if p = parent.
-        result = abap_true.
-      endif.
-    endif.
-  endmethod.
 
-  method least_common_parent.
-    if block1 = first_block or block2 = first_block.
-      result = first_block.
-    elseif block1 = block2.
-      result = block1.
-    elseif procedure-blocks[ block1 ]-parent = procedure-blocks[ block2 ]-parent.
-      result = procedure-blocks[ block1 ]-parent.
-    else.
-      if is_parent( procedure = procedure parent = block1 child = block2 ) = abap_true.
-        result = block1.
-      elseif is_parent( procedure = procedure parent = block2 child = block1 ) = abap_true.
-        result = block2.
-      else.
-        result = least_common_parent( procedure = procedure
-                                      block1 = value #( procedure-blocks[ block1 ]-parent )
-                                      block2 = value #( procedure-blocks[ block2 ]-parent ) ).
-      endif.
-    endif.
-  endmethod.
+
+
 
   method get_type_token_idx.
     if lines( statement-tokens ) = 2.

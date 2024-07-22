@@ -14,7 +14,6 @@ CLASS test IMPLEMENTATION.
   METHOD test.
     DATA(test1) = cl_ci_atc_unit_driver=>get_method_object( VALUE #( class = test_class method = 'TEST1' ) ).
     DATA(test2) = cl_ci_atc_unit_driver=>get_method_object( VALUE #( class = test_class method = 'TEST2' ) ).
-    "    DATA(test3) = cl_ci_atc_unit_driver=>get_method_object( VALUE #( class = test_class method = 'TEST3' ) ).
     DATA(test4) = cl_ci_atc_unit_driver=>get_method_object( VALUE #( class = test_class method = 'TEST4' ) ).
     DATA(test5) = cl_ci_atc_unit_driver=>get_method_object( VALUE #( class = test_class method = 'TEST5' ) ).
     DATA(test6) = cl_ci_atc_unit_driver=>get_method_object( VALUE #( class = test_class method = 'TEST6' ) ).

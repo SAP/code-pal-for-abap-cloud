@@ -26,14 +26,14 @@ class /cc4a/scope_of_variable definition
       end of ty_replace_token.
     types ty_replace_tokens type sorted table of ty_replace_token with unique key token_idx.
     types:
-      begin of ty_finding_infos,
+      begin of ty_definition,
         def_line type string,
         variable type string,
         full_name type string,
         type_full_name type string,
-        replace_tokens type ty_replace_tokens,
-      end of ty_finding_infos.
-    types ty_finding_infos_list type standard table of ty_finding_infos with default key.
+        tokens_to_replace type ty_replace_tokens,
+      end of ty_definition.
+    types ty_definitions type standard table of ty_definition with default key.
     types:
       begin of ty_usage_infos,
         used_blocks type ty_block_list,
@@ -45,11 +45,11 @@ class /cc4a/scope_of_variable definition
     data assistant_factory type ref to cl_ci_atc_assistant_factory.
 
     methods analyze_procedure
-      importing procedure type if_ci_atc_source_code_provider=>ty_procedure
+      importing !procedure type if_ci_atc_source_code_provider=>ty_procedure
       returning value(findings) type if_ci_atc_check=>ty_findings.
     methods get_usages_outside_block
       importing
-        procedure type if_ci_atc_source_code_provider=>ty_procedure
+        !procedure type if_ci_atc_source_code_provider=>ty_procedure
         start_statement type i
         variable type string
         full_name type string
@@ -58,47 +58,58 @@ class /cc4a/scope_of_variable definition
 
     methods get_def_line_initial
       importing
-        statement type if_ci_atc_source_code_provider=>ty_statement
+        !statement type if_ci_atc_source_code_provider=>ty_statement
       exporting
         def_line type string
         type_full_name type string.
 
     methods get_first_valid_block
       importing
-        procedure type if_ci_atc_source_code_provider=>ty_procedure
+        !procedure type if_ci_atc_source_code_provider=>ty_procedure
       returning
         value(result) type i.
 
     methods get_type_full_name
       importing
-        statement type if_ci_atc_source_code_provider=>ty_statement
+        !statement type if_ci_atc_source_code_provider=>ty_statement
         type_idx type i
       returning
         value(result) type string.
     methods check_for_definition
       importing
-        statement type if_ci_atc_source_code_provider=>ty_statement
+        !statement type if_ci_atc_source_code_provider=>ty_statement
         full_name type string
       returning
         value(result) type abap_bool.
-    methods analyze_statement
+    methods extract_definitions
       importing
-        statement type if_ci_atc_source_code_provider=>ty_statement
+        !statement type if_ci_atc_source_code_provider=>ty_statement
         data_begin_of type abap_bool default abap_false
       returning
-        value(result) type ty_finding_infos_list.
+        value(result) type ty_definitions.
 
     methods get_type_token_idx
-      importing statement type if_ci_atc_source_code_provider=>ty_statement
+      importing !statement type if_ci_atc_source_code_provider=>ty_statement
       returning
         value(result) type i.
     methods get_tokens
       importing
-        tokens type if_ci_atc_source_code_provider=>ty_tokens
+        !tokens type if_ci_atc_source_code_provider=>ty_tokens
         from_idx type i default 1
         value(to_idx) type i optional
       returning
         value(result) type if_ci_atc_source_code_provider=>ty_tokens.
+    methods analyze_definition_statement
+      importing
+         !statement type if_ci_atc_source_code_provider=>ty_statement
+        data_begin_of type abap_bool
+      returning
+        value(info) type ty_definition.
+    methods analyze_standard_definition
+      importing
+        !statement type if_ci_atc_source_code_provider=>ty_statement
+      returning
+        value(info) type /cc4a/scope_of_variable=>ty_definition.
 endclass.
 
 class /cc4a/scope_of_variable implementation.
@@ -135,7 +146,7 @@ class /cc4a/scope_of_variable implementation.
   endmethod.
 
   method analyze_procedure.
-    data finding_infos_list type ty_finding_infos_list.
+    data definitions type ty_definitions.
 
     data(data_begin_of_counter) = 0.
     data(analyze_data_begin_of) = abap_false.
@@ -161,16 +172,16 @@ class /cc4a/scope_of_variable implementation.
         continue.
       endif.
 
-      finding_infos_list = analyze_statement( statement = <statement> data_begin_of = analyze_data_begin_of ).
+      definitions = extract_definitions( statement = <statement> data_begin_of = analyze_data_begin_of ).
       analyze_data_begin_of = abap_false.
-      if finding_infos_list is initial.
+      if definitions is initial.
         continue.
       endif.
       data(parent_branch) = block_finder->find_parent_branch( <statement>-block ).
       if parent_branch-block = first_valid_block.
         continue.
       endif.
-      loop at finding_infos_list assigning field-symbol(<info>).
+      loop at definitions assigning field-symbol(<info>).
         " check where the variable is used
         data(usage_infos) = get_usages_outside_block(
              check_block = parent_branch-block
@@ -183,9 +194,10 @@ class /cc4a/scope_of_variable implementation.
         endif.
         data(stack) = assistant_factory->create_call_stack( ).
         stack->push_statement(
-          value #( text = |Usage of variable { <info>-variable }| statement = usage_infos-first_statement ) ).
+          value #( text = |{ 'Usage of variable'(usv) } { <info>-variable }| statement = usage_infos-first_statement ) ).
         data(details) = assistant_factory->create_finding_details( )->attach_stack( name = `` stack = stack ).
         if <info>-def_line is initial or parent_branch-inside_injection = abap_true.
+          " No quick fix possible, just emit finding
           insert value #(
             code = message_codes-scope
             location = code_provider->get_statement_location( <statement> )
@@ -261,14 +273,14 @@ class /cc4a/scope_of_variable implementation.
               endcase.
             endif.
 
-            if <info>-replace_tokens is initial.
+            if <info>-tokens_to_replace is initial.
               quickfix->replace(
                   context = assistant_factory->create_quickfix_context( value #(
                     procedure_id = procedure-id
                     statements = value #( from = statement_idx to = statement_idx ) ) )
                   code = value #( ) ).
             else.
-              loop at <info>-replace_tokens assigning field-symbol(<replace_token>).
+              loop at <info>-tokens_to_replace assigning field-symbol(<replace_token>).
                 quickfix->replace(
                     context = assistant_factory->create_quickfix_context( value #(
                       procedure_id = procedure-id
@@ -295,7 +307,7 @@ class /cc4a/scope_of_variable implementation.
     clear result.
     loop at procedure-statements from start_statement assigning field-symbol(<statement>).
       loop at <statement>-tokens assigning field-symbol(<token>)
-      where references is not initial.
+          where references is not initial.
         if <token>-lexeme = variable or <token>-lexeme = |({ variable })|
         or <token>-lexeme cp |{ variable }-*|
         or <token>-lexeme cp |({ variable }-*)|
@@ -351,10 +363,6 @@ class /cc4a/scope_of_variable implementation.
     endwhile.
   endmethod.
 
-
-
-
-
   method get_type_token_idx.
     if lines( statement-tokens ) = 2.
       return.
@@ -394,107 +402,44 @@ class /cc4a/scope_of_variable implementation.
     endloop.
   endmethod.
 
-  method analyze_statement.
+  method extract_definitions.
     field-symbols <def_token> like line of statement-tokens.
-    field-symbols <token> like line of statement-tokens.
-    data info type ty_finding_infos.
+    data info type ty_definition.
 
-    if statement-tokens[ 1 ]-lexeme = 'DATA' or statement-tokens[ 1 ]-lexeme = 'FIELD-SYMBOLS'.
-      if data_begin_of = abap_true.
-        assign statement-tokens[ 4 ] to <def_token>.
-        if <def_token>-references is initial.
-          return.
+    if statement-keyword = 'DATA' or statement-keyword = 'FIELD-SYMBOLS'.
+      insert analyze_definition_statement(
+        statement = statement
+        data_begin_of = data_begin_of ) into table result.
+    else.
+      loop at statement-tokens assigning <def_token>.
+        data(token_idx) = sy-tabix.
+
+        info-variable = cond #(
+          when <def_token>-lexeme cp 'DATA(*)'
+            then <def_token>-lexeme+5
+          when <def_token>-lexeme cp '@DATA(*)'
+            then <def_token>-lexeme+6
+          when <def_token>-lexeme cp 'FIELD-SYMBOL(*)'
+            then <def_token>-lexeme+13 ).
+        if info-variable is initial or not line_exists(
+            <def_token>-references[ usage_grade = if_ci_atc_source_code_provider=>usage_grades-definition ] ).
+          continue.
         endif.
-        info-variable = <def_token>-lexeme.
+
+        data(len) = strlen( info-variable ) - 1.
+        info-variable = info-variable(len).
+        if token_idx = 1.
+          get_def_line_initial(
+            exporting statement = statement
+            importing def_line = info-def_line
+                      type_full_name = info-type_full_name ).
+          info-tokens_to_replace = value #( ( token_idx = token_idx value = info-variable ) ).
+        endif.
+
         info-full_name = <def_token>-references[ lines( <def_token>-references ) ]-full_name.
-      elseif statement-tokens[ 2 ]-references is not initial.
-        data def_tokens type if_ci_atc_source_code_provider=>ty_tokens.
-        assign statement-tokens[ 2 ] to <def_token>.
-        if <def_token>-lexeme cp '*(*)'.
-          info-variable = <def_token>-lexeme(sy-fdpos).
-        else.
-          info-variable = <def_token>-lexeme.
-        endif.
-        info-full_name = <def_token>-references[ lines( <def_token>-references ) ]-full_name.
-        if <def_token>-lexeme cp '*(*)'.
-          info-variable = <def_token>-lexeme(sy-fdpos).
-        else.
-          info-variable = <def_token>-lexeme.
-        endif.
-        data(type_idx) = get_type_token_idx( statement = statement ).
-        data(value_idx) = analyzer->find_clause_index( tokens = statement-tokens clause = 'VALUE' ).
-
-        if value_idx <> 0 and analyzer->find_clause_index(
-            tokens = statement-tokens
-            clause = 'VALUE IS INITIAL'
-            start_index = value_idx ) = 0.
-          def_tokens = get_tokens( tokens = statement-tokens from_idx = 1 to_idx = value_idx - 1 ).
-          info-replace_tokens = value #( ( token_idx = 1 value = `` )
-                                           ( token_idx = value_idx value = '=' ) ).
-          if type_idx = 0.
-*           value definition without TYPE OR LIKE
-*           something like data test(5) value 'ABCDE'.
-            info-def_line = |{ analyzer->flatten_tokens( def_tokens ) } TYPE c.| ##no_text.
-          else.
-            if type_idx > value_idx.
-              append lines of get_tokens( tokens = statement-tokens from_idx = type_idx ) to def_tokens.
-            endif.
-            info-def_line = |{ analyzer->flatten_tokens( def_tokens ) }.|.
-
-            loop at statement-tokens from type_idx assigning <token>.
-              if sy-tabix = value_idx.
-                exit.
-              endif.
-              insert value ty_replace_token(  token_idx = sy-tabix value = `` ) into table info-replace_tokens.
-            endloop.
-          endif.
-
-          loop at statement-tokens from value_idx + 1 assigning <token>.
-            if sy-tabix = type_idx.
-              exit.
-            endif.
-            insert value ty_replace_token(  token_idx = sy-tabix value = <token>-lexeme ) into table info-replace_tokens.
-          endloop.
-          insert value ty_replace_token(  token_idx = 2 value = info-variable ) into table info-replace_tokens.
-        else.
-          info-def_line = |{ analyzer->flatten_tokens( statement-tokens ) }.|.
-          clear info-replace_tokens.
-        endif.
-        info-type_full_name = get_type_full_name( statement = statement type_idx = type_idx ).
-        assert line_exists( <def_token>-references[  usage_grade = if_ci_atc_source_code_provider=>usage_grades-definition ] ).
-      endif.
-      append info to result.
+        append info to result.
+      endloop.
     endif.
-    loop at statement-tokens assigning <def_token>.
-      data(token_idx) = sy-tabix.
-
-      if <def_token>-lexeme cp 'DATA(*)'.
-        info-variable = <def_token>-lexeme+5.
-      elseif <def_token>-lexeme cp '@DATA(*)'.
-        info-variable = <def_token>-lexeme+6.
-      elseif <def_token>-lexeme cp 'FIELD-SYMBOL(*)'.
-        info-variable = <def_token>-lexeme+13.
-      else.
-        continue.
-      endif.
-      assert data_begin_of = abap_false.
-      if not line_exists( <def_token>-references[  usage_grade = if_ci_atc_source_code_provider=>usage_grades-definition ] ).
-        continue.
-      endif.
-
-      data(len) = strlen( info-variable ) - 1.
-      info-variable = info-variable(len).
-      if token_idx = 1.
-        get_def_line_initial(
-          exporting statement = statement
-          importing def_line = info-def_line
-                    type_full_name = info-type_full_name ).
-        info-replace_tokens = value #( ( token_idx = token_idx value = info-variable ) ).
-      endif.
-
-      info-full_name = <def_token>-references[ lines( <def_token>-references ) ]-full_name.
-      append info to result.
-    endloop.
   endmethod.
 
   method get_tokens.
@@ -504,5 +449,62 @@ class /cc4a/scope_of_variable implementation.
     loop at tokens from from_idx to to_idx assigning field-symbol(<token>).
       append <token> to result.
     endloop.
+  endmethod.
+
+  method analyze_definition_statement.
+    if data_begin_of = abap_true.
+      assign statement-tokens[ 4 ] to field-symbol(<def_token>).
+      if <def_token>-references is initial.
+        return.
+      else.
+        return value #(
+          variable = <def_token>-lexeme
+          full_name = <def_token>-references[ lines( <def_token>-references ) ]-full_name ).
+      endif.
+    elseif statement-tokens[ 2 ]-references is not initial.
+      return analyze_standard_definition( statement ).
+    endif.
+  endmethod.
+
+  method analyze_standard_definition.
+    assign statement-tokens[ 2 ] to field-symbol(<def_token>).
+    " Definitions can be of the form DATA var(len), defining a char with length len named var.
+    info-variable = cond #(
+      when <def_token>-lexeme cp '*(*)'
+        then <def_token>-lexeme(sy-fdpos)
+        else <def_token>-lexeme ).
+    data(type_idx) = get_type_token_idx( statement = statement ).
+    info-full_name = <def_token>-references[ lines( <def_token>-references ) ]-full_name.
+    info-type_full_name = get_type_full_name( statement = statement type_idx = type_idx ).
+    data(value_idx) = analyzer->find_clause_index( tokens = statement-tokens clause = 'VALUE' ).
+    data(is_initial_value) = xsdbool( analyzer->find_clause_index(
+      tokens = statement-tokens
+      clause = 'VALUE IS INITIAL'
+      start_index = value_idx ) ).
+
+    if value_idx <> 0 and is_initial_value = abap_false.
+      info-tokens_to_replace = value #(
+        ( token_idx = 1 value = `` )
+        ( token_idx = value_idx value = '=' ) ).
+      data(def_tokens) = value if_ci_atc_source_code_provider=>ty_tokens(
+        for i = 1 then i + 1 until i = value_idx
+          ( statement-tokens[ i ] ) ).
+      if type_idx <> 0.
+        if type_idx > value_idx.
+          loop at statement-tokens from type_idx assigning field-symbol(<type_token>).
+            insert <type_token> into table def_tokens.
+            insert value #( token_idx = sy-tabix value = `` ) into table info-tokens_to_replace.
+          endloop.
+        else.
+          loop at statement-tokens from type_idx to value_idx - 1 assigning field-symbol(<token>).
+            insert value #(  token_idx = sy-tabix value = `` ) into table info-tokens_to_replace.
+          endloop.
+        endif.
+      endif.
+      info-def_line = |{ analyzer->flatten_tokens( def_tokens ) }{ cond #( when type_idx = 0 then ` TYPE c.` ) }.|.
+      insert value #(  token_idx = 2 value = info-variable ) into table info-tokens_to_replace.
+    else.
+      info-def_line = |{ analyzer->flatten_tokens( statement-tokens ) }.|.
+    endif.
   endmethod.
 endclass.

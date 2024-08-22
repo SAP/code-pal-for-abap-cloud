@@ -39,6 +39,11 @@ class /cc4a/scope_of_variable definition
         used_blocks type ty_block_list,
         first_statement type if_ci_atc_source_code_provider=>ty_statement,
       end of ty_usage_infos.
+    types:
+      begin of ty_quickfix_info,
+        can_have_quickfixes type abap_bool,
+        idx type i,
+      end of ty_quickfix_info.
 
     data code_provider type ref to if_ci_atc_source_code_provider.
     data analyzer type ref to /cc4a/if_abap_analyzer.
@@ -107,9 +112,26 @@ class /cc4a/scope_of_variable definition
         value(info) type ty_definition.
     methods analyze_standard_definition
       importing
-        !statement type if_ci_atc_source_code_provider=>ty_statement
+         !statement type if_ci_atc_source_code_provider=>ty_statement
       returning
         value(info) type /cc4a/scope_of_variable=>ty_definition.
+    methods can_have_quickfixes
+      importing
+        procedure type if_ci_atc_source_code_provider=>ty_procedure
+        block_finder type ref to block_finder
+        statement_idx type i
+        parent_branch type block_finder=>ty_block_info
+        info type ty_definition
+        value(usage_infos) type /cc4a/scope_of_variable=>ty_usage_infos
+      returning value(quickfix_info) type ty_quickfix_info.
+    methods build_quickfixes
+      importing
+        procedure type if_ci_atc_source_code_provider=>ty_procedure
+        statement_idx type i
+        quickfix_info type /cc4a/scope_of_variable=>ty_quickfix_info
+        info type /cc4a/scope_of_variable=>ty_definition
+      returning
+        value(quickfixes) type ref to cl_ci_atc_quickfixes.
 endclass.
 
 class /cc4a/scope_of_variable implementation.
@@ -184,123 +206,134 @@ class /cc4a/scope_of_variable implementation.
       loop at definitions assigning field-symbol(<info>).
         " check where the variable is used
         data(usage_infos) = get_usages_outside_block(
-             check_block = parent_branch-block
-             procedure = procedure
-             start_statement = procedure-blocks[ parent_branch-block ]-statements-to + 1
-             variable = <info>-variable
-             full_name =  <info>-full_name ).
+          check_block = parent_branch-block
+          procedure = procedure
+          start_statement = procedure-blocks[ parent_branch-block ]-statements-to + 1
+          variable = <info>-variable
+          full_name =  <info>-full_name ).
         if usage_infos is initial.
           continue.
         endif.
         data(stack) = assistant_factory->create_call_stack( ).
-        stack->push_statement(
-          value #( text = |{ 'Usage of variable'(usv) } { <info>-variable }| statement = usage_infos-first_statement ) ).
+        stack->push_statement( value #(
+          text = |{ 'Usage of variable'(usv) } { <info>-variable }|
+          statement = usage_infos-first_statement ) ).
         data(details) = assistant_factory->create_finding_details( )->attach_stack( name = `` stack = stack ).
-        if <info>-def_line is initial or parent_branch-inside_injection = abap_true.
-          " No quick fix possible, just emit finding
-          insert value #(
-            code = message_codes-scope
-            location = code_provider->get_statement_location( <statement> )
-            checksum = code_provider->get_statement_checksum( <statement> )
-            has_pseudo_comment =
-              xsdbool( line_exists( <statement>-pseudo_comments[ table_line = pseudo_comments-scope ] ) )
-            parameters = value #( param_1 = <info>-variable )
-            details = details ) into table findings.
-        else.
-          insert parent_branch-block into table usage_infos-used_blocks.
-          data(outer_block) = block_finder->find_outer_block( usage_infos-used_blocks ).
-          " no def_line if statement in test-injections and outer_block outside of this test-injection.
-          data(block) = parent_branch-block.
-          while block <> outer_block.
-            assign procedure-blocks[ block ] to field-symbol(<block>).
-            if <block>-statement_type = if_ci_atc_source_code_provider=>statement_type-inject.
-              clear <info>-def_line.
-              exit.
-            endif.
-            block = <block>-parent.
-          endwhile.
-          if <info>-def_line is not initial.
-            data(idx) = statement_idx - 1.
-            while idx > procedure-blocks[ outer_block ]-statements-from
-            and procedure-statements[ idx ]-block  <> outer_block.
-              if <info>-type_full_name is not initial and
-                  check_for_definition( statement = procedure-statements[ idx ] full_name = <info>-type_full_name ).
-                clear <info>-def_line.
-                exit.
-              endif.
-              idx -= 1.
-            endwhile.
-            if <info>-type_full_name is not initial and
-                <info>-def_line is not initial and
-                check_for_definition( statement = procedure-statements[ idx ] full_name = <info>-type_full_name ).
-              clear <info>-def_line.
-            endif.
-          endif.
 
-          if <info>-def_line is initial.
-            insert value #(
-              code = message_codes-scope
-              location = code_provider->get_statement_location( <statement> )
-              checksum = code_provider->get_statement_checksum( <statement> )
-              has_pseudo_comment =
-                xsdbool( line_exists( <statement>-pseudo_comments[ table_line = pseudo_comments-scope ] ) )
-              parameters = value #( param_1 = <info>-variable )
-              details = details ) into table findings.
-          else.
-            data(quickfixes) = assistant_factory->create_quickfixes( ).
-            data(quickfix) = quickfixes->create_quickfix( quickfix_codes-change_scope ).
-            if idx = 1.
-              quickfix->insert_before(
-                context = assistant_factory->create_quickfix_context( value #(
-                  procedure_id = procedure-id
-                  statements = value #( from = idx + 1 to = idx + 1 ) ) )
-                code = value #( ( <info>-def_line ) ( `` ) ) ).
-            else.
-              case procedure-blocks[ procedure-statements[ idx ]-block ]-statement_type.
-                when if_ci_atc_source_code_provider=>statement_type-when
-                or if_ci_atc_source_code_provider=>statement_type-inject.
-                  quickfix->insert_after(
-                    context = assistant_factory->create_quickfix_context(
-                       value #( procedure_id = procedure-id
-                                statements = value #( from = idx to = idx ) ) )
-                    code = value #( ( <info>-def_line ) ( `` ) ) ).
-                when others.
-                  quickfix->insert_before(
-                    context = assistant_factory->create_quickfix_context( value #(
-                      procedure_id = procedure-id
-                      statements = value #( from = idx to = idx ) ) )
-                    code = value #( ( <info>-def_line ) ( `` ) ) ).
-              endcase.
-            endif.
+        data(quickfix_info) = can_have_quickfixes(
+          procedure = procedure
+          block_finder = block_finder
+          statement_idx = statement_idx
+          parent_branch = parent_branch
+          info = <info>
+          usage_infos = usage_infos ).
 
-            if <info>-tokens_to_replace is initial.
-              quickfix->replace(
-                  context = assistant_factory->create_quickfix_context( value #(
-                    procedure_id = procedure-id
-                    statements = value #( from = statement_idx to = statement_idx ) ) )
-                  code = value #( ) ).
-            else.
-              loop at <info>-tokens_to_replace assigning field-symbol(<replace_token>).
-                quickfix->replace(
-                    context = assistant_factory->create_quickfix_context( value #(
-                      procedure_id = procedure-id
-                      statements = value #( from = statement_idx to = statement_idx )
-                      tokens = value #( from = <replace_token>-token_idx to = <replace_token>-token_idx ) ) )
-                    code = value #( ( <replace_token>-value ) ) ).
-              endloop.
-            endif.
-            insert value #(
-              code = message_codes-scope
-              location = code_provider->get_statement_location( <statement> )
-              checksum = code_provider->get_statement_checksum( <statement> )
-              has_pseudo_comment = xsdbool( line_exists( <statement>-pseudo_comments[ table_line = pseudo_comments-scope ] ) )
-              parameters = value #( param_1 = <info>-variable )
-              details = details->attach_quickfixes( quickfixes ) ) into table findings.
-          endif.
-
+        if quickfix_info-can_have_quickfixes = abap_true.
+          data(quickfixes) = build_quickfixes(
+            procedure = procedure
+            statement_idx = statement_idx
+            quickfix_info = quickfix_info
+            info = <info> ).
         endif.
+
+        insert value #(
+          code = message_codes-scope
+          location = code_provider->get_statement_location( <statement> )
+          checksum = code_provider->get_statement_checksum( <statement> )
+          has_pseudo_comment =
+            xsdbool( line_exists( <statement>-pseudo_comments[ table_line = pseudo_comments-scope ] ) )
+          parameters = value #( param_1 = <info>-variable )
+          details = cond #(
+            when quickfix_info-can_have_quickfixes = abap_true
+              then details->attach_quickfixes( quickfixes )
+              else details ) ) into table findings.
       endloop.
     endloop.
+  endmethod.
+
+  METHOD build_quickfixes.
+
+    quickfixes  = assistant_factory->create_quickfixes( ).
+    DATA(quickfix) = quickfixes->create_quickfix( quickfix_codes-change_scope ).
+    IF quickfix_info-idx = 1.
+      quickfix->insert_before(
+        context = assistant_factory->create_quickfix_context( VALUE #(
+          procedure_id = procedure-id
+          statements = VALUE #( from = quickfix_info-idx + 1 to = quickfix_info-idx + 1 ) ) )
+        code = VALUE #( ( info-def_line ) ( `` ) ) ).
+    ELSE.
+      CASE procedure-blocks[ procedure-statements[ quickfix_info-idx ]-block ]-statement_type.
+        WHEN if_ci_atc_source_code_provider=>statement_type-when
+            OR if_ci_atc_source_code_provider=>statement_type-inject.
+          quickfix->insert_after(
+            context = assistant_factory->create_quickfix_context( VALUE #(
+              procedure_id = procedure-id
+              statements = VALUE #( from = quickfix_info-idx to = quickfix_info-idx ) ) )
+            code = VALUE #( ( info-def_line ) ( `` ) ) ).
+        WHEN OTHERS.
+          quickfix->insert_before(
+            context = assistant_factory->create_quickfix_context( VALUE #(
+              procedure_id = procedure-id
+              statements = VALUE #( from = quickfix_info-idx to = quickfix_info-idx ) ) )
+            code = VALUE #( ( info-def_line ) ( `` ) ) ).
+      ENDCASE.
+    ENDIF.
+
+    IF info-tokens_to_replace IS INITIAL.
+      quickfix->replace(
+          context = assistant_factory->create_quickfix_context( VALUE #(
+            procedure_id = procedure-id
+            statements = VALUE #( from = statement_idx to = statement_idx ) ) )
+          code = VALUE #( ) ).
+    ELSE.
+      LOOP AT info-tokens_to_replace ASSIGNING FIELD-SYMBOL(<replace_token>).
+        quickfix->replace(
+            context = assistant_factory->create_quickfix_context( VALUE #(
+              procedure_id = procedure-id
+              statements = VALUE #( from = statement_idx to = statement_idx )
+              tokens = VALUE #( from = <replace_token>-token_idx to = <replace_token>-token_idx ) ) )
+            code = VALUE #( ( <replace_token>-value ) ) ).
+      ENDLOOP.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+
+  method can_have_quickfixes.
+    quickfix_info-can_have_quickfixes = xsdbool(
+      info-def_line is not initial and parent_branch-inside_injection = abap_false ).
+    if quickfix_info-can_have_quickfixes  = abap_true.
+      insert parent_branch-block into table usage_infos-used_blocks.
+      data(outer_block) = block_finder->find_outer_block( usage_infos-used_blocks ).
+      " no def_line if statement in test-injections and outer_block outside of this test-injection.
+      data(block) = parent_branch-block.
+      while block <> outer_block.
+        assign procedure-blocks[ block ] to field-symbol(<block>).
+        if <block>-statement_type = if_ci_atc_source_code_provider=>statement_type-inject.
+          quickfix_info-can_have_quickfixes = abap_false.
+          exit.
+        endif.
+        block = <block>-parent.
+      endwhile.
+      if quickfix_info-can_have_quickfixes  = abap_true.
+        quickfix_info-idx = statement_idx - 1.
+        while quickfix_info-idx  > procedure-blocks[ outer_block ]-statements-from
+            and procedure-statements[ quickfix_info-idx  ]-block  <> outer_block.
+          if info-type_full_name is not initial and
+              check_for_definition( statement = procedure-statements[ quickfix_info-idx  ] full_name = info-type_full_name ).
+            quickfix_info-can_have_quickfixes = abap_false.
+            exit.
+          endif.
+          quickfix_info-idx -= 1.
+        endwhile.
+        if info-type_full_name is not initial and
+            quickfix_info-can_have_quickfixes  = abap_true and
+            check_for_definition( statement = procedure-statements[ quickfix_info-idx  ] full_name = info-type_full_name ).
+          quickfix_info-can_have_quickfixes = abap_false.
+        endif.
+      endif.
+    endif.
   endmethod.
 
   method get_usages_outside_block.

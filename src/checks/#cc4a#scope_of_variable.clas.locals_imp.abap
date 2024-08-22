@@ -1,47 +1,10 @@
-class block_finder definition final.
-  public section.
-    types:
-      begin of ty_block_info,
-        block type i,
-        inside_injection type abap_bool,
-      end of ty_block_info.
-
-    methods constructor
-      importing
-        blocks type if_ci_atc_source_code_provider=>ty_blocks
-        first_valid_block type i.
-    methods find_parent_branch
-      importing block type i
-      returning value(result) type ty_block_info.
-    methods find_outer_block
-      importing blocks type ty_block_list
-      returning value(result) type i.
-  private section.
-    data first_valid_block type i.
-    data blocks type if_ci_Atc_source_code_provider=>ty_blocks.
-
-    methods least_common_parent
-      importing
-        block_1 type i
-        block_2 type i
-      returning
-        value(result) type i.
-    methods is_parent
-      importing
-        parent type i
-        child type i
-      returning
-        value(result) type abap_bool.
-endclass.
-
-CLASS block_finder IMPLEMENTATION.
-
-  METHOD constructor.
+class block_finder implementation.
+  method constructor.
     me->first_valid_block = first_valid_block.
     me->blocks = blocks.
-  ENDMETHOD.
+  endmethod.
 
-  METHOD find_parent_branch.
+  method find_parent_branch.
     result-block = block.
     while result-block <> first_valid_block.
       data(current_block) = blocks[ result-block ].
@@ -59,7 +22,7 @@ CLASS block_finder IMPLEMENTATION.
 
       endcase.
     endwhile.
-  ENDMETHOD.
+  endmethod.
 
   method find_outer_block.
     if line_exists( blocks[ table_line = first_valid_block ] ).
@@ -111,5 +74,4 @@ CLASS block_finder IMPLEMENTATION.
       endif.
     endif.
   endmethod.
-
-ENDCLASS.
+endclass.

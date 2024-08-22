@@ -33,7 +33,7 @@ class /cc4a/scope_of_variable definition
         type_full_name type string,
         tokens_to_replace type ty_replace_tokens,
       end of ty_definition.
-    types ty_definitions type standard table of ty_definition with default key.
+    types ty_definitions type standard table of ty_definition with empty key.
     types:
       begin of ty_usage_infos,
         used_blocks type ty_block_list,
@@ -44,6 +44,11 @@ class /cc4a/scope_of_variable definition
         can_have_quickfixes type abap_bool,
         idx type i,
       end of ty_quickfix_info.
+    types:
+      begin of ty_definition_line,
+        def_line type string,
+        type_full_name type string,
+      end of ty_definition_line.
 
     data code_provider type ref to if_ci_atc_source_code_provider.
     data analyzer type ref to /cc4a/if_abap_analyzer.
@@ -61,12 +66,11 @@ class /cc4a/scope_of_variable definition
         check_block type i
       returning value(result)   type ty_usage_infos.
 
-    methods get_def_line_initial
+    methods generate_definition_line
       importing
         !statement type if_ci_atc_source_code_provider=>ty_statement
-      exporting
-        def_line type string
-        type_full_name type string.
+      returning
+        value(definition_line) type ty_definition_line.
 
     methods get_first_valid_block
       importing
@@ -228,14 +232,6 @@ class /cc4a/scope_of_variable implementation.
           info = <info>
           usage_infos = usage_infos ).
 
-        if quickfix_info-can_have_quickfixes = abap_true.
-          data(quickfixes) = build_quickfixes(
-            procedure = procedure
-            statement_idx = statement_idx
-            quickfix_info = quickfix_info
-            info = <info> ).
-        endif.
-
         insert value #(
           code = message_codes-scope
           location = code_provider->get_statement_location( <statement> )
@@ -245,7 +241,11 @@ class /cc4a/scope_of_variable implementation.
           parameters = value #( param_1 = <info>-variable )
           details = cond #(
             when quickfix_info-can_have_quickfixes = abap_true
-              then details->attach_quickfixes( quickfixes )
+              then details->attach_quickfixes( build_quickfixes(
+                procedure = procedure
+                statement_idx = statement_idx
+                quickfix_info = quickfix_info
+                info = <info> ) )
               else details ) ) into table findings.
       endloop.
     endloop.
@@ -362,23 +362,21 @@ class /cc4a/scope_of_variable implementation.
     endloop.
   endmethod.
 
-  method get_def_line_initial.
-    clear def_line.
-    clear type_full_name.
+  method generate_definition_line.
     if statement-tokens[ 2 ]-lexeme = '='.
       assign statement-tokens[ 3 ] to field-symbol(<token>).
       if <token>-references is initial.
         if ( lines( statement-tokens ) = 3 and <token>-lexeme co '0123456789' )
-        or <token>-lexeme = `LINE_INDEX(`.
-          def_line = |{ statement-tokens[ 1 ]-lexeme } = 0.|.
+            or <token>-lexeme = `LINE_INDEX(`.
+          definition_line-def_line = |{ statement-tokens[ 1 ]-lexeme } = 0.|.
         elseif <token>-lexeme cp '`*`' or <token>-lexeme = '|'.
-          def_line = |{ statement-tokens[ 1 ]-lexeme } = ``.|.
+          definition_line-def_line = |{ statement-tokens[ 1 ]-lexeme } = ``.|.
         elseif <token>-lexeme = `VALUE`
-        and statement-tokens[ 4 ]-lexeme np '##*'
-        and statement-tokens[ 4 ]-lexeme np '*->*'
-        and statement-tokens[ 4 ]-lexeme np '*=>*'.
-          def_line = |{ statement-tokens[ 1 ]-lexeme } = { <token>-lexeme } { statement-tokens[ 4 ]-lexeme } ).|.
-          type_full_name = statement-tokens[ 4 ]-references[ 1 ]-full_name.
+            and statement-tokens[ 4 ]-lexeme np '##*'
+            and statement-tokens[ 4 ]-lexeme np '*->*'
+            and statement-tokens[ 4 ]-lexeme np '*=>*'.
+          definition_line-def_line = |{ statement-tokens[ 1 ]-lexeme } = { <token>-lexeme } { statement-tokens[ 4 ]-lexeme } ).|.
+          definition_line-type_full_name = statement-tokens[ 4 ]-references[ 1 ]-full_name.
         endif.
       endif.
     endif.
@@ -462,10 +460,7 @@ class /cc4a/scope_of_variable implementation.
         data(len) = strlen( info-variable ) - 1.
         info-variable = info-variable(len).
         if token_idx = 1.
-          get_def_line_initial(
-            exporting statement = statement
-            importing def_line = info-def_line
-                      type_full_name = info-type_full_name ).
+          info = corresponding #( base ( info ) generate_definition_line( statement = statement ) ).
           info-tokens_to_replace = value #( ( token_idx = token_idx value = info-variable ) ).
         endif.
 

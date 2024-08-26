@@ -74,6 +74,9 @@
     },
     {
       "checkName": "/CC4A/MODERN"
+    },
+    {
+      "checkName": "/CC4A/VARIABLE_SCOPE"
     }
   ]
 }

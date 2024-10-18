@@ -19,7 +19,7 @@ Our main functional goals that differ from the legacy version are:
 
  - Providing automated quick fixes for many findings in ADT
  - Enabling all checks to run in a [remote check scenario](https://blogs.sap.com/2016/12/12/remote-code-analysis-in-atc-one-central-check-system-for-multiple-systems-on-various-releases/).
- - All code lives in the `/CC4A/` (Clean Code for ABAP) namespace so collisions with Y*/Z* objects from other projects are avoided
+ - All code lives in the `/CC4A/` (Clean Code for ABAP) namespace so collisions with Y*/Z* objects from other projects are avoided. You can get namespace keys at [SAP for Me]( https://me.sap.com/namespace/opensource).
 
 The [check migration list](check_migration_list.md) shows the current migration status of checks from the legacy version.
 

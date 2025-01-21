@@ -171,7 +171,7 @@ class test implementation.
 
     cl_ci_atc_unit_driver=>create_asserter( )->check_and_assert(
               check             = new /cc4a/proper_bool_expression( )
-              object            = value #( type = 'CLASS' name = test_class )
+              object            = value #( type = 'CLAS' name = test_class )
               expected_findings = value #(
                 ( lines of transform_to_xsd_findings )
                 ( lines of bool_value_findings )

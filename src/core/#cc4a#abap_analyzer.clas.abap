@@ -63,11 +63,11 @@ class /cc4a/abap_analyzer definition
       importing value(offsets) type ty_offsets
       changing tokens type if_ci_atc_source_code_provider=>ty_tokens
       returning value(expression) type ty_logical_expression.
-endclass.
+ENDCLASS.
 
 
 
-class /cc4a/abap_analyzer implementation.
+CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
 
 
   method /cc4a/if_abap_analyzer~break_into_lines.
@@ -265,18 +265,21 @@ class /cc4a/abap_analyzer implementation.
 
 
   method class_constructor.
-    negations = value #( ( operator = '>' negated = '<=' )
-                         ( operator = 'GT' negated = 'LE' )
-                         ( operator = '<' negated = '>=' )
-                         ( operator = 'LT' negated = 'GE' )
-                         ( operator = '=' negated = '<>' )
-                         ( operator = 'EQ' negated = 'NE' )
-                         ( operator = '<>' negated = '=' )
-                         ( operator = 'NE' negated = 'EQ' )
-                         ( operator = '<=' negated = '>' )
-                         ( operator = 'LE' negated = 'GT' )
-                         ( operator = '>=' negated = '<' )
-                         ( operator = 'GE' negated = 'LT' ) ).
+    negations = value #(
+      ( operator = 'IN' negated = 'NOT IN' )
+      ( operator = 'IS' negated = 'NOT IS' )
+      ( operator = '>' negated = '<=' )
+      ( operator = 'GT' negated = 'LE' )
+      ( operator = '<' negated = '>=' )
+      ( operator = 'LT' negated = 'GE' )
+      ( operator = '=' negated = '<>' )
+      ( operator = 'EQ' negated = 'NE' )
+      ( operator = '<>' negated = '=' )
+      ( operator = 'NE' negated = 'EQ' )
+      ( operator = '<=' negated = '>' )
+      ( operator = 'LE' negated = 'GT' )
+      ( operator = '>=' negated = '<' )
+      ( operator = 'GE' negated = 'LT' ) ).
   endmethod.
 
 
@@ -285,35 +288,7 @@ class /cc4a/abap_analyzer implementation.
   endmethod.
 
 
-  method is_db_statement.
-    case statement-keyword.
-      when 'SELECT' or 'WITH' or 'DELETE' or 'UPDATE' or 'INSERT' or 'MODIFY' or 'READ' or 'LOOP'
-      or 'IMPORT' or 'EXPORT' or 'FETCH' or 'OPEN' or 'EXEC'.
-        if ( find_clause_index( tokens = statement-tokens clause = 'CONNECTION' ) <> 0
-             and (    statement-keyword = 'DELETE'
-                   or statement-keyword = 'UPDATE'
-                   or statement-keyword = 'INSERT'
-                   or statement-keyword = 'MODIFY' ) ).
-          result-is_db = abap_true.
-          if get_dbtab_name = abap_false.
-            return.
-          endif.
-        endif.
-      when others.
-        return.
-    endcase.
-    data(token_idx) = 2.
-    while lines( statement-tokens ) > token_idx and statement-tokens[ token_idx ]-lexeme cp '%_*('
-    and statement-tokens[ token_idx ]-references is initial.
-      token_idx += 3.
-    endwhile.
-    data(analyzer) = new db_statement_analyzer(
-       statement = statement
-       start_idx = token_idx
-       analyzer = me
-       include_subqueries = include_subqueries ).
-    result = analyzer->analyze( ).
-
+  method /CC4A/IF_ABAP_ANALYZER~IS_DB_STATEMENT.
   endmethod.
 
 
@@ -339,6 +314,7 @@ class /cc4a/abap_analyzer implementation.
       flat = flat(len).
     endif.
   endmethod.
+
 
   method _flatten_template.
     data(inside_braces) = abap_false.
@@ -376,7 +352,6 @@ class /cc4a/abap_analyzer implementation.
       assign tokens[ 1 ] to <token>.
     endwhile.
   endmethod.
-
 
 
   method _break_into_lines.
@@ -451,6 +426,7 @@ class /cc4a/abap_analyzer implementation.
     endif.
   endmethod.
 
+
   method /cc4a/if_abap_analyzer~negate_logical_expression.
     data(new_tokens) = tokens.
     data(expression) = parse_logical_expression( tokens ).
@@ -507,12 +483,14 @@ class /cc4a/abap_analyzer implementation.
     return /cc4a/if_abap_analyzer~flatten_tokens( new_tokens ).
   endmethod.
 
+
   method parse_logical_expression.
     data(_tokens) = tokens.
     return _parse_logical_expression(
       exporting offsets = value #( token = 1 table = 1 )
       changing tokens = _tokens ).
   endmethod.
+
 
   method _parse_logical_expression.
     if tokens is initial.
@@ -601,5 +579,4 @@ class /cc4a/abap_analyzer implementation.
         ( tokens = value #( from = offsets-token to = offsets-token + lines( left_tokens ) - 1 ) ) ).
     endif.
   endmethod.
-
-endclass.
+ENDCLASS.

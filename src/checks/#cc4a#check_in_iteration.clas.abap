@@ -284,7 +284,7 @@ class /cc4a/check_in_iteration implementation.
       bool_expression = bool_expression && ` ` && expression.
     endloop.
 
-    data(flat_new_statement) = analyzer->flatten_tokens( new_statement-tokens ) && `WHERE` && bool_expression && '.'.
+    data(flat_new_statement) = analyzer->flatten_tokens( new_statement-tokens ) && ` WHERE` && bool_expression && '.'.
     modified_statement = analyzer->break_into_lines( flat_new_statement ).
   endmethod.
 

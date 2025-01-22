@@ -8,6 +8,12 @@ class /cc4a/test_check_in_iteration definition
   private section.
     methods without_pseudo_comments.
     methods with_pseudo_comments.
+
+    types: begin of ty_table,
+             delflag type abap_bool,
+           end of ty_table.
+
+    data itab_range type range of ty_table.
 ENDCLASS.
 
 
@@ -75,6 +81,11 @@ CLASS /CC4A/TEST_CHECK_IN_ITERATION IMPLEMENTATION.
     loop at itab assigning <tab>.
       check <tab>-delflag = abap_true.
       check xsdbool( 1 > 3 ) = abap_true.
+    endloop.
+
+
+    loop at itab assigning <tab>.
+      check <tab> in itab_range.
     endloop.
 
   endmethod.

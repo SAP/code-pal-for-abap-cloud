@@ -277,6 +277,10 @@ class /cc4a/proper_bool_expression implementation.
   endmethod.
 
   METHOD analyze_declaration.
+    if analyzer->find_clause_index( tokens = statement-tokens clause = `BEGIN OF COMMON PART` ).
+      return.
+    endif.
+
     data(kind) = cond #(
       when statement-keyword = 'DATA' or statement-keyword = 'FINAL' or statement-keyword = 'CONSTANTS'
         then declaration_kind-classic
@@ -293,6 +297,7 @@ class /cc4a/proper_bool_expression implementation.
     if kind = declaration_kind-none or analyzer->is_token_keyword( token = statement-tokens[ 2 ] keyword = 'END' ).
       return value #( ).
     endif.
+
     data(declared_identifier) = switch #( kind
       when declaration_kind-inline
         then statement-tokens[ 1 ]-references[ 1 ]-full_name

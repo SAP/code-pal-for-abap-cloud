@@ -288,7 +288,34 @@ CLASS /CC4A/ABAP_ANALYZER IMPLEMENTATION.
   endmethod.
 
 
-  method /CC4A/IF_ABAP_ANALYZER~IS_DB_STATEMENT.
+  method /cc4a/if_abap_analyzer~is_db_statement.
+    case statement-keyword.
+      when 'SELECT' or 'WITH' or 'DELETE' or 'UPDATE' or 'INSERT' or 'MODIFY' or 'READ' or 'LOOP'
+      or 'IMPORT' or 'EXPORT' or 'FETCH' or 'OPEN' or 'EXEC'.
+        if ( find_clause_index( tokens = statement-tokens clause = 'CONNECTION' ) <> 0
+             and (    statement-keyword = 'DELETE'
+                   or statement-keyword = 'UPDATE'
+                   or statement-keyword = 'INSERT'
+                   or statement-keyword = 'MODIFY' ) ).
+          result-is_db = abap_true.
+          if get_dbtab_name = abap_false.
+            return.
+          endif.
+        endif.
+      when others.
+        return.
+    endcase.
+    data(token_idx) = 2.
+    while lines( statement-tokens ) > token_idx and statement-tokens[ token_idx ]-lexeme cp '%_*('
+    and statement-tokens[ token_idx ]-references is initial.
+      token_idx += 3.
+    endwhile.
+    data(analyzer) = new db_statement_analyzer(
+       statement = statement
+       start_idx = token_idx
+       analyzer = me
+       include_subqueries = include_subqueries ).
+    result = analyzer->analyze( ).
   endmethod.
 
 

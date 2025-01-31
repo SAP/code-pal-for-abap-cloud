@@ -1,0 +1,79 @@
+{
+  "formatVersion": "1",
+  "header": {
+    "description": "Remote CodePal checks",
+    "originalLanguage": "en",
+    "abapLanguageVersion": "cloudDevelopment"
+  },
+  "selectedChecks": [
+    {
+      "checkName": "/CC4A/PREFER_IS_NOT"
+    },
+    {
+      "checkName": "/CC4A/ASSIGNMENT_CHAINING"
+    },
+    {
+      "checkName": "/CC4A/AVOID_DB_ACCESS_IN_AUNIT"
+    },
+    {
+      "checkName": "/CC4A/AVOID_TEST_SEAM"
+    },
+    {
+      "checkName": "/CC4A/CHAIN_DECLARATIONS"
+    },
+    {
+      "checkName": "/CC4A/CONSTANTS_INTERFACE"
+    },
+    {
+      "checkName": "/CC4A/AVOID_SELF_REFERENCE"
+    },
+    {
+      "checkName": "/CC4A/AVOID_DEFAULT_KEY"
+    },
+    {
+      "checkName": "/CC4A/METHOD_SIGNATURE",
+      "parameters": [
+        {
+          "name": "CheckPubMethodNoInterface",
+          "value": "true"
+        },
+        {
+          "name": "CheckInputParamBoolean",
+          "value": "true"
+        },
+        {
+          "name": "CheckInputParamOptional",
+          "value": "true"
+        },
+        {
+          "name": "CheckOutputParamNumber",
+          "value": "true"
+        },
+        {
+          "name": "CheckOutputParamType",
+          "value": "true"
+        },
+        {
+          "name": "CheckRetParamNotNamedResult",
+          "value": "true"
+        },
+        {
+          "name": "CheckExpParamNumberNotOne",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "checkName": "/CC4A/CHECK_IN_ITERATION"
+    },
+    {
+      "checkName": "/CC4A/PROPER_BOOL_USAGE"
+    },
+    {
+      "checkName": "/CC4A/MODERN"
+    },
+    {
+      "checkName": "/CC4A/VARIABLE_SCOPE"
+    }
+  ]
+}

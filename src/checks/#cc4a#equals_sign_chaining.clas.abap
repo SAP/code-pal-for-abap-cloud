@@ -7,9 +7,9 @@ class /cc4a/equals_sign_chaining definition
     interfaces if_ci_atc_check.
 
     constants:
-      begin of message_codes,
-        eqals_sign_chaining type if_ci_atc_check=>ty_finding_code value 'EQ_CHAIN',
-      end of   message_codes.
+      begin of finding_codes,
+        equals_sign_chaining type if_ci_atc_check=>ty_finding_code value 'EQ_CHAIN',
+      end of   finding_codes.
     constants:
       begin of pseudo_comments,
         eqals_sign_chaining type string value 'EQUALS_CHAINING',
@@ -18,6 +18,7 @@ class /cc4a/equals_sign_chaining definition
       begin of quickfix_codes,
         break_chain type cl_ci_atc_quickfixes=>ty_quickfix_code value 'BRK_CHAIN',
       end of   quickfix_codes.
+    methods constructor.
 
   protected section.
   private section.
@@ -30,21 +31,19 @@ class /cc4a/equals_sign_chaining definition
 
     data code_provider     type ref to if_ci_atc_source_code_provider.
     data assistant_factory type ref to cl_ci_atc_assistant_factory.
+    data meta_data type ref to /cc4a/if_check_meta_data.
 
     methods calculate_quickfix_data importing statement      type if_ci_atc_source_code_provider=>ty_statement
                                    returning value(qf_data) type ty_qf_data.
 
-endclass.
+ENDCLASS.
 
 
 
-class /cc4a/equals_sign_chaining implementation.
+CLASS /CC4A/EQUALS_SIGN_CHAINING IMPLEMENTATION.
 
 
   method calculate_quickfix_data.
-    " Needed, do not delete
-    clear qf_data.
-
     data(line_offset) = statement-tokens[ 1 ]-position-column.
 
     " Find last relevant equal sign of statement
@@ -81,18 +80,22 @@ class /cc4a/equals_sign_chaining implementation.
 
   method if_ci_atc_check~get_meta_data.
 
+    meta_data = me->meta_data.
+
+  endmethod.
+
+  method constructor.
     meta_data = /cc4a/check_meta_data=>create( value #(
       checked_types = /cc4a/check_meta_data=>checked_types-abap_programs
       description = 'Assignment Chaining'(des)
       finding_codes = value #( (
-        code = message_codes-eqals_sign_chaining
+        code = finding_codes-equals_sign_chaining
         pseudo_comment = pseudo_comments-eqals_sign_chaining
         text = 'Values are allocated more than once within one statement'(mc1) ) )
       quickfix_codes = value #( (
         code = quickfix_codes-break_chain
         short_text = 'Break assignment chain into multiple rows'(q1s) ) )
       remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional ) ).
-
   endmethod.
 
 
@@ -127,11 +130,12 @@ class /cc4a/equals_sign_chaining implementation.
                 code = qf_data-insert_after ).
 
           insert value #(
-            code = message_codes-eqals_sign_chaining
+            code = finding_codes-equals_sign_chaining
             location = code_provider->get_statement_location( <statement> )
             checksum = code_provider->get_statement_checksum( <statement> )
-            has_pseudo_comment = xsdbool(
-              line_exists( <statement>-pseudo_comments[ table_line = pseudo_comments-eqals_sign_chaining ] ) )
+            has_pseudo_comment = meta_data->has_valid_pseudo_comment(
+              statement = <statement>
+              finding_code = finding_codes-equals_sign_chaining )
             details = assistant_factory->create_finding_details( )->attach_quickfixes( quickfixes )
           ) into table findings.
         endif.
@@ -155,4 +159,4 @@ class /cc4a/equals_sign_chaining implementation.
     " Nothing to check
 
   endmethod.
-endclass.
+ENDCLASS.

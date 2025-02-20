@@ -55,46 +55,46 @@ class test implementation.
       check             = new /cc4a/avoid_default_key( )
       object            = value #( type = 'CLAS' name = test_class )
       expected_findings = value #(
-        ( code = /cc4a/avoid_default_key=>finding_code
+        ( code = /cc4a/avoid_default_key=>finding_codes-default_key
           location = psuedo_comment_1
           quickfixes = value #( (
             quickfix_code = /cc4a/avoid_default_key=>quickfix_codes-empty_key
             location = psuedo_comment_1
             code = value #(
             ( `CLASS-DATA GHI TYPE TABLE OF TY_STRUCT WITH EMPTY KEY .` ) ) ) ) )
-        ( code = /cc4a/avoid_default_key=>finding_code
+        ( code = /cc4a/avoid_default_key=>finding_codes-default_key
           location = psuedo_comment_2
           quickfixes = value #( (
             quickfix_code = /cc4a/avoid_default_key=>quickfix_codes-empty_key
             location = psuedo_comment_2
             code = value #(
             ( `DATA STU TYPE TABLE OF TY_STRUCT WITH EMPTY KEY .` ) ) ) ) )
-        ( code = /cc4a/avoid_default_key=>finding_code
+        ( code = /cc4a/avoid_default_key=>finding_codes-default_key
           location = psuedo_comment_3 )
-        ( code = /cc4a/avoid_default_key=>finding_code
+        ( code = /cc4a/avoid_default_key=>finding_codes-default_key
           location = finding_1
           quickfixes = value #( (
             quickfix_code = /cc4a/avoid_default_key=>quickfix_codes-empty_key
             location = finding_1
             code = value #(
             ( `CLASS-DATA ABC TYPE TABLE OF TY_STRUCT WITH EMPTY KEY .` ) ) ) ) )
-        ( code = /cc4a/avoid_default_key=>finding_code
+        ( code = /cc4a/avoid_default_key=>finding_codes-default_key
           location = finding_2
           quickfixes = value #( (
             quickfix_code = /cc4a/avoid_default_key=>quickfix_codes-empty_key
             location = finding_2
             code = value #(
             ( `DATA STU TYPE TABLE OF TY_STRUCT WITH EMPTY KEY .` ) ) ) ) )
-        ( code = /cc4a/avoid_default_key=>finding_code
+        ( code = /cc4a/avoid_default_key=>finding_codes-default_key
           location = finding_3 )
-        ( code = /cc4a/avoid_default_key=>finding_code
+        ( code = /cc4a/avoid_default_key=>finding_codes-default_key
           location = static_finding_1
           quickfixes = value #( (
             quickfix_code = /cc4a/avoid_default_key=>quickfix_codes-empty_key
             location = static_finding_1
             code = value #(
             ( `STATICS MEMO TYPE STANDARD TABLE OF STRING WITH EMPTY KEY .` ) ) ) ) )
-        ( code = /cc4a/avoid_default_key=>finding_code
+        ( code = /cc4a/avoid_default_key=>finding_codes-default_key
           location = static_finding_2
           quickfixes = value #( (
             quickfix_code = /cc4a/avoid_default_key=>quickfix_codes-empty_key

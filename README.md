@@ -9,9 +9,11 @@ Code Pal is a project that provides ATC checks to assist ABAP programmers in adh
 
 ## Requirements and Setup
 
-Install via [abapGit Eclipse plugin](https://github.com/abapGit/ADT_Frontend) on ABAP cloud systems and [abapGit for SAPGUI](https://docs.abapgit.org/guide-online-install.html) on systems with SAP_BASIS 7.58 or higher.
+Install via [abapGit Eclipse plugin](https://github.com/abapGit/ADT_Frontend) on ABAP cloud systems and [abapGit for SAPGUI](https://docs.abapgit.org/guide-online-install.html) on systems with SAP_BASIS 7.58 or higher. Since Code Pal is developed in English, logon language EN is required during installation.
 
-Long-term compatibility is only guaranteed for the current version of ABAP for Cloud Development. 
+Recommended SAP package: `/CC4A/CODE_PAL`
+
+Compatibility of the most recent version is only guaranteed for the current version of ABAP for Cloud Development. For the SAP_BASIS 7.58-compatible version, use the `SAP_BASIS-7.58-compatible` branch.
 
 ## Features
 
@@ -19,7 +21,7 @@ Our main functional goals that differ from the legacy version are:
 
  - Providing automated quick fixes for many findings in ADT
  - Enabling all checks to run in a [remote check scenario](https://blogs.sap.com/2016/12/12/remote-code-analysis-in-atc-one-central-check-system-for-multiple-systems-on-various-releases/).
- - All code lives in the `/CC4A/` (Clean Code for ABAP) namespace so collisions with Y*/Z* objects from other projects are avoided
+ - All code lives in the `/CC4A/` (Clean Code for ABAP) namespace so collisions with Y*/Z* objects from other projects are avoided. You can get namespace keys at [SAP for Me]( https://me.sap.com/namespace/opensource).
 
 The [check migration list](check_migration_list.md) shows the current migration status of checks from the legacy version.
 

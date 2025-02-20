@@ -69,3 +69,56 @@ class lz_self_reference2 implementation.
   endmethod.
 
 endclass.
+
+class impl_interface definition.
+  public section.
+    interfaces /cc4a/if_test_avoid_self_ref.
+  private section.
+    data var_1 type i.
+endclass.
+
+class impl_interface implementation.
+
+  method /cc4a/if_test_avoid_self_ref~meth_1.
+    me->var_1 = var_1.
+  endmethod.
+
+endclass.
+
+class inheriting_from_global definition inheriting from /cc4a/test_avoid_self_ref_sup.
+  public section.
+    methods super_meth redefinition.
+  private section.
+    data imp type i.
+endclass.
+
+CLASS inheriting_from_global IMPLEMENTATION.
+
+  METHOD super_meth.
+    me->imp = imp.
+  ENDMETHOD.
+
+ENDCLASS.
+
+interface local_interface.
+  methods meth_1
+    importing par_1 type i.
+  methods meth_2.
+endinterface.
+
+class impl_local_interface definition.
+  public section.
+    interfaces local_interface.
+endclass.
+
+CLASS impl_local_interface IMPLEMENTATION.
+
+  METHOD local_interface~meth_1.
+
+  ENDMETHOD.
+
+  METHOD local_interface~meth_2.
+
+  ENDMETHOD.
+
+ENDCLASS.

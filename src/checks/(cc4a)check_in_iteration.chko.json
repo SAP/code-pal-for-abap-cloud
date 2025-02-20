@@ -1,0 +1,11 @@
+{
+  "formatVersion": "1",
+  "header": {
+    "description": "Check in iteration",
+    "originalLanguage": "en",
+    "abapLanguageVersion": "cloudDevelopment"
+  },
+  "category": "/CC4A/CODE_PAL",
+  "implementingClass": "/CC4A/CHECK_IN_ITERATION",
+  "checkType": "remoteEnabled"
+}

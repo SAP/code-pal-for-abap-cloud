@@ -8,7 +8,8 @@ class ltcl_test definition final for testing
       begin of co_test_object,
         object_type type if_ci_atc_check=>ty_object-type value 'CLAS',
         object_name type if_ci_atc_check=>ty_object-name value '/CC4A/TEST_EQUAL_SIGN_CHAINING',
-      end of co_test_object,
+      end of co_test_object.
+    constants:
       begin of co_test_method_name,
         finding_1 type cl_ci_atc_unit_driver=>ty_method_name value 'FINDING_1',
         finding_2 type cl_ci_atc_unit_driver=>ty_method_name value 'FINDING_2',
@@ -69,13 +70,13 @@ class ltcl_test implementation.
                                    type = co_test_object-object_type )
       asserter_config   = value #( quickfixes                 = abap_false
                                    remove_findings_with_pcoms = abap_true )
-      expected_findings = value #( ( code       = /cc4a/equals_sign_chaining=>message_codes-eqals_sign_chaining
+      expected_findings = value #( ( code       = /cc4a/equals_sign_chaining=>finding_codes-equals_sign_chaining
                                      location   = finding_1_loc
                                      quickfixes = qf1_finding_1 )
-                                   ( code       = /cc4a/equals_sign_chaining=>message_codes-eqals_sign_chaining
+                                   ( code       = /cc4a/equals_sign_chaining=>finding_codes-equals_sign_chaining
                                      location   = finding_2_loc
                                      quickfixes = qf1_finding_2 )
-                                   ( code       = /cc4a/equals_sign_chaining=>message_codes-eqals_sign_chaining
+                                   ( code       = /cc4a/equals_sign_chaining=>finding_codes-equals_sign_chaining
                                      location   = finding_4_loc
                                      quickfixes = qf1_finding_4 ) ) ).
 

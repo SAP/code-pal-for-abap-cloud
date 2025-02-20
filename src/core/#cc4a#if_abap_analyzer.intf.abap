@@ -4,23 +4,52 @@
 "! so it can be accessed by any check that needs it.
 interface /cc4a/if_abap_analyzer
   public .
-
-  types: begin of enum ty_bracket_type structure bracket_type,
-           no_bracket,
-           opening,
-           closing,
-           "! Closed and opening. Due to quirks in the ABAP tokenizer, a chained method call like
-           "! obj->method_1( )->method_2( ) produces a single token `)->method_2(` that is both a closing and an
-           "! opening bracket.
-           clopening,
-         end of enum ty_bracket_type structure bracket_type.
-
+  constants max_line_length type i value 255.
+  types:
+    begin of enum ty_bracket_type structure bracket_type,
+      no_bracket,
+      opening,
+      closing,
+      "! Closed and opening. Due to quirks in the ABAP tokenizer, a chained method call like
+      "! obj->method_1( )->method_2( ) produces a single token `)->method_2(` that is both a closing and an
+      "! opening bracket.
+      clopening,
+    end of enum ty_bracket_type structure bracket_type.
   types:
     begin of ty_db_statement,
       is_db          type abap_bool,
       dbtab          type string,
       dbtab_subquery type string,
     end of ty_db_statement.
+  types:
+    begin of enum ty_parameter_kind structure parameter_kind,
+      importing,
+      exporting,
+      changing,
+      returning,
+    end of enum ty_parameter_kind structure parameter_kind.
+  types:
+    begin of ty_method_parameter,
+      name type string,
+      kind type ty_parameter_kind,
+    end of ty_method_parameter.
+  types ty_method_parameters type hashed table of ty_method_parameter with unique key name.
+  types:
+    begin of ty_method_definition,
+      name            type string,
+      is_redefinition type abap_bool,
+      parameters      type ty_method_parameters,
+    end of ty_method_definition.
+  types:
+    begin of enum ty_logical_connective structure logical_connective,
+      none,
+      and,
+      or,
+      equiv,
+      not,
+    end of enum ty_logical_connective structure logical_connective.
+
+
   methods find_key_words
     importing
       key_words       type string_table
@@ -28,10 +57,9 @@ interface /cc4a/if_abap_analyzer
     returning
       value(position) type i .
   methods break_into_lines
-    importing
-      code              type string
-    returning
-      value(code_lines) type if_ci_atc_quickfix=>ty_code .
+    importing code              type string
+    returning value(code_lines) type if_ci_atc_quickfix=>ty_code
+    raising   /cc4a/cx_line_break_impossible.
   methods flatten_tokens
     importing
       tokens                type if_ci_atc_source_code_provider=>ty_tokens
@@ -65,6 +93,11 @@ interface /cc4a/if_abap_analyzer
       value(negated_comparison_operator) type string
     raising
       /cc4a/cx_token_is_no_operator .
+  methods negate_logical_expression
+    importing
+      tokens type if_ci_atc_source_code_provider=>ty_tokens
+    returning
+      value(negated_expression) type string.
   methods is_db_statement
     importing
       statement          type if_ci_atc_source_code_provider=>ty_statement
@@ -91,4 +124,10 @@ interface /cc4a/if_abap_analyzer
       keyword       type string
     returning
       value(result) type abap_bool .
+  methods is_logical_connective
+    importing token                        type if_ci_atc_source_code_provider=>ty_token
+    returning value(is_logical_connective) type ty_logical_connective.
+  methods parse_method_definition
+    importing statement                type if_ci_atc_source_code_provider=>ty_statement
+    returning value(method_definition) type ty_method_definition.
 endinterface.

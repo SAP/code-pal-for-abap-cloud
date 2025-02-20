@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_CLAS" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <VSEOCLASS>
+    <CLSNAME>/CC4A/CHECK_IN_ITERATION</CLSNAME>
+    <LANGU>E</LANGU>
+    <DESCRIPT>Avoid using of CHECK-statement</DESCRIPT>
+    <STATE>1</STATE>
+    <CLSCCINCL>X</CLSCCINCL>
+    <FIXPT>X</FIXPT>
+    <UNICODE>X</UNICODE>
+    <WITH_UNIT_TESTS>X</WITH_UNIT_TESTS>
+   </VSEOCLASS>
+   <TPOOL>
+    <item>
+     <ID>I</ID>
+     <KEY>DES</KEY>
+     <ENTRY>Avoid using of CHECK-statement</ENTRY>
+     <LENGTH>88</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>ICC</KEY>
+     <ENTRY>Replace CHECK condition with IF condition</ENTRY>
+     <LENGTH>88</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>USG</KEY>
+     <ENTRY>Usage of CHECK-statement</ENTRY>
+     <LENGTH>88</LENGTH>
+    </item>
+    <item>
+     <ID>I</ID>
+     <KEY>WLD</KEY>
+     <ENTRY>Replace CHECK condition with a WHERE condition in loop</ENTRY>
+     <LENGTH>88</LENGTH>
+    </item>
+   </TPOOL>
+  </asx:values>
+ </asx:abap>
+</abapGit>

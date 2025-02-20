@@ -62,6 +62,21 @@
           "value": "true"
         }
       ]
+    },
+    {
+      "checkName": "/CC4A/PREFER_METHODS"
+    },
+    {
+      "checkName": "/CC4A/CHECK_IN_ITERATION"
+    },
+    {
+      "checkName": "/CC4A/PROPER_BOOL_USAGE"
+    },
+    {
+      "checkName": "/CC4A/MODERN"
+    },
+    {
+      "checkName": "/CC4A/VARIABLE_SCOPE"
     }
   ]
 }

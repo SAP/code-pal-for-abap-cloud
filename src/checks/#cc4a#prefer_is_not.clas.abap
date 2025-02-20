@@ -6,8 +6,12 @@ class /cc4a/prefer_is_not definition
   public section.
     interfaces if_ci_atc_check.
 
-    constants finding_code type if_ci_atc_check=>ty_finding_code value 'NOTISCOND'.
+    constants:
+      begin of finding_codes,
+        misplaced_not type if_ci_atc_check=>ty_finding_code value 'NOTISCOND',
+      end of finding_codes.
     constants quickfix_code type cl_ci_atc_quickfixes=>ty_quickfix_code value 'PREFISNOT'.
+    methods constructor.
   protected section.
   private section.
     constants pseudo_comment type string value 'PREFER_IS_NOT'.
@@ -24,6 +28,7 @@ class /cc4a/prefer_is_not definition
 
     data code_provider     type ref to if_ci_atc_source_code_provider.
     data assistant_factory type ref to cl_ci_atc_assistant_factory.
+    data meta_data type ref to /cc4a/if_check_meta_data.
 
     methods analyze_procedure
       importing procedure       type if_ci_atc_source_code_provider=>ty_procedure
@@ -37,12 +42,13 @@ class /cc4a/prefer_is_not definition
     "! This method is determining if the given statement contains a finding. Therefore it is searching the comparison
     "! operator which has to be negated due to the NOT condition. Since the comparison operator has to be negated when
     "! fixing the finding, it is important that the statement has no connectives (AND, OR, EQUIV) after the given start
-    "! position which makes a negation too complex (e.g keyword ( 1 = 2 and 3 = 2 ) ). Therefore the method loops over
-    "! the given statement and analyzes the next token from the start position. If the next token is the comparison
-    "! operator, the operator with the position will be returned as a mark that a finding could be determined. Otherwise
-    "! the next token is analyzed until the comparison operator is found. If a connection is found which makes it too
-    "! complex to negate the operator, the method returns an empty structure and no finding should be reported. This
-    "! also happens if no comparison operator is found.
+    "! position which makes a negation too complex (e.g keyword ( 1 = 2 and 3 = 2 ) ).
+    "!
+    "! Therefore the method loops over the given statement and analyzes the next token from the start position. If the
+    "! next token is the comparison operator, the operator with the position will be returned as a mark that a finding
+    "! could be determined. Otherwise the next token is analyzed until the comparison operator is found. If a connection
+    "! is found which makes it too complex to negate the operator, the method returns an empty structure and no finding
+    "! should be reported. This also happens if no comparison operator is found.
     methods determine_finding
       importing statement                 type if_ci_atc_source_code_provider=>ty_statement
                 start_position            type i
@@ -99,14 +105,16 @@ CLASS /CC4A/PREFER_IS_NOT IMPLEMENTATION.
           context = assistant_factory->create_quickfix_context(
             value #( procedure_id = procedure-id statements = value #( from = statement_index to = statement_index ) ) )
           code = create_quickfix_code( statement = <statement> finding_information = <finding_information> ) ).
-        insert value #( code = finding_code
+        insert value #( code = finding_codes-misplaced_not
           location = value #(
             object = code_provider->get_statement_location( <statement> )-object
             position = value #(
               line = code_provider->get_statement_location( <statement> )-position-line
               column = <finding_information>-operator_position ) )
           checksum = code_provider->get_statement_checksum( <statement> )
-          has_pseudo_comment = xsdbool( line_exists( <statement>-pseudo_comments[ table_line = pseudo_comment ] ) )
+          has_pseudo_comment = meta_data->has_valid_pseudo_comment(
+            statement = <statement>
+            finding_code = finding_codes-misplaced_not )
           details = assistant_factory->create_finding_details( )->attach_quickfixes( available_quickfixes )
         ) into table findings.
       endloop.
@@ -165,8 +173,7 @@ CLASS /CC4A/PREFER_IS_NOT IMPLEMENTATION.
       if next_token is not initial
           and analyzer->is_bracket( next_token ) <> /cc4a/if_abap_analyzer=>bracket_type-opening.
         next_token = value #( statement-tokens[ current_index + 1 ] optional ).
-        if statement-tokens[ start_position + 1 ]-lexeme eq '('
-            and ( next_token-lexeme eq 'AND' or next_token-lexeme eq 'OR' or next_token-lexeme eq 'EQUIV' ).
+        if analyzer->is_logical_connective( next_token ).
           clear operator_to_negate.
           exit.
         elseif next_token is not initial
@@ -229,14 +236,21 @@ CLASS /CC4A/PREFER_IS_NOT IMPLEMENTATION.
 
 
   method if_ci_atc_check~get_meta_data.
+    meta_data = me->meta_data.
+  endmethod.
+
+  method constructor.
     meta_data = /cc4a/check_meta_data=>create(
       value #( checked_types = /cc4a/check_meta_data=>checked_types-abap_programs
-          description = 'Prefer IS NOT to NOT IS'(des)
-          remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
-          finding_codes = value #(
-            ( code = finding_code pseudo_comment = pseudo_comment text = 'Usage of NOT IS condition'(nic) ) )
-          quickfix_codes = value #(
-            ( code = quickfix_code short_text = 'Replace NOT IS condition with IS NOT'(qin) ) ) ) ).
+        description = 'Prefer IS NOT to NOT IS'(des)
+        remote_enablement = /cc4a/check_meta_data=>remote_enablement-unconditional
+        finding_codes = value #(
+          ( code = finding_codes-misplaced_not 
+            pseudo_comment = pseudo_comment 
+            text = 'Usage of NOT IS condition'(nic) ) )
+        quickfix_codes = value #(
+          ( code = quickfix_code 
+            short_text = 'Replace NOT IS condition with IS NOT'(qin) ) ) ) ).
   endmethod.
 
 

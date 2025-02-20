@@ -1,9 +1,6 @@
-*"* use this source file for the definition and implementation of
-*"* local helper classes, interface definitions and type
-*"* declarations
-class lcl_analyze_db_statement definition deferred.
-class /cc4a/abap_analyzer definition local friends lcl_analyze_db_statement.
-class lcl_analyze_db_statement definition final.
+class db_statement_analyzer definition deferred.
+class /cc4a/abap_analyzer definition local friends db_statement_analyzer.
+class db_statement_analyzer definition final.
   public section.
 
     methods constructor
@@ -47,14 +44,14 @@ class lcl_analyze_db_statement definition final.
     data dbtab_name           type string.
     data include_subqueries   type abap_bool.
 endclass.
-class lcl_analyze_db_statement implementation.
+class db_statement_analyzer implementation.
 
   method constructor.
     me->statement = statement.
     me->start_idx = start_idx.
     me->analyzer = analyzer.
-    me->token_idx = start_idx.
-    me->check_if_dbtab = abap_true.
+    token_idx = start_idx.
+    check_if_dbtab = abap_true.
     me->include_subqueries = include_subqueries.
   endmethod.
 
@@ -98,7 +95,7 @@ class lcl_analyze_db_statement implementation.
 
   method get_result.
 
-    result-is_db = me->is_db.
+    result-is_db = is_db.
 
 *   special case for obsolete READ and LOOP statements
     if dbtab_name is not initial and check_if_dbtab = abap_false.
@@ -164,12 +161,12 @@ class lcl_analyze_db_statement implementation.
           if lines( token_db-references ) > 1.
             result-is_db = abap_false.
 *           no symbol - so try okay
-          elseif <ref1>-full_name(3) = '\' && tag_type.
+          elseif <ref1>-full_name(3) = |\\{ tag_type }|.
             result-is_db = abap_true.
           endif.
         when if_ci_atc_source_code_provider=>compiler_reference_kinds-data.
           result-is_db = abap_false.
-          if token_db-references[ 1 ]-full_name(3) = '\' && tag_common_part.
+          if token_db-references[ 1 ]-full_name(3) =           |\\{ tag_common_part }|.
             split token_db-references[ 1 ]-full_name+4 at |\\{ tag_data }:| into data(l_name1) data(l_name2).
             if l_name1 = l_name2.
               result-is_db = abap_true.

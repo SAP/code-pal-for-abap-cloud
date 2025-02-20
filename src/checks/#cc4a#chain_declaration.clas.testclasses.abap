@@ -131,66 +131,59 @@ class test implementation.
               check             = new /cc4a/chain_declaration( )
               object            = value #( type = 'CLAS' name = test_class )
               expected_findings = value #(
-                ( code = /cc4a/chain_declaration=>finding_code
-                    location = section_finding_1
+                code = /cc4a/chain_declaration=>finding_codes-chain_declaration
+                ( location = section_finding_1
                     quickfixes = value #( (
-                    quickfix_code = /cc4a/chain_declaration=>quickfix_code
+                    quickfix_code = /cc4a/chain_declaration=>quickfix_codes-resolve_chain
                     location = quickfix_location_sf_1
                     code = value #(
                     ( `CONSTANTS Q TYPE I VALUE 0 .` )
                     ( `CONSTANTS W TYPE I VALUE 0 .` ) ) ) ) )
-                ( code = /cc4a/chain_declaration=>finding_code
-                    location = section_finding_2
+                ( location = section_finding_2
                     quickfixes = value #( (
-                    quickfix_code = /cc4a/chain_declaration=>quickfix_code
+                    quickfix_code = /cc4a/chain_declaration=>quickfix_codes-resolve_chain
                     location = quickfix_location_sf_2
                     code = value #(
                     ( `CLASS-DATA O TYPE I .` )
                     ( `CLASS-DATA P TYPE I .` ) ) ) ) )
-                ( code = /cc4a/chain_declaration=>finding_code
-                    location = section_finding_3
+                ( location = section_finding_3
                     quickfixes = value #( (
-                    quickfix_code = /cc4a/chain_declaration=>quickfix_code
+                    quickfix_code = /cc4a/chain_declaration=>quickfix_codes-resolve_chain
                     location = quickfix_location_sf_3
                     code = value #(
                     ( `DATA ASD TYPE D .` )
                     ( `DATA FDG TYPE D .` ) ) ) ) )
-                ( code = /cc4a/chain_declaration=>finding_code
-                    location = static_finding_1
+                ( location = static_finding_1
                     quickfixes = value #( (
-                    quickfix_code = /cc4a/chain_declaration=>quickfix_code
+                    quickfix_code = /cc4a/chain_declaration=>quickfix_codes-resolve_chain
                     location = quickfix_location_stf_1
                     code = value #(
                     ( `STATICS THIRD TYPE I .` )
                     ( `STATICS FOURTH TYPE I .` ) ) ) ) )
-                ( code = /cc4a/chain_declaration=>finding_code
-                    location = static_finding_2
+                ( location = static_finding_2
                     quickfixes = value #( (
-                    quickfix_code = /cc4a/chain_declaration=>quickfix_code
+                    quickfix_code = /cc4a/chain_declaration=>quickfix_codes-resolve_chain
                     location = quickfix_location_stf_2
                     code = value #(
                     ( `STATICS DSGZ TYPE I .` )
                     ( `STATICS ASG TYPE I .` ) ) ) ) )
-                ( code = /cc4a/chain_declaration=>finding_code
-                    location = without_pseudo_comment_1
+                ( location = without_pseudo_comment_1
                     quickfixes = value #( (
-                    quickfix_code = /cc4a/chain_declaration=>quickfix_code
+                    quickfix_code = /cc4a/chain_declaration=>quickfix_codes-resolve_chain
                     location = quickfix_location_wopc_1
                     code = value #(
                     ( `DATA Z TYPE I . DATA K TYPE I . DATA B TYPE I .` )
                     ( `DATA D TYPE I .` ) ) ) ) )
-                ( code = /cc4a/chain_declaration=>finding_code
-                    location = without_pseudo_comment_2
+                ( location = without_pseudo_comment_2
                     quickfixes = value #( (
-                    quickfix_code = /cc4a/chain_declaration=>quickfix_code
+                    quickfix_code = /cc4a/chain_declaration=>quickfix_codes-resolve_chain
                     location = quickfix_location_wopc_2
                     code = value #(
                     ( `TYPES TY_TYPE2 TYPE TY_TYPES .` )
                     ( `TYPES TY_TYPE3 TYPE TY_TYPES .` ) ) ) ) )
-                ( code = /cc4a/chain_declaration=>finding_code
-                    location = without_pseudo_comment_3
+                ( location = without_pseudo_comment_3
                     quickfixes = value #( (
-                    quickfix_code = /cc4a/chain_declaration=>quickfix_code
+                    quickfix_code = /cc4a/chain_declaration=>quickfix_codes-resolve_chain
                     location = quickfix_location_wopc_3
                     code = value #(
                     ( `TYPES TY_EXEMPTIONS TYPE STANDARD TABLE OF STRING WITH EMPTY KEY .` )
@@ -216,10 +209,9 @@ class test implementation.
                     ( `CHKMSGID TYPE XSTRING ,` )
                     ( `RANGE TYPE RANGE OF XSTRING ,` )
                     ( `END OF CURRENT_CHKMSGID_T .` ) ) ) ) )
-                ( code = /cc4a/chain_declaration=>finding_code
-                    location = without_pseudo_comment_4
+                ( location = without_pseudo_comment_4
                     quickfixes = value #( (
-                    quickfix_code = /cc4a/chain_declaration=>quickfix_code
+                    quickfix_code = /cc4a/chain_declaration=>quickfix_codes-resolve_chain
                     location = quickfix_location_wopc_4
                     code = value #(
                     ( `CONSTANTS:` )
@@ -230,28 +222,25 @@ class test implementation.
                     ( `WORKLIST_ID TYPE ty_object_with_exemptions-key-obj_name VALUE 'WORKLIST_ID' ,` )
                     ( `END OF C_CFG_PARAM2 .` )
                     ( `CONSTANTS C_MODULE_ID2 TYPE xstring VALUE '005056A7004E1EE682F6E8FEE661C090' .` ) ) ) ) )
-                ( code = /cc4a/chain_declaration=>finding_code
-                    location = with_pseudo_comment_1
+                ( location = with_pseudo_comment_1
                     quickfixes = value #( (
-                    quickfix_code = /cc4a/chain_declaration=>quickfix_code
+                    quickfix_code = /cc4a/chain_declaration=>quickfix_codes-resolve_chain
                     location = quickfix_location_wpc_1
                     code = value #(
                     ( `DATA Q TYPE I .` )
                     ( `DATA W TYPE I .` )
                     ( `DATA E TYPE I .` )
                     ( `DATA R TYPE I .` ) ) ) ) )
-                ( code = /cc4a/chain_declaration=>finding_code
-                    location = with_pseudo_comment_2
+                ( location = with_pseudo_comment_2
                     quickfixes = value #( (
-                    quickfix_code = /cc4a/chain_declaration=>quickfix_code
+                    quickfix_code = /cc4a/chain_declaration=>quickfix_codes-resolve_chain
                     location = quickfix_location_wpc_2
                     code = value #(
                     ( `TYPES TY_TYPE10 TYPE TY_TYPES .` )
                     ( `TYPES TY_TYPE13 TYPE TY_TYPES .` ) ) ) ) )
-                ( code = /cc4a/chain_declaration=>finding_code
-                    location = with_pseudo_comment_3
+                ( location = with_pseudo_comment_3
                     quickfixes = value #( (
-                    quickfix_code = /cc4a/chain_declaration=>quickfix_code
+                    quickfix_code = /cc4a/chain_declaration=>quickfix_codes-resolve_chain
                     location = quickfix_location_wpc_3
                     code = value #(
                     ( `CONSTANTS:` )
@@ -270,10 +259,9 @@ class test implementation.
                     ( `OBJECT_CONTEXT TYPE c length 40 VALUE 'OBJCTX' ,` )
                     ( `DYNTEST_OBJECT TYPE c length 40 VALUE 'DYNTEST_OBJECT' ,` )
                     ( `END OF C_SET_PARAM .` ) ) ) ) )
-                ( code = /cc4a/chain_declaration=>finding_code
-                    location = with_pseudo_comment_4
+                ( location = with_pseudo_comment_4
                     quickfixes = value #( (
-                    quickfix_code = /cc4a/chain_declaration=>quickfix_code
+                    quickfix_code = /cc4a/chain_declaration=>quickfix_codes-resolve_chain
                     location = quickfix_location_wpc_4
                     code = value #(
                     ( `TYPES: TY_EXEMPTIONS TYPE STANDARD TABLE OF STRING WITH EMPTY KEY .` )

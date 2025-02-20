@@ -29,7 +29,7 @@ Please submit feedback and bug reports as a [GitHub issue](https://github.com/SA
 
 ## Contributing
 
-We welcome all contributions to this project, no matter whether you fixed a typo, repaired a bug or wrote a new check. See our [contributor guide](contributing.md) for details.
+We welcome all contributions to this project, no matter whether you fixed a typo, repaired a bug or wrote a new check. See our [contributor guide](CONTRIBUTING.md) for details.
 
 ## Code of Conduct
 
@@ -37,4 +37,4 @@ We as members, contributors, and leaders pledge to make participation in our com
 
 ## Licensing
 
-Copyright 2022 SAP SE or an SAP affiliate company and Code Pal for ABAP Cloud contributors. Please see our [license](licenses/Apache-2.0.txt) for copyright and license information. Detailed information including third-party components and their licensing/copyright information is available [via the REUSE tool](https://api.reuse.software/info/github.com/SAP/code-pal-for-abap-cloud).
+Copyright 2022 SAP SE or an SAP affiliate company and Code Pal for ABAP Cloud contributors. Please see our [license](LICENSES/Apache-2.0.txt) for copyright and license information. Detailed information including third-party components and their licensing/copyright information is available [via the REUSE tool](https://api.reuse.software/info/github.com/SAP/code-pal-for-abap-cloud).

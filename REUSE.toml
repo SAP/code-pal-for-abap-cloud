@@ -1,0 +1,10 @@
+version = 1
+SPDX-PackageName = "code pal for ABAP cloud"
+SPDX-PackageSupplier = "code pal for ABAP cloud team (@SAP/code-pal-for-abap-cloud-team)"
+SPDX-PackageDownloadLocation = "https://github.com/SAP/code-pal-for-abap-cloud"
+
+[[annotations]]
+path = "**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2021 SAP SE or an SAP affiliate company and code pal for ABAP contributors"
+SPDX-License-Identifier = "Apache-2.0"

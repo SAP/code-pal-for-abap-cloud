@@ -15,7 +15,7 @@ Recommended SAP package: `/CC4A/CODE_PAL`
 
 Compatibility of the most recent version is only guaranteed for the current version of ABAP for Cloud Development. For the SAP_BASIS 7.58-compatible version, use the `SAP_BASIS-7.58-compatible` branch.
 
-ATC checks used to require manual activation in transaction SCI. This is not necessary for the ATC checks provided in this repository.
+You can only use the ATC checks in an ATC check variant maintained via ADT. The ATC checks are not visible in the check maintenance of transaction SCI. This also means that the previously manual check activation in SCI is not a required step anymore. 
 
 ## Features
 

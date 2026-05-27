@@ -312,33 +312,40 @@ class /cc4a/modern_language implementation.
       return.
     endif.
     data(key_idx) = analyzer->find_clause_index(  tokens = statement-tokens clause = 'WITH KEY' ).
+    data(with_table_key) = abap_false.
     if key_idx = 0.
-      return.
-    else.
-
-      data(start_idx) = analyzer->find_clause_index(  tokens = statement-tokens clause = 'COMPONENTS'
-                                                      start_index = key_idx + 1 ).
-      if start_idx = 0. "with key...
-        start_idx = key_idx + 2.
-      else. "with key name components ...
-        start_idx -= 2.
+      key_idx = analyzer->find_clause_index( tokens = statement-tokens clause = 'WITH TABLE KEY' ).
+      if key_idx = 0.
+        return.
       endif.
-      data(keylen) = 0.
-      data(to_idx) =  analyzer->find_clause_index( tokens = statement-tokens clause = 'TRANSPORTING' start_index = start_idx ) - 1.
-      if to_idx <= 0.
-        to_idx = lines( statement-tokens ).
-      endif.
-      if statement-tokens[ key_idx + 2 ]-lexeme = '='.
-        key = 'TABLE_LINE'.
-        append_tokens( exporting tokens = statement-tokens from_idx = key_idx + 2 to_idx = to_idx
-                       changing result = key ).
-      else.
-        append_tokens( exporting tokens = statement-tokens from_idx = start_idx to_idx = to_idx
-                       changing result = key ).
-      endif.
-      keylen = to_idx - start_idx + 1.
-
+      with_table_key = abap_true.
     endif.
+
+    data(start_idx) = analyzer->find_clause_index(  tokens = statement-tokens clause = 'COMPONENTS'
+                                                    start_index = key_idx + 1 ).
+    if start_idx = 0. "with key...
+      if with_table_key = abap_true.
+        start_idx = key_idx + 3.
+      else.
+        start_idx = key_idx + 2.
+      endif.
+    else. "with key name components ...
+      start_idx -= 2.
+    endif.
+    data(keylen) = 0.
+    data(to_idx) =  analyzer->find_clause_index( tokens = statement-tokens clause = 'TRANSPORTING' start_index = start_idx ) - 1.
+    if to_idx <= 0.
+      to_idx = lines( statement-tokens ).
+    endif.
+    if statement-tokens[ key_idx + 2 ]-lexeme = '='.
+      key = 'TABLE_LINE'.
+      append_tokens( exporting tokens = statement-tokens from_idx = key_idx + 2 to_idx = to_idx
+                     changing result = key ).
+    else.
+      append_tokens( exporting tokens = statement-tokens from_idx = start_idx to_idx = to_idx
+                     changing result = key ).
+    endif.
+    keylen = to_idx - start_idx + 1.
     if keylen = 1.
 *     finding without quickfix since obsolete version read table with key val.
       add_finding(

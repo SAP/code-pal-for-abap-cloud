@@ -74,6 +74,9 @@
     },
     {
       "checkName": "/CC4A/VARIABLE_SCOPE"
+    },
+    {
+      "checkName": "/CC4A/PREFER_CASE_TO_ELSEIF"
     }
   ]
 }

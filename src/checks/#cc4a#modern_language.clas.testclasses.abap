@@ -141,6 +141,20 @@ class test implementation.
        has_pseudo_comment = abap_true  )
 
      ( code = /cc4a/modern_language=>message_codes-line_exists
+       location = value #( object = test_read position = value #( line = 86 column = 4 ) )
+       quickfixes = value #( (
+         quickfix_code = /cc4a/modern_language=>quickfix_codes-line_exists
+         span = value #( object = test_read from = 86 to = 87 )
+         code_lines = value #( ( `IDX = LINE_INDEX( ITAB[ KEY NAME COMPONENTS OBJ_NAME = 'BLABLA' ] ).` ) ) ) ) )
+
+     ( code = /cc4a/modern_language=>message_codes-line_exists
+       location = value #( object = test_read position = value #( line = 90 column = 4 ) )
+       quickfixes = value #( (
+         quickfix_code = /cc4a/modern_language=>quickfix_codes-line_exists
+         span = value #( object = test_read from = 90 to = 91 )
+         code_lines = value #( ( `IDX = LINE_INDEX( ITAB_SORTED[ PGMID = 'R3TR' OBJECT = 'CLAS' ] ).` ) ) ) ) )
+
+     ( code = /cc4a/modern_language=>message_codes-line_exists
        location = value #( object = test_loop position = value #( line = 4 column = 4 ) )
        quickfixes = value #( (
          quickfix_code = /cc4a/modern_language=>quickfix_codes-line_exists

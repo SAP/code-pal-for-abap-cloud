@@ -140,6 +140,13 @@ class /cc4a/test_modern_language implementation.
     if sy-subrc <> 0.
       test->test( param = abap_false ).
     endif.
+
+    read table itab with table key name components obj_name = 'BLABLA' transporting no fields.
+    idx = sy-tabix.
+
+    data itab_sorted type sorted table of /cc4a/db_test1 with unique key pgmid object.
+    read table itab_sorted with table key pgmid = 'R3TR' object = 'CLAS' transporting no fields.
+    idx = sy-tabix.
   endmethod.
 
 
